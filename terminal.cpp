@@ -1293,24 +1293,30 @@ const QStringList Terminal::grabURLsFromBuffer()
             buf.append(' ');
     }
 
-    QStringList lookFor;
-    lookFor.append("http://");
-    lookFor.append("https://");
+    /* http://blog.mattheworiordan.com/post/13174566389/url-regular-expression-for-links-with-or-without-the */
+    QRegularExpression re("("
+                   "(" // brackets covering match for protocol (optional) and domain
+                     "([A-Za-z]{3,9}:(?:\\/\\/)?)" // match protocol, allow in format http:// or mailto:
+                     "(?:[\\-;:&=\\+\\$,\\w]+@)?" // allow something@ for email addresses
+                     "[A-Za-z0-9\\.\\-]+" // anything looking at all like a domain, non-unicode domains
+                     "|" // or instead of above
+                     "(?:www\\.|[\\-;:&=\\+\\$,\\w]+@)" // starting with something@ or www.
+                     "[A-Za-z0-9\\.\\-]+"   // anything looking at all like a domain
+                   ")"
+                   "(" // brackets covering match for path, query string and anchor
+                     "(?:\\/[\\+~%\\/\\.\\w\\-]*)" // allow optional /path
+                     "?\\?""?(?:[\\-\\+=&;%@\\.\\w]*)" // allow optional query string starting with ?
+                     "#?(?:[\\.\\!\\/\\\\\\w]*)" // allow optional anchor #anchor
+                   ")?" // make URL suffix optional
+               ")");
 
-    foreach(QString prot, lookFor) {
-        int ind=0;
-        while( ind != -1 ) {
-            ind = buf.indexOf(prot, ind);
-            if(ind!=-1) {
-                int ind2 = buf.indexOf(" ",ind);
-                int l=-1;
-                if(ind2!=-1)
-                    l = ind2-ind;
-                ret << buf.mid(ind,l); // the URL
-                ind += prot.length();
-            }
-        }
+    QRegularExpressionMatchIterator i = re.globalMatch(buf);
+    while (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        QString word = match.captured(1);
+        ret << word;
     }
+
     ret.removeDuplicates();
     return ret;
 }
