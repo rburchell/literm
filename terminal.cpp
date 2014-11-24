@@ -685,6 +685,17 @@ void Terminal::ansiSequence(const QString& seq)
         }
         break;
 
+    case 'X':
+        if(!extra.isEmpty() || (params.count()>1)) {
+            unhandled=true;
+            break;
+        }
+	if (params.count()==0) {
+		params.append(1);
+	}
+	eraseLineAtCursor(cursorPos().x(),cursorPos().x()+(params.at(0)?params.at(0)-1:0));
+	break;	
+
     case 'L':  // insert lines
         if(!extra.isEmpty()) {
             unhandled=true;
