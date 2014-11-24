@@ -373,14 +373,7 @@ void Terminal::insertInBuffer(const QString& chars)
             }
         }
         else if(ch.toLatin1()=='\t') {  //tab
-            if(cursorPos().y() <= iTabStops.size()) {
-                for(int i=0; i<iTabStops[cursorPos().y()-1].count(); i++) {
-                    if(iTabStops[cursorPos().y()-1][i] > cursorPos().x()) {
-                        setCursorPos(QPoint( iTabStops[cursorPos().y()-1][i], cursorPos().y() ));
-                        break;
-                    }
-                }
-            }
+            forwardTab();
         }
         else if(ch.toLatin1()==14 || ch.toLatin1()==15) {  //SI and SO, related to character set... ignore
         }
@@ -533,6 +526,29 @@ void Terminal::clearAll(bool wholeBuffer)
     setCursorPos(QPoint(1,1));
 }
 
+void Terminal::backwardTab()
+{
+    if(cursorPos().y() <= iTabStops.size()) {
+        for(int i=iTabStops[cursorPos().y()-1].count()-1; i>=0; i--) {
+            if(iTabStops[cursorPos().y()-1][i] < cursorPos().x()) {
+                setCursorPos(QPoint( iTabStops[cursorPos().y()-1][i], cursorPos().y() ));
+                break;
+            }
+        }
+    }
+}
+
+void Terminal::forwardTab()
+{
+    if(cursorPos().y() <= iTabStops.size()) {
+        for(int i=0; i<iTabStops[cursorPos().y()-1].count(); i++) {
+            if(iTabStops[cursorPos().y()-1][i] > cursorPos().x()) {
+                setCursorPos(QPoint( iTabStops[cursorPos().y()-1][i], cursorPos().y() ));
+                break;
+            }
+        }
+    }
+}
 
 void Terminal::ansiSequence(const QString& seq)
 {
@@ -690,11 +706,37 @@ void Terminal::ansiSequence(const QString& seq)
             unhandled=true;
             break;
         }
-	if (params.count()==0) {
-		params.append(1);
-	}
-	eraseLineAtCursor(cursorPos().x(),cursorPos().x()+(params.at(0)?params.at(0)-1:0));
-	break;	
+        if (params.count()==0) {
+            params.append(1);
+        }
+        eraseLineAtCursor(cursorPos().x(),cursorPos().x()+(params.at(0)?params.at(0)-1:0));
+        break;
+
+    case 'I':
+        if(!extra.isEmpty() || (params.count()>1)) {
+            unhandled=true;
+            break;
+        }
+        if (params.count()==0) {
+            params.append(1);
+        }
+        for (int i=0;i<params.at(0);i++) {
+            forwardTab();
+        }
+        break;
+
+    case 'Z':
+        if(!extra.isEmpty() || (params.count()>1)) {
+            unhandled=true;
+            break;
+        }
+        if (params.count()==0) {
+            params.append(1);
+        }
+        for (int i=0;i<params.at(0);i++) {
+            backwardTab();
+        }
+        break;
 
     case 'L':  // insert lines
         if(!extra.isEmpty()) {

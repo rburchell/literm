@@ -133,6 +133,8 @@ private:
     void resetTerminal();
     void resetTabs();
     void adjustSelectionPosition(int lines);
+    void forwardTab();
+    void backwardTab();
 
     PtyIFace* iPtyIFace;
     QQuickView* iWindow;
