@@ -17,7 +17,8 @@ enable-nemonotifications {
 }
 
 isEmpty(DEFAULT_FONT) {
-    DEFAULT_FONT = monospace
+    mac: DEFAULT_FONT = Monaco
+    else: DEFAULT_FONT = monospace
 }
 
 DEFINES += DEFAULT_FONTFAMILY=\\\"$$DEFAULT_FONT\\\"
