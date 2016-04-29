@@ -24,7 +24,7 @@
 #include "terminal.h"
 #include "ptyiface.h"
 #include "textrender.h"
-#include "util.h"
+#include "utilities.h"
 
 static bool charIsHexDigit(QChar ch)
 {

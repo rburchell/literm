@@ -26,7 +26,11 @@
 #include <QString>
 
 extern "C" {
-#include <pty.h>
+#if defined(Q_OS_LINUX)
+# include <pty.h>
+#elif defined(Q_OS_MAC)
+# include <util.h>
+#endif
 #include <stdlib.h>
 #include <unistd.h>
 #include <pwd.h>
@@ -36,7 +40,7 @@ extern "C" {
 #include "ptyiface.h"
 #include "terminal.h"
 #include "textrender.h"
-#include "util.h"
+#include "utilities.h"
 #include "version.h"
 #include "keyloader.h"
 

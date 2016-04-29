@@ -21,7 +21,7 @@
 #include <QDebug>
 
 #include "keyloader.h"
-#include "util.h"
+#include "utilities.h"
 
 KeyLoader::KeyLoader(QObject *parent) :
     QObject(parent),

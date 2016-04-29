@@ -26,7 +26,7 @@
 #include <QDebug>
 
 #include "terminal.h"
-#include "util.h"
+#include "utilities.h"
 #include "textrender.h"
 #include "version.h"
 
