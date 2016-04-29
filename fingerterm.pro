@@ -34,7 +34,7 @@ HEADERS += \
     terminal.h \
     textrender.h \
     version.h \
-    util.h \
+    utilities.h \
     keyloader.h
 
 SOURCES += \
@@ -42,7 +42,7 @@ SOURCES += \
     terminal.cpp \
     textrender.cpp \
     ptyiface.cpp \
-    util.cpp \
+    utilities.cpp \
     keyloader.cpp
 
 OTHER_FILES += \

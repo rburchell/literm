@@ -20,7 +20,7 @@
 #include <QtGui>
 #include "textrender.h"
 #include "terminal.h"
-#include "util.h"
+#include "utilities.h"
 
 Terminal* TextRender::sTerm = 0;
 Util* TextRender::sUtil = 0;
