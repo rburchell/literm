@@ -39,6 +39,7 @@ Rectangle {
     width: parent.width
     height: lineTextCol.height + 8*window.pixelRatio
 
+    // TODO: in the future, consider using TextMetrics instead.
     Text {
         id: fontHeightHack
         visible: false
