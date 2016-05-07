@@ -20,7 +20,6 @@
 #include <QCoreApplication>
 
 extern "C" {
-#include <pty.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
