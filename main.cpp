@@ -116,7 +116,12 @@ int main(int argc, char *argv[])
     qmlRegisterUncreatableType<Util>("FingerTerm", 1, 0, "Util", "Util is created by app");
     QQuickView view;
 
+#if defined(DESKTOP_BUILD)
+    bool fullscreen = app.arguments().contains("-fullscreen");
+#else
     bool fullscreen = !app.arguments().contains("-nofs");
+#endif
+
     QSize screenSize = QGuiApplication::primaryScreen()->size();
 
     if (fullscreen) {
