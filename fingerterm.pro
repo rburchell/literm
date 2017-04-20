@@ -1,5 +1,8 @@
 QT = core gui qml quick
 
+MOC_DIR = .moc
+OBJECTS_DIR = .obj
+
 CONFIG += link_pkgconfig
 
 enable-feedback {
