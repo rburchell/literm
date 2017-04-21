@@ -87,7 +87,80 @@ Item {
             property int scrollBarWidth: 6*window.pixelRatio
 
             anchors.fill: parent
-            color: bellTimer.running ? "#ffffff" : bgcolor
+            color: bgcolor
+
+            TextRender {
+                id: textrender
+
+                cellDelegate: Rectangle {
+                }
+                cellContentsDelegate: Text {
+                }
+                cursorDelegate: Rectangle {
+                    id: cursor
+                    opacity: 0.5
+                    SequentialAnimation {
+                        running: true
+                        loops: Animation.Infinite
+                        NumberAnimation {
+                            target: cursor
+                            property: "opacity"
+                            to: 0.8
+                            duration: 200
+                        }
+                        PauseAnimation {
+                            duration: 400
+                        }
+                        NumberAnimation {
+                            target: cursor
+                            property: "opacity"
+                            to: 0.5
+                            duration: 200
+                        }
+                    }
+                }
+                selectionDelegate: Rectangle {
+                    color: "blue"
+                    opacity: 0.5
+                }
+
+                Rectangle {
+                    id: bellTimerRect
+                    visible: opacity > 0
+                    opacity: bellTimer.running ? 0.5 : 0.0
+                    anchors.fill: parent
+                    color: "#ffffff"
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 200
+                        }
+                    }
+                }
+
+                property int duration
+                property int cutAfter: height
+
+                height: parent.height
+                width: parent.width
+                fontPointSize: util.fontSize
+                opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
+                                                                                : 1.0
+                allowGestures: !vkb.active && !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
+
+                Behavior on opacity {
+                    NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                }
+                Behavior on y {
+                    NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                }
+
+                onCutAfterChanged: {
+                    // this property is used in the paint function, so make sure that the element gets
+                    // painted with the updated value (might not otherwise happen because of caching)
+                    textrender.redraw();
+                }
+            }
+
 
             Lineview {
                 id: lineView
@@ -101,6 +174,12 @@ Item {
 
                 y: parent.height-vkb.height
                 visible: page.activeFocus && visibleSetting
+
+                opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.6
+                                                                                : 0.3
+                Behavior on opacity {
+                    NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                }
             }
 
             // area that handles gestures/select/scroll modes and vkb-keypresses
@@ -196,33 +275,6 @@ Item {
                 anchors.bottom: parent.bottom
                 visible: textrender.showBufferScrollIndicator
                 scale: window.pixelRatio
-            }
-
-            TextRender {
-                id: textrender
-
-                property int duration
-                property int cutAfter: height
-
-                height: parent.height
-                width: parent.width
-                fontPointSize: util.fontSize
-                opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
-                                                                                : 1.0
-                allowGestures: !vkb.active && !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
-
-                Behavior on opacity {
-                    NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
-                }
-                Behavior on y {
-                    NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
-                }
-
-                onCutAfterChanged: {
-                    // this property is used in the paint function, so make sure that the element gets
-                    // painted with the updated value (might not otherwise happen because of caching)
-                    textrender.redraw();
-                }
             }
 
             Timer {
