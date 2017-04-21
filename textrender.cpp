@@ -1,4 +1,5 @@
 /*
+    Copyright (C) 2017 Crimson AS <info@crimson.no>
     Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
 
     This file is part of FingerTerm.
@@ -25,16 +26,32 @@
 Terminal* TextRender::sTerm = 0;
 Util* TextRender::sUtil = 0;
 
-TextRender::TextRender(QQuickItem *parent) :
-    QQuickPaintedItem(parent),
-    newSelection(true),
-    iAllowGestures(true)
+TextRender::TextRender(QQuickItem *parent)
+    : QQuickItem(parent)
+    , newSelection(true)
+    , iAllowGestures(true)
+    , m_backgroundContainer(0)
+    , m_textContainer(0)
+    , m_overlayContainer(0)
+    , m_cellDelegate(0)
+    , m_cellContentsDelegate(0)
+    , m_cursorDelegate(0)
+    , m_cursorDelegateInstance(0)
+    , m_selectionDelegate(0)
+    , m_topSelectionDelegateInstance(0)
+    , m_middleSelectionDelegateInstance(0)
+    , m_bottomSelectionDelegateInstance(0)
 {
-    setFlag(ItemHasContents);
+    m_backgroundContainer = new QQuickItem(this);
+    m_backgroundContainer->setClip(true);
+    m_textContainer = new QQuickItem(this);
+    m_textContainer->setClip(true);
+    m_overlayContainer = new QQuickItem(this);
+    m_overlayContainer->setClip(true);
 
-    connect(this,SIGNAL(widthChanged()),this,SLOT(updateTermSize()));
-    connect(this,SIGNAL(heightChanged()),this,SLOT(updateTermSize()));
-    connect(this,SIGNAL(fontSizeChanged()),this,SLOT(updateTermSize()));
+    connect(this,SIGNAL(widthChanged()),this,SLOT(redraw()));
+    connect(this,SIGNAL(heightChanged()),this,SLOT(redraw()));
+    connect(this,SIGNAL(fontSizeChanged()),this,SLOT(redraw()));
 
     //normal
     iColorTable.append(QColor(0, 0, 0));
@@ -77,7 +94,7 @@ TextRender::TextRender(QQuickItem *parent) :
 
     iFont = QFont(sUtil->fontFamily(), sUtil->fontSize());
     iFont.setBold(false);
-    QFontMetrics fontMetrics(iFont);
+    QFontMetricsF fontMetrics(iFont);
     iFontHeight = fontMetrics.height();
     iFontWidth = fontMetrics.maxWidth();
     iFontDescent = fontMetrics.descent();
@@ -88,19 +105,81 @@ TextRender::TextRender(QQuickItem *parent) :
     connect(sTerm, SIGNAL(termSizeChanged(int,int)), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(selectionChanged()), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(scrollBackBufferAdjusted(bool)), this, SLOT(handleScrollBack(bool)));
-    updateTermSize();
 }
 
 TextRender::~TextRender()
 {
 }
 
-void TextRender::paint(QPainter* painter)
+/*!
+ * \internal
+ *
+ * Ensures \a row and \a rowContents have enough delegates to display
+ * \a columnCount columns
+ */
+void TextRender::ensureRowPopulated(QVector<QQuickItem*> &row, QVector<QQuickItem*> &rowContents, int columnCount)
 {
-    painter->save();
-    painter->setFont(iFont);
+    row.reserve(columnCount);
+    rowContents.reserve(columnCount);
 
-    int y=0;
+    for (int col = row.size(); col < columnCount; ++col) {
+        QQuickItem *it = nullptr;
+
+        it = qobject_cast<QQuickItem*>(m_cellDelegate->create(qmlContext(this)));
+        it->setVisible(false);
+        it->setParentItem(m_backgroundContainer);
+        Q_ASSERT(it);
+        row.append(it);
+
+        it = qobject_cast<QQuickItem*>(m_cellContentsDelegate->create(qmlContext(this)));
+        it->setVisible(false);
+        it->setParentItem(m_textContainer);
+        Q_ASSERT(it);
+        rowContents.append(it);
+    }
+}
+
+void TextRender::updatePolish()
+{
+    // Make sure the terminal's size is right
+    QSize size((width() - 4) / iFontWidth, (height() - 4) / iFontHeight);
+    sTerm->setTermSize(size);
+
+    m_backgroundContainer->setWidth(width());
+    m_backgroundContainer->setHeight(height());
+    m_textContainer->setWidth(width());
+    m_textContainer->setHeight(height());
+    m_overlayContainer->setWidth(width());
+    m_overlayContainer->setHeight(height());
+
+    // If the height grows, make sure we have enough rows
+    if (m_cells.size() < sTerm->rows()) {
+        const int oldSize = m_cells.size();
+
+        m_cells.resize(sTerm->rows());
+        m_cellsContent.resize(sTerm->rows());
+
+        const int columnCount = sTerm->columns();
+
+        for (int row = oldSize; row < m_cells.size(); ++row) {
+            auto &cellRow = m_cells[row];
+            auto &contentsRow = m_cellsContent[row];
+            ensureRowPopulated(cellRow, contentsRow, columnCount);
+        }
+    }
+
+    // Ensure that there's sufficient width too, if that changed.
+    if (m_cells[0].size() < sTerm->columns()) {
+        const int columnCount = sTerm->columns();
+        for (int row = 0; row < sTerm->rows(); ++row) {
+            auto &cellRow = m_cells[row];
+            auto &contentsRow = m_cellsContent[row];
+            ensureRowPopulated(cellRow, contentsRow, columnCount);
+        }
+    }
+
+    qreal y = 0;
+    int yDelegateIndex = 0;
     if (sTerm->backBufferScrollPos() != 0 && sTerm->backBuffer().size()>0) {
         int from = sTerm->backBuffer().size() - sTerm->backBufferScrollPos();
         if(from<0)
@@ -108,63 +187,88 @@ void TextRender::paint(QPainter* painter)
         int to = sTerm->backBuffer().size();
         if(to-from > sTerm->rows())
             to = from + sTerm->rows();
-        paintFromBuffer(painter, sTerm->backBuffer(), from, to, y);
+        paintFromBuffer(sTerm->backBuffer(), from, to, y, yDelegateIndex);
         if(to-from < sTerm->rows() && sTerm->buffer().size()>0) {
             int to2 = sTerm->rows() - (to-from);
             if(to2 > sTerm->buffer().size())
                 to2 = sTerm->buffer().size();
-            paintFromBuffer(painter, sTerm->buffer(), 0, to2, y);
+            paintFromBuffer(sTerm->buffer(), 0, to2, y, yDelegateIndex);
         }
     } else {
         int count = qMin(sTerm->rows(), sTerm->buffer().size());
-        paintFromBuffer(painter, sTerm->buffer(), 0, count, y);
+        paintFromBuffer(sTerm->buffer(), 0, count, y, yDelegateIndex);
+    }
+
+    // paint any remaining rows unused
+    for (; yDelegateIndex < m_cells.size(); ++yDelegateIndex) {
+        for (int j=0;j<sTerm->columns(); j++) {
+            m_cells[yDelegateIndex][j]->setVisible(false);
+            m_cellsContent[yDelegateIndex][j]->setVisible(false);
+        }
     }
 
     // cursor
     if (sTerm->showCursor()) {
-        painter->setOpacity(0.5);
-        QPoint cursor = cursorPixelPos();
-        QSize csize = cursorPixelSize();
-        painter->setPen(Qt::transparent);
-        painter->setBrush(iColorTable[Terminal::defaultFgColor]);
-        painter->drawRect(cursor.x(), cursor.y(), csize.width(), csize.height());
+        m_cursorDelegateInstance->setVisible(true);
+        QPointF cursor = cursorPixelPos();
+        QSizeF csize = cursorPixelSize();
+        m_cursorDelegateInstance->setX(cursor.x());
+        m_cursorDelegateInstance->setY(cursor.y());
+        m_cursorDelegateInstance->setWidth(csize.width());
+        m_cursorDelegateInstance->setHeight(csize.height());
+        m_cursorDelegateInstance->setProperty("color", iColorTable[Terminal::defaultFgColor]);
+    } else {
+        m_cursorDelegateInstance->setVisible(false);
     }
 
-    // selection
     QRect selection = sTerm->selection();
     if (!selection.isNull()) {
-        painter->setOpacity(0.5);
-        painter->setPen(Qt::transparent);
-        painter->setBrush(Qt::blue);
-        QPoint start, end;
-
         if (selection.top() == selection.bottom()) {
-            start = charsToPixels(selection.topLeft());
-            end = charsToPixels(selection.bottomRight());
-            painter->drawRect(start.x(), start.y(),
-                              end.x()-start.x()+fontWidth(), end.y()-start.y()+fontHeight());
+            QPointF start = charsToPixels(selection.topLeft());
+            QPointF end = charsToPixels(selection.bottomRight());
+            m_topSelectionDelegateInstance->setVisible(false);
+            m_bottomSelectionDelegateInstance->setVisible(false);
+            m_middleSelectionDelegateInstance->setVisible(true);
+            m_middleSelectionDelegateInstance->setX(start.x());
+            m_middleSelectionDelegateInstance->setY(start.y());
+            m_middleSelectionDelegateInstance->setWidth(end.x() - start.x() + fontWidth());
+            m_middleSelectionDelegateInstance->setHeight(end.y() - start.y() + fontHeight());
         } else {
-            start = charsToPixels(selection.topLeft());
-            end = charsToPixels(QPoint(sTerm->columns(), selection.top()));
-            painter->drawRect(start.x(), start.y(),
-                              end.x()-start.x()+fontWidth(), end.y()-start.y()+fontHeight());
+            m_topSelectionDelegateInstance->setVisible(true);
+            m_bottomSelectionDelegateInstance->setVisible(true);
+            m_middleSelectionDelegateInstance->setVisible(true);
 
-            start = charsToPixels(QPoint(1, selection.top()+1));
-            end = charsToPixels(QPoint(sTerm->columns(), selection.bottom()-1));
-            painter->drawRect(start.x(), start.y(),
-                              end.x()-start.x()+fontWidth(), end.y()-start.y()+fontHeight());
+            QPointF start = charsToPixels(selection.topLeft());
+            QPointF end = charsToPixels(QPoint(sTerm->columns(), selection.top()));
+            m_topSelectionDelegateInstance->setX(start.x());
+            m_topSelectionDelegateInstance->setY(start.y());
+            m_topSelectionDelegateInstance->setWidth(end.x() - start.x() + fontWidth());
+            m_topSelectionDelegateInstance->setHeight(end.y() - start.y() + fontHeight());
+
+            start = charsToPixels(QPoint(1, selection.top() + 1));
+            end = charsToPixels(QPoint(sTerm->columns(), selection.bottom() - 1));
+
+            m_middleSelectionDelegateInstance->setX(start.x());
+            m_middleSelectionDelegateInstance->setY(start.y());
+            m_middleSelectionDelegateInstance->setWidth(end.x() - start.x() + fontWidth());
+            m_middleSelectionDelegateInstance->setHeight(end.y() - start.y() + fontHeight());
 
             start = charsToPixels(QPoint(1, selection.bottom()));
             end = charsToPixels(selection.bottomRight());
-            painter->drawRect(start.x(), start.y(),
-                              end.x()-start.x()+fontWidth(), end.y()-start.y()+fontHeight());
-        }
-    }
 
-    painter->restore();
+            m_bottomSelectionDelegateInstance->setX(start.x());
+            m_bottomSelectionDelegateInstance->setY(start.y());
+            m_bottomSelectionDelegateInstance->setWidth(end.x() - start.x() + fontWidth());
+            m_bottomSelectionDelegateInstance->setHeight(end.y() - start.y() + fontHeight());
+        }
+    } else {
+        m_topSelectionDelegateInstance->setVisible(false);
+        m_bottomSelectionDelegateInstance->setVisible(false);
+        m_middleSelectionDelegateInstance->setVisible(false);
+    }
 }
 
-void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buffer, int from, int to, int &y)
+void TextRender::paintFromBuffer(QList<QList<TermChar> >& buffer, int from, int to, qreal &y, int &yDelegateIndex)
 {
     const int leftmargin = 2;
     int cutAfter = property("cutAfter").toInt() + iFontDescent;
@@ -172,20 +276,23 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
     TermChar tmp = sTerm->zeroChar;
     TermChar nextAttrib = sTerm->zeroChar;
     TermChar currAttrib = sTerm->zeroChar;
-    int currentX = leftmargin;
-    for(int i=from; i<to; i++) {
+    qreal currentX = leftmargin;
+
+    for(int i=from; i<to; i++, yDelegateIndex++) {
         y += iFontHeight;
 
+        // ### if the background containers also had a container per row, we
+        // could set the opacity there, rather than on each fragment.
+        qreal opacity = 1.0;
         if(y >= cutAfter)
-            painter->setOpacity(0.3);
-        else
-            painter->setOpacity(1.0);
+            opacity = 0.3;
 
         int xcount = qMin(buffer.at(i).count(), sTerm->columns());
 
         // background for the current line
         currentX = leftmargin;
-        int fragWidth = 0;
+        qreal fragWidth = 0;
+        int xDelegateIndex = 0;
         for(int j=0; j<xcount; j++) {
             tmp = buffer[i][j];
             fragWidth += iFontWidth;
@@ -201,7 +308,9 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
                 currAttrib.fgColor != nextAttrib.fgColor ||
                 j==xcount-1)
             {
-                drawBgFragment(painter, currentX, y-iFontHeight+iFontDescent, fragWidth, currAttrib);
+                QQuickItem *backgroundRectangle = m_cells[yDelegateIndex][xDelegateIndex++];
+                drawBgFragment(backgroundRectangle, currentX, y-iFontHeight+iFontDescent, std::ceil(fragWidth), currAttrib);
+                backgroundRectangle->setOpacity(opacity);
                 currentX += fragWidth;
                 fragWidth = 0;
                 currAttrib.attrib = nextAttrib.attrib;
@@ -210,9 +319,15 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
             }
         }
 
+        // Mark all remaining background cells unused.
+        for (int j=xDelegateIndex;j<m_cells[yDelegateIndex].size(); j++) {
+            m_cells[yDelegateIndex][j]->setVisible(false);
+        }
+
         // text for the current line
         QString line;
         currentX = leftmargin;
+        xDelegateIndex = 0;
         for (int j=0; j<xcount; j++) {
             tmp = buffer[i][j];
             line += tmp.c;
@@ -228,7 +343,9 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
                 currAttrib.fgColor != nextAttrib.fgColor ||
                 j==xcount-1)
             {
-                drawTextFragment(painter, currentX, y, line, currAttrib);
+                QQuickItem *foregroundText = m_cellsContent[yDelegateIndex][xDelegateIndex++];
+                drawTextFragment(foregroundText, currentX, y-iFontHeight+iFontDescent, line, currAttrib);
+                foregroundText->setOpacity(opacity);
                 currentX += iFontWidth*line.length();
                 line.clear();
                 currAttrib.attrib = nextAttrib.attrib;
@@ -236,10 +353,15 @@ void TextRender::paintFromBuffer(QPainter* painter, QList<QList<TermChar> >& buf
                 currAttrib.fgColor = nextAttrib.fgColor;
             }
         }
+
+        // Mark all remaining foreground cells unused.
+        for (int j=xDelegateIndex;j<m_cellsContent[yDelegateIndex].size(); j++) {
+            m_cellsContent[yDelegateIndex][j]->setVisible(false);
+        }
     }
 }
 
-void TextRender::drawBgFragment(QPainter* painter, int x, int y, int width, TermChar style)
+void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int width, TermChar style)
 {
     if (style.attrib & attribNegative) {
         int c = style.fgColor;
@@ -247,15 +369,19 @@ void TextRender::drawBgFragment(QPainter* painter, int x, int y, int width, Term
         style.bgColor = c;
     }
 
-    if (style.bgColor == Terminal::defaultBgColor)
-        return;
+    QColor qtColor = Qt::transparent;
+    if (style.bgColor != Terminal::defaultBgColor)
+        qtColor = QColor(iColorTable[style.bgColor]);
 
-    painter->setPen(Qt::transparent);
-    painter->setBrush( iColorTable[style.bgColor] );
-    painter->drawRect(x, y, width, iFontHeight);
+    cellDelegate->setX(x);
+    cellDelegate->setY(y);
+    cellDelegate->setWidth(width);
+    cellDelegate->setHeight(iFontHeight);
+    cellDelegate->setProperty("color", qtColor);
+    cellDelegate->setVisible(true);
 }
 
-void TextRender::drawTextFragment(QPainter* painter, int x, int y, QString text, TermChar style)
+void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, QString text, TermChar style)
 {
     if (style.attrib & attribNegative) {
         int c = style.fgColor;
@@ -264,22 +390,26 @@ void TextRender::drawTextFragment(QPainter* painter, int x, int y, QString text,
     }
     if (style.attrib & attribBold) {
         iFont.setBold(true);
-        painter->setFont(iFont);
         if(style.fgColor < 8)
             style.fgColor += 8;
     } else if(iFont.bold()) {
         iFont.setBold(false);
-        painter->setFont(iFont);
     }
 
-    painter->setPen( iColorTable[style.fgColor] );
-    painter->setBrush(Qt::transparent);
-    painter->drawText(x, y, text);
+    QColor qtColor = QColor(iColorTable[style.fgColor]);
+
+    cellContentsDelegate->setX(x);
+    cellContentsDelegate->setY(y);
+    cellContentsDelegate->setHeight(iFontHeight);
+    cellContentsDelegate->setProperty("color", qtColor);
+    cellContentsDelegate->setProperty("font", iFont);
+    cellContentsDelegate->setProperty("text", text);
+    cellContentsDelegate->setVisible(true);
 }
 
 void TextRender::redraw()
 {
-    update();
+    polish();
 }
 
 void TextRender::setUtil(Util *util)
@@ -290,12 +420,6 @@ void TextRender::setUtil(Util *util)
 void TextRender::setTerminal(Terminal *terminal)
 {
     sTerm = terminal;
-}
-
-void TextRender::updateTermSize()
-{
-    QSize size((width() - 4) / iFontWidth, (height() - 4) / iFontHeight);
-    sTerm->setTermSize(size);
 }
 
 void TextRender::mousePress(float eventX, float eventY)
@@ -380,7 +504,7 @@ void TextRender::setFontPointSize(int psize)
     if (iFont.pointSize() != psize)
     {
         iFont.setPointSize(psize);
-        QFontMetrics fontMetrics(iFont);
+        QFontMetricsF fontMetrics(iFont);
         iFontHeight = fontMetrics.height();
         iFontWidth = fontMetrics.maxWidth();
         iFontDescent = fontMetrics.descent();
@@ -388,20 +512,24 @@ void TextRender::setFontPointSize(int psize)
     }
 }
 
-QPoint TextRender::cursorPixelPos()
+QPointF TextRender::cursorPixelPos()
 {
     return charsToPixels(sTerm->cursorPos());
 }
 
-QPoint TextRender::charsToPixels(QPoint pos)
+QPointF TextRender::charsToPixels(QPoint pos)
 {
-    // not 100% accurrate with all fonts
-    return QPoint(2+(pos.x()-1)*iFontWidth, (pos.y()-1)*iFontHeight+iFontDescent+1);
+    qreal x = 2; // left margin
+    x += iFontWidth * (pos.x() - 1); // 0 indexed, so -1
+
+    qreal y = iFontHeight * (pos.y() - 1) + iFontDescent + 1;
+
+    return QPointF(x, y);
 }
 
-QSize TextRender::cursorPixelSize()
+QSizeF TextRender::cursorPixelSize()
 {
-    return QSize(iFontWidth, iFontHeight);
+    return QSizeF(iFontWidth, iFontHeight);
 }
 
 bool TextRender::allowGestures()
@@ -415,6 +543,101 @@ void TextRender::setAllowGestures(bool allow)
         iAllowGestures = allow;
         emit allowGesturesChanged();
     }
+}
+
+QQmlComponent *TextRender::cellDelegate() const
+{
+    return m_cellDelegate;
+}
+
+void TextRender::setCellDelegate(QQmlComponent *component)
+{
+    if (m_cellDelegate == component)
+        return;
+
+    // ###
+    //for (QVector<QQuickItem*> cells : qAsConst(m_cells)) {
+    foreach (const QVector<QQuickItem*> &cells , m_cells) {
+        qDeleteAll(cells);
+    }
+    m_cells.clear();
+    m_cellDelegate = component;
+    emit cellDelegateChanged();
+    polish();
+}
+
+QQmlComponent *TextRender::cellContentsDelegate() const
+{
+    return m_cellContentsDelegate;
+}
+
+void TextRender::setCellContentsDelegate(QQmlComponent *component)
+{
+    if (m_cellContentsDelegate == component)
+        return;
+
+    // ###
+    //for (QVector<QQuickItem*> cells : qAsConst(m_cellsContent)) {
+    foreach (const QVector<QQuickItem*> &cells , m_cells) {
+        qDeleteAll(cells);
+    }
+    m_cellsContent.clear();
+    m_cellContentsDelegate = component;
+    emit cellContentsDelegateChanged();
+    polish();
+}
+
+QQmlComponent *TextRender::cursorDelegate() const
+{
+    return m_cursorDelegate;
+}
+
+void TextRender::setCursorDelegate(QQmlComponent *component)
+{
+    if (m_cursorDelegate == component)
+        return;
+
+    if (m_cursorDelegateInstance)
+        delete m_cursorDelegateInstance;
+
+    m_cursorDelegate = component;
+    m_cursorDelegateInstance = qobject_cast<QQuickItem*>(m_cursorDelegate->create(qmlContext(this)));
+    m_cursorDelegateInstance->setVisible(false);
+    m_cursorDelegateInstance->setParentItem(m_overlayContainer);
+
+    emit cursorDelegateChanged();
+}
+
+QQmlComponent *TextRender::selectionDelegate() const
+{
+    return m_selectionDelegate;
+}
+
+void TextRender::setSelectionDelegate(QQmlComponent *component)
+{
+    if (m_selectionDelegate == component)
+        return;
+
+    if (m_topSelectionDelegateInstance) {
+        delete m_topSelectionDelegateInstance;
+        delete m_middleSelectionDelegateInstance;
+        delete m_bottomSelectionDelegateInstance;
+    }
+
+    m_selectionDelegate = component;
+    m_topSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
+    m_topSelectionDelegateInstance->setVisible(false);
+    m_topSelectionDelegateInstance->setParentItem(m_overlayContainer);
+
+    m_middleSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
+    m_middleSelectionDelegateInstance->setVisible(false);
+    m_middleSelectionDelegateInstance->setParentItem(m_overlayContainer);
+
+    m_bottomSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
+    m_bottomSelectionDelegateInstance->setVisible(false);
+    m_bottomSelectionDelegateInstance->setParentItem(m_overlayContainer);
+
+    emit selectionDelegateChanged();
 }
 
 QPointF TextRender::scrollBackBuffer(QPointF now, QPointF last)
