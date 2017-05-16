@@ -162,95 +162,25 @@ Item {
                     // painted with the updated value (might not otherwise happen because of caching)
                     textrender.redraw();
                 }
-            }
 
-
-            Lineview {
-                id: lineView
-                show: (util.keyboardMode == Util.KeyboardFade) && vkb.active
-            }
-
-            Keyboard {
-                id: vkb
-
-                property bool visibleSetting: true
-
-                y: parent.height-vkb.height
-                visible: page.activeFocus && visibleSetting
-
-                opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.6
-                                                                                : 0.3
-                Behavior on opacity {
-                    NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                Lineview {
+                    id: lineView
+                    show: (util.keyboardMode == Util.KeyboardFade) && vkb.active
                 }
-            }
 
-            // area that handles gestures/select/scroll modes and vkb-keypresses
-            MultiPointTouchArea {
-                id: multiTouchArea
-                anchors.fill: parent
+                Keyboard {
+                    id: vkb
 
-                property int firstTouchId: -1
-                property var pressedKeys: ({})
+                    property bool visibleSetting: true
 
-                onPressed: {
-                    touchPoints.forEach(function (touchPoint) {
-                        if (multiTouchArea.firstTouchId == -1) {
-                            multiTouchArea.firstTouchId = touchPoint.pointId;
+                    y: parent.height-vkb.height
+                    visible: page.activeFocus && visibleSetting
 
-                            //gestures c++ handler
-                            textrender.mousePress(touchPoint.x, touchPoint.y);
-                        }
-
-                        var key = vkb.keyAt(touchPoint.x, touchPoint.y);
-                        if (key != null) {
-                            key.handlePress(multiTouchArea, touchPoint.x, touchPoint.y);
-                        }
-                        multiTouchArea.pressedKeys[touchPoint.pointId] = key;
-                    });
-                }
-                onUpdated: {
-                    touchPoints.forEach(function (touchPoint) {
-                        if (multiTouchArea.firstTouchId == touchPoint.pointId) {
-                            //gestures c++ handler
-                            textrender.mouseMove(touchPoint.x, touchPoint.y);
-                        }
-
-                        var key = multiTouchArea.pressedKeys[touchPoint.pointId];
-                        if (key != null) {
-                            if (!key.handleMove(multiTouchArea, touchPoint.x, touchPoint.y)) {
-                                delete multiTouchArea.pressedKeys[touchPoint.pointId];
-                            }
-                        }
-                    });
-                }
-                onReleased: {
-                    touchPoints.forEach(function (touchPoint) {
-                        if (multiTouchArea.firstTouchId == touchPoint.pointId) {
-                            // Toggle keyboard wake-up when tapping outside the keyboard, but:
-                            //   - only when not scrolling (y-diff < 20 pixels)
-                            //   - not in select mode, as it would be hard to select text
-                            if (touchPoint.y < vkb.y && touchPoint.startY < vkb.y &&
-                                    Math.abs(touchPoint.y - touchPoint.startY) < 20 &&
-                                    util.dragMode !== Util.DragSelect) {
-                                if (vkb.active) {
-                                    window.sleepVKB();
-                                } else {
-                                    window.wakeVKB();
-                                }
-                            }
-
-                            //gestures c++ handler
-                            textrender.mouseRelease(touchPoint.x, touchPoint.y);
-                            multiTouchArea.firstTouchId = -1;
-                        }
-
-                        var key = multiTouchArea.pressedKeys[touchPoint.pointId];
-                        if (key != null) {
-                            key.handleRelease(multiTouchArea, touchPoint.x, touchPoint.y);
-                        }
-                        delete multiTouchArea.pressedKeys[touchPoint.pointId];
-                    });
+                    opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.6
+                                                                                    : 0.3
+                    Behavior on opacity {
+                        NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                    }
                 }
             }
 

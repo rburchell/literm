@@ -43,6 +43,8 @@ TextRender::TextRender(QQuickItem *parent)
     , m_middleSelectionDelegateInstance(0)
     , m_bottomSelectionDelegateInstance(0)
 {
+    setAcceptedMouseButtons(Qt::LeftButton);
+    setFiltersChildMouseEvents(true);
 
     connect(this,SIGNAL(widthChanged()),this,SLOT(redraw()));
     connect(this,SIGNAL(heightChanged()),this,SLOT(redraw()));
@@ -467,17 +469,48 @@ void TextRender::setTerminal(Terminal *terminal)
     sTerm = terminal;
 }
 
-void TextRender::mousePress(float eventX, float eventY)
+bool TextRender::childMouseEventFilter(QQuickItem *item, QEvent *event)
+{
+    QMouseEvent *mev = static_cast<QMouseEvent*>(event);
+
+    switch (event->type()) {
+    case QEvent::MouseButtonPress: {
+        QMouseEvent cp(mev->type(), mapFromItem(item, mev->localPos()), mev->windowPos(), mev->screenPos(), mev->button(), mev->buttons(), mev->modifiers(), mev->source());
+        mousePressEvent(&cp);
+        break;
+    }
+    case QEvent::MouseButtonRelease: {
+        QMouseEvent cp(mev->type(), mapFromItem(item, mev->localPos()), mev->windowPos(), mev->screenPos(), mev->button(), mev->buttons(), mev->modifiers(), mev->source());
+        mouseReleaseEvent(&cp);
+        break;
+    }
+    case QEvent::MouseMove: {
+        QMouseEvent cp(mev->type(), mapFromItem(item, mev->localPos()), mev->windowPos(), mev->screenPos(), mev->button(), mev->buttons(), mev->modifiers(), mev->source());
+        mouseMoveEvent(&cp);
+        break;
+    }
+    default:
+        break;
+    }
+
+    return false;
+}
+
+void TextRender::mousePressEvent(QMouseEvent *event)
 {
     if (!allowGestures())
         return;
 
+    qreal eventX = event->localPos().x();
+    qreal eventY = event->localPos().y();
     dragOrigin = QPointF(eventX, eventY);
     newSelection = true;
 }
 
-void TextRender::mouseMove(float eventX, float eventY)
+void TextRender::mouseMoveEvent(QMouseEvent *event)
 {
+    qreal eventX = event->localPos().x();
+    qreal eventY = event->localPos().y();
     QPointF eventPos(eventX, eventY);
 
     if (!allowGestures())
@@ -491,8 +524,10 @@ void TextRender::mouseMove(float eventX, float eventY)
     }
 }
 
-void TextRender::mouseRelease(float eventX, float eventY)
+void TextRender::mouseReleaseEvent(QMouseEvent *event)
 {
+    qreal eventX = event->localPos().x();
+    qreal eventY = event->localPos().y();
     QPointF eventPos(eventX, eventY);
     const int reqDragLength = 140;
 

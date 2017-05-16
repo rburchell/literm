@@ -35,7 +35,6 @@ Rectangle {
 
     // mouse input handling
     property int clickThreshold: 20
-    property bool isClick
     property int pressMouseY
     property int pressMouseX
     property bool shiftActive: (keyboard.keyModifiers & Qt.ShiftModifier) && !sticky
@@ -116,76 +115,77 @@ Rectangle {
         anchors.topMargin: key.height/2
     }
 
-    function handlePress(touchArea, x, y) {
-        isClick = true;
-        pressMouseX = x;
-        pressMouseY = y;
+    MouseArea {
+        id: ma
+        anchors.fill: parent
+        hoverEnabled: true
+        onPressed: {
+            pressMouseX = mouseX;
+            pressMouseY = mouseY;
 
-        key.color = keyboard.keyHilightBgColor
-        keyboard.currentKeyPressed = key;
-        util.keyPressFeedback();
+            key.color = keyboard.keyHilightBgColor
+            keyboard.currentKeyPressed = key;
+            util.keyPressFeedback();
 
-        keyRepeatStarter.start();
+            keyRepeatStarter.start();
 
-        if (sticky) {
-            keyboard.keyModifiers |= code;
-            key.becomesSticky = true;
-            keyboard.currentStickyPressed = key;
-        } else {
-            if (keyboard.currentStickyPressed != null) {
-                // Pressing a non-sticky key while a sticky key is pressed:
-                // the sticky key will not become sticky when released
-                keyboard.currentStickyPressed.becomesSticky = false;
-            }
-        }
-    }
-
-    function handleMove(touchArea, x, y) {
-        var mappedPoint = key.mapFromItem(touchArea, x, y)
-        if (!key.contains(Qt.point(mappedPoint.x, mappedPoint.y))) {
-            key.handleRelease(touchArea, x, y);
-            return false;
-        }
-
-        if (key.isClick) {
-            if (Math.abs(x - key.pressMouseX) > key.clickThreshold
-                    || Math.abs(y - key.pressMouseY) > key.clickThreshold) {
-                key.isClick = false
-            }
-        }
-
-        return true;
-    }
-
-    function handleRelease(touchArea, x, y) {
-        keyRepeatStarter.stop();
-        keyRepeatTimer.stop();
-        key.color = keyboard.keyBgColor;
-        keyboard.currentKeyPressed = null;
-
-        if (sticky && !becomesSticky) {
-            keyboard.keyModifiers &= ~code
-            keyboard.currentStickyPressed = null;
-        }
-
-        if (vkb.keyAt(x, y) == key) {
-            util.keyReleaseFeedback();
-
-            if (key.sticky && key.becomesSticky) {
-                setStickiness(-1);
-            }
-
-            if (shiftActive && code_alt != 0 && code_alt != code) {
-                // Do not apply shift on alt code that are accessible
-                // only with shift.
-                window.vkbKeypress(currentCode, keyboard.keyModifiers & ~Qt.ShiftModifier);
+            if (sticky) {
+                keyboard.keyModifiers |= code;
+                key.becomesSticky = true;
+                keyboard.currentStickyPressed = key;
             } else {
-                window.vkbKeypress(currentCode, keyboard.keyModifiers);
+                if (keyboard.currentStickyPressed != null) {
+                    // Pressing a non-sticky key while a sticky key is pressed:
+                    // the sticky key will not become sticky when released
+                    keyboard.currentStickyPressed.becomesSticky = false;
+                }
             }
+        }
 
-            // first non-sticky press will cause the sticky to be released
-            if( !sticky && keyboard.resetSticky && keyboard.resetSticky !== key ) {
-                resetSticky.setStickiness(0);
+        onPositionChanged: {
+            if (pressed) {
+                // Release the point when the cursor wiggles too far
+                if (Math.abs(mouseX - key.pressMouseX) > key.clickThreshold
+                        || Math.abs(mouseY - key.pressMouseY) > key.clickThreshold) {
+                    release();
+                }
+            }
+        }
+
+        function release() {
+            keyRepeatStarter.stop();
+            keyRepeatTimer.stop();
+            key.color = keyboard.keyBgColor;
+            keyboard.currentKeyPressed = null;
+
+            if (sticky && !becomesSticky) {
+                keyboard.keyModifiers &= ~code
+                keyboard.currentStickyPressed = null;
+            }
+        }
+
+        onReleased: {
+            release()
+
+            if (containsMouse) {
+                util.keyReleaseFeedback();
+
+                if (key.sticky && key.becomesSticky) {
+                    setStickiness(-1);
+                }
+
+                if (shiftActive && code_alt != 0 && code_alt != code) {
+                    // Do not apply shift on alt code that are accessible
+                    // only with shift.
+                    window.vkbKeypress(currentCode, keyboard.keyModifiers & ~Qt.ShiftModifier);
+                } else {
+                    window.vkbKeypress(currentCode, keyboard.keyModifiers);
+                }
+
+                // first non-sticky press will cause the sticky to be released
+                if( !sticky && keyboard.resetSticky && keyboard.resetSticky !== key ) {
+                    resetSticky.setStickiness(0);
+                }
             }
         }
     }

@@ -82,9 +82,12 @@ signals:
 
 public slots:
     void redraw();
-    void mousePress(float eventX, float eventY);
-    void mouseMove(float eventX, float eventY);
-    void mouseRelease(float eventX, float eventY);
+
+protected:
+    bool childMouseEventFilter(QQuickItem *item,  QEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
 private slots:
     void handleScrollBack(bool reset);

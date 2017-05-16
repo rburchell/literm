@@ -136,42 +136,6 @@ Rectangle {
         }
     }
 
-    // area that handles gestures/select/scroll modes
-    MultiPointTouchArea {
-        id: multiTouchArea
-        anchors.fill: parent
-
-        property int firstTouchId: -1
-
-        onPressed: {
-            touchPoints.forEach(function (touchPoint) {
-                if (multiTouchArea.firstTouchId == -1) {
-                    multiTouchArea.firstTouchId = touchPoint.pointId;
-
-                    //gestures c++ handler
-                    textrender.mousePress(touchPoint.x, touchPoint.y);
-                }
-            });
-        }
-        onUpdated: {
-            touchPoints.forEach(function (touchPoint) {
-                if (multiTouchArea.firstTouchId == touchPoint.pointId) {
-                    //gestures c++ handler
-                    textrender.mouseMove(touchPoint.x, touchPoint.y);
-                }
-            });
-        }
-        onReleased: {
-            touchPoints.forEach(function (touchPoint) {
-                if (multiTouchArea.firstTouchId == touchPoint.pointId) {
-                    //gestures c++ handler
-                    textrender.mouseRelease(touchPoint.x, touchPoint.y);
-                    multiTouchArea.firstTouchId = -1;
-                }
-            });
-        }
-    }
-
     MouseArea {
         //top right corner menu button
         x: window.width - width
