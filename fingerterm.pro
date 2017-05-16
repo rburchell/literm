@@ -1,5 +1,7 @@
 QT = core gui qml quick
 
+CONFIG -= app_bundle
+
 MOC_DIR = .moc
 OBJECTS_DIR = .obj
 
