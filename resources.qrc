@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/Main.qml</file>
+        <file>qml/+desktop/Main.qml</file>
+        <file>qml/+mobile/Main.qml</file>
         <file>qml/Key.qml</file>
         <file>qml/Keyboard.qml</file>
         <file>qml/Lineview.qml</file>

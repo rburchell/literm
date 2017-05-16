@@ -69,4 +69,7 @@ contains(MEEGO_EDITION,nemo) {
     desktopfile.path = /usr/share/applications
     desktopfile.files = $${TARGET}.desktop
     INSTALLS += desktopfile
+    DEFINES += MOBILE_BUILD
+} else {
+    DEFINES += DESKTOP_BUILD
 }
