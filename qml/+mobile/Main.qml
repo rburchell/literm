@@ -142,7 +142,8 @@ Item {
 
                 height: parent.height
                 width: parent.width
-                fontPointSize: util.fontSize
+                font.family: util.fontFamily
+                font.pointSize: util.fontSize
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
                                                                                 : 1.0
                 allowGestures: !vkb.active && !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show

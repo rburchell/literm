@@ -116,7 +116,8 @@ Rectangle {
 
         height: parent.height
         width: parent.width
-        fontPointSize: util.fontSize
+        font.family: util.fontFamily
+        font.pointSize: util.fontSize
         allowGestures: !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
 
         Behavior on opacity {

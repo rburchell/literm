@@ -29,9 +29,7 @@ class Util;
 
 class TextRender : public QQuickItem
 {
-    Q_PROPERTY(int fontWidth READ fontWidth NOTIFY fontSizeChanged)
-    Q_PROPERTY(int fontHeight READ fontHeight NOTIFY fontSizeChanged)
-    Q_PROPERTY(int fontPointSize READ fontPointSize WRITE setFontPointSize NOTIFY fontSizeChanged)
+    Q_PROPERTY(QFont font READ font WRITE setFont NOTIFY fontChanged)
     Q_PROPERTY(bool showBufferScrollIndicator READ showBufferScrollIndicator WRITE setShowBufferScrollIndicator NOTIFY showBufferScrollIndicatorChanged)
     Q_PROPERTY(bool allowGestures READ allowGestures WRITE setAllowGestures NOTIFY allowGesturesChanged)
     Q_PROPERTY(QQmlComponent* cellDelegate READ cellDelegate WRITE setCellDelegate NOTIFY cellDelegateChanged)
@@ -48,11 +46,8 @@ public:
     static void setUtil(Util *util);
     static void setTerminal(Terminal *terminal);
 
-    qreal fontWidth() { return iFontWidth; }
-    qreal fontHeight() { return iFontHeight; }
-    qreal fontDescent() { return iFontDescent; }
-    int fontPointSize() { return iFont.pointSize(); }
-    void setFontPointSize(int psize);
+    QFont font() const;
+    void setFont(const QFont &font);
     bool showBufferScrollIndicator() { return iShowBufferScrollIndicator; }
     void setShowBufferScrollIndicator(bool s) { if(iShowBufferScrollIndicator!=s) { iShowBufferScrollIndicator=s; emit showBufferScrollIndicatorChanged(); } }
 
@@ -72,7 +67,7 @@ public:
     void setSelectionDelegate(QQmlComponent *delegate);
 
 signals:
-    void fontSizeChanged();
+    void fontChanged();
     void showBufferScrollIndicatorChanged();
     void allowGesturesChanged();
     void cellDelegateChanged();
@@ -100,6 +95,11 @@ private:
     QPointF charsToPixels(QPoint pos);
     void selectionHelper(QPointF scenePos, bool selectionOngoing);
     void ensureRowPopulated(QVector<QQuickItem*> &row, QVector<QQuickItem*> &rowContents, int columnCount);
+
+    qreal fontWidth() { return iFontWidth; }
+    qreal fontHeight() { return iFontHeight; }
+    qreal fontDescent() { return iFontDescent; }
+    int fontPointSize() { return iFont.pointSize(); }
 
     /**
      * Scroll the back buffer on drag.

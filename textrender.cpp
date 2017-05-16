@@ -51,7 +51,6 @@ TextRender::TextRender(QQuickItem *parent)
 
     connect(this,SIGNAL(widthChanged()),this,SLOT(redraw()));
     connect(this,SIGNAL(heightChanged()),this,SLOT(redraw()));
-    connect(this,SIGNAL(fontSizeChanged()),this,SLOT(redraw()));
 
     //normal
     iColorTable.append(QColor(0, 0, 0));
@@ -92,13 +91,6 @@ TextRender::TextRender(QQuickItem *parent)
 
     iShowBufferScrollIndicator = false;
 
-    iFont = QFont(sUtil->fontFamily(), sUtil->fontSize());
-    iFont.setBold(false);
-    QFontMetricsF fontMetrics(iFont);
-    iFontHeight = fontMetrics.height();
-    iFontWidth = fontMetrics.maxWidth();
-    iFontDescent = fontMetrics.descent();
-
     Q_ASSERT(sTerm);
     connect(sTerm, SIGNAL(displayBufferChanged()), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(cursorPosChanged(QPoint)), this, SLOT(redraw()));
@@ -109,6 +101,25 @@ TextRender::TextRender(QQuickItem *parent)
 
 TextRender::~TextRender()
 {
+}
+
+void TextRender::setFont(const QFont &font)
+{
+    if (iFont == font)
+        return;
+
+    iFont = font; //QFont(sUtil->fontFamily(), sUtil->fontSize());
+    QFontMetricsF fontMetrics(iFont);
+    iFontHeight = fontMetrics.height();
+    iFontWidth = fontMetrics.maxWidth();
+    iFontDescent = fontMetrics.descent();
+    polish();
+    emit fontChanged();
+}
+
+QFont TextRender::font() const
+{
+    return iFont;
 }
 
 /*!
@@ -497,19 +508,6 @@ void TextRender::handleScrollBack(bool reset)
         setShowBufferScrollIndicator(sTerm->backBufferScrollPos() != 0);
     }
     redraw();
-}
-
-void TextRender::setFontPointSize(int psize)
-{
-    if (iFont.pointSize() != psize)
-    {
-        iFont.setPointSize(psize);
-        QFontMetricsF fontMetrics(iFont);
-        iFontHeight = fontMetrics.height();
-        iFontWidth = fontMetrics.maxWidth();
-        iFontDescent = fontMetrics.descent();
-        emit fontSizeChanged();
-    }
 }
 
 QPointF TextRender::cursorPixelPos()
