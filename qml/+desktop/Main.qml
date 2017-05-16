@@ -66,6 +66,15 @@ Rectangle {
     TextRender {
         id: textrender
 
+        contentItem: Item {
+            anchors.fill: parent
+            Behavior on opacity {
+                NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+            }
+            Behavior on y {
+                NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+            }
+        }
         cellDelegate: Rectangle {
         }
         cellContentsDelegate: Text {
@@ -119,13 +128,6 @@ Rectangle {
         font.family: util.fontFamily
         font.pointSize: util.fontSize
         allowGestures: !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
-
-        Behavior on opacity {
-            NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
-        }
-        Behavior on y {
-            NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
-        }
 
         onCutAfterChanged: {
             // this property is used in the paint function, so make sure that the element gets

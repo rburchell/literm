@@ -92,6 +92,15 @@ Item {
             TextRender {
                 id: textrender
 
+                contentItem: Item {
+                    anchors.fill: parent
+                    Behavior on opacity {
+                        NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                    }
+                    Behavior on y {
+                        NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                    }
+                }
                 cellDelegate: Rectangle {
                 }
                 cellContentsDelegate: Text {
@@ -147,13 +156,6 @@ Item {
                 opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
                                                                                 : 1.0
                 allowGestures: !vkb.active && !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
-
-                Behavior on opacity {
-                    NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
-                }
-                Behavior on y {
-                    NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
-                }
 
                 onCutAfterChanged: {
                     // this property is used in the paint function, so make sure that the element gets

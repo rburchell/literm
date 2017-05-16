@@ -30,6 +30,7 @@ TextRender::TextRender(QQuickItem *parent)
     : QQuickItem(parent)
     , newSelection(true)
     , iAllowGestures(true)
+    , m_contentItem(0)
     , m_backgroundContainer(0)
     , m_textContainer(0)
     , m_overlayContainer(0)
@@ -42,12 +43,6 @@ TextRender::TextRender(QQuickItem *parent)
     , m_middleSelectionDelegateInstance(0)
     , m_bottomSelectionDelegateInstance(0)
 {
-    m_backgroundContainer = new QQuickItem(this);
-    m_backgroundContainer->setClip(true);
-    m_textContainer = new QQuickItem(this);
-    m_textContainer->setClip(true);
-    m_overlayContainer = new QQuickItem(this);
-    m_overlayContainer->setClip(true);
 
     connect(this,SIGNAL(widthChanged()),this,SLOT(redraw()));
     connect(this,SIGNAL(heightChanged()),this,SLOT(redraw()));
@@ -103,6 +98,20 @@ TextRender::~TextRender()
 {
 }
 
+void TextRender::setContentItem(QQuickItem *contentItem)
+{
+    Q_ASSERT(!m_contentItem); // changing this requires work
+    m_contentItem = contentItem;
+    m_contentItem->setParentItem(this);
+    m_backgroundContainer = new QQuickItem(m_contentItem);
+    m_backgroundContainer->setClip(true);
+    m_textContainer = new QQuickItem(m_contentItem);
+    m_textContainer->setClip(true);
+    m_overlayContainer = new QQuickItem(m_contentItem);
+    m_overlayContainer->setClip(true);
+    polish();
+}
+
 void TextRender::setFont(const QFont &font)
 {
     if (iFont == font)
@@ -152,10 +161,15 @@ void TextRender::ensureRowPopulated(QVector<QQuickItem*> &row, QVector<QQuickIte
 
 void TextRender::updatePolish()
 {
+    if (!m_contentItem)
+        return;
+
     // Make sure the terminal's size is right
     QSize size((width() - 4) / iFontWidth, (height() - 4) / iFontHeight);
     sTerm->setTermSize(size);
 
+    m_contentItem->setWidth(width());
+    m_contentItem->setHeight(height());
     m_backgroundContainer->setWidth(width());
     m_backgroundContainer->setHeight(height());
     m_textContainer->setWidth(width());
@@ -220,6 +234,12 @@ void TextRender::updatePolish()
 
     // cursor
     if (sTerm->showCursor()) {
+        if (!m_cursorDelegateInstance) {
+            m_cursorDelegateInstance = qobject_cast<QQuickItem*>(m_cursorDelegate->create(qmlContext(this)));
+            m_cursorDelegateInstance->setVisible(false);
+            m_cursorDelegateInstance->setParentItem(m_overlayContainer);
+        }
+
         m_cursorDelegateInstance->setVisible(true);
         QPointF cursor = cursorPixelPos();
         QSizeF csize = cursorPixelSize();
@@ -228,12 +248,26 @@ void TextRender::updatePolish()
         m_cursorDelegateInstance->setWidth(csize.width());
         m_cursorDelegateInstance->setHeight(csize.height());
         m_cursorDelegateInstance->setProperty("color", iColorTable[Terminal::defaultFgColor]);
-    } else {
+    } else if (m_cursorDelegateInstance) {
         m_cursorDelegateInstance->setVisible(false);
     }
 
     QRect selection = sTerm->selection();
     if (!selection.isNull()) {
+        if (!m_topSelectionDelegateInstance) {
+            m_topSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
+            m_topSelectionDelegateInstance->setVisible(false);
+            m_topSelectionDelegateInstance->setParentItem(m_overlayContainer);
+
+            m_middleSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
+            m_middleSelectionDelegateInstance->setVisible(false);
+            m_middleSelectionDelegateInstance->setParentItem(m_overlayContainer);
+
+            m_bottomSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
+            m_bottomSelectionDelegateInstance->setVisible(false);
+            m_bottomSelectionDelegateInstance->setParentItem(m_overlayContainer);
+        }
+
         if (selection.top() == selection.bottom()) {
             QPointF start = charsToPixels(selection.topLeft());
             QPointF end = charsToPixels(selection.bottomRight());
@@ -272,7 +306,7 @@ void TextRender::updatePolish()
             m_bottomSelectionDelegateInstance->setWidth(end.x() - start.x() + fontWidth());
             m_bottomSelectionDelegateInstance->setHeight(end.y() - start.y() + fontHeight());
         }
-    } else {
+    } else if (m_topSelectionDelegateInstance) {
         m_topSelectionDelegateInstance->setVisible(false);
         m_bottomSelectionDelegateInstance->setVisible(false);
         m_middleSelectionDelegateInstance->setVisible(false);
@@ -595,13 +629,9 @@ void TextRender::setCursorDelegate(QQmlComponent *component)
     if (m_cursorDelegate == component)
         return;
 
-    if (m_cursorDelegateInstance)
-        delete m_cursorDelegateInstance;
-
+    delete m_cursorDelegateInstance;
+    m_cursorDelegateInstance = 0;
     m_cursorDelegate = component;
-    m_cursorDelegateInstance = qobject_cast<QQuickItem*>(m_cursorDelegate->create(qmlContext(this)));
-    m_cursorDelegateInstance->setVisible(false);
-    m_cursorDelegateInstance->setParentItem(m_overlayContainer);
 
     emit cursorDelegateChanged();
 }
@@ -616,24 +646,14 @@ void TextRender::setSelectionDelegate(QQmlComponent *component)
     if (m_selectionDelegate == component)
         return;
 
-    if (m_topSelectionDelegateInstance) {
-        delete m_topSelectionDelegateInstance;
-        delete m_middleSelectionDelegateInstance;
-        delete m_bottomSelectionDelegateInstance;
-    }
+    delete m_topSelectionDelegateInstance;
+    delete m_middleSelectionDelegateInstance;
+    delete m_bottomSelectionDelegateInstance;
+    m_topSelectionDelegateInstance = 0;
+    m_middleSelectionDelegateInstance = 0;
+    m_bottomSelectionDelegateInstance = 0;
 
     m_selectionDelegate = component;
-    m_topSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
-    m_topSelectionDelegateInstance->setVisible(false);
-    m_topSelectionDelegateInstance->setParentItem(m_overlayContainer);
-
-    m_middleSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
-    m_middleSelectionDelegateInstance->setVisible(false);
-    m_middleSelectionDelegateInstance->setParentItem(m_overlayContainer);
-
-    m_bottomSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
-    m_bottomSelectionDelegateInstance->setVisible(false);
-    m_bottomSelectionDelegateInstance->setParentItem(m_overlayContainer);
 
     emit selectionDelegateChanged();
 }

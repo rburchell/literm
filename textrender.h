@@ -29,6 +29,7 @@ class Util;
 
 class TextRender : public QQuickItem
 {
+    Q_PROPERTY(QQuickItem* contentItem READ contentItem WRITE setContentItem NOTIFY contentItemChanged)
     Q_PROPERTY(QFont font READ font WRITE setFont NOTIFY fontChanged)
     Q_PROPERTY(bool showBufferScrollIndicator READ showBufferScrollIndicator WRITE setShowBufferScrollIndicator NOTIFY showBufferScrollIndicatorChanged)
     Q_PROPERTY(bool allowGestures READ allowGestures WRITE setAllowGestures NOTIFY allowGesturesChanged)
@@ -45,6 +46,9 @@ public:
 
     static void setUtil(Util *util);
     static void setTerminal(Terminal *terminal);
+
+    QQuickItem *contentItem() const { return m_contentItem; }
+    void setContentItem(QQuickItem *contentItem);
 
     QFont font() const;
     void setFont(const QFont &font);
@@ -67,6 +71,7 @@ public:
     void setSelectionDelegate(QQmlComponent *delegate);
 
 signals:
+    void contentItemChanged();
     void fontChanged();
     void showBufferScrollIndicatorChanged();
     void allowGesturesChanged();
@@ -125,6 +130,7 @@ private:
     static Util *sUtil;
 
     QList<QColor> iColorTable;
+    QQuickItem *m_contentItem;
     QQuickItem *m_backgroundContainer;
     QQuickItem *m_textContainer;
     QQuickItem *m_overlayContainer;
