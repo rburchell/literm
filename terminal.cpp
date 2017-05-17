@@ -496,16 +496,17 @@ void Terminal::insertAtCursor(QChar c, bool overwriteMode, bool advanceCursor)
         }
     }
 
-    while(currentLine().size() < cursorPos().x() )
-        currentLine().append(zeroChar);
+    auto &line = currentLine();
+    while (line.size() < cursorPos().x() )
+        line.append(zeroChar);
 
     if(!overwriteMode)
-        currentLine().insert(cursorPos().x()-1,zeroChar);
+        line.insert(cursorPos().x()-1,zeroChar);
 
-    currentLine()[cursorPos().x()-1].c = c;
-    currentLine()[cursorPos().x()-1].fgColor = iTermAttribs.currentFgColor;
-    currentLine()[cursorPos().x()-1].bgColor = iTermAttribs.currentBgColor;
-    currentLine()[cursorPos().x()-1].attrib = iTermAttribs.currentAttrib;
+    line[cursorPos().x()-1].c = c;
+    line[cursorPos().x()-1].fgColor = iTermAttribs.currentFgColor;
+    line[cursorPos().x()-1].bgColor = iTermAttribs.currentBgColor;
+    line[cursorPos().x()-1].attrib = iTermAttribs.currentAttrib;
 
     if (advanceCursor) {
         setCursorPos(QPoint(cursorPos().x()+1,cursorPos().y()));
