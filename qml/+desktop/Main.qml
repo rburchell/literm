@@ -37,7 +37,13 @@ Rectangle {
 
     property int fadeOutTime: 80
     property int fadeInTime: 350
-    property real pixelRatio: window.width / 540
+    property real pixelRatio: 1.0
+
+    Binding {
+        target: window
+        property: "pixelRatio"
+        value: Window.window.devicePixelRatio
+    }
 
     // layout constants
     property int buttonWidthSmall: 60*pixelRatio
