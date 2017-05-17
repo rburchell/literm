@@ -554,6 +554,16 @@ void TextRender::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void TextRender::wheelEvent(QWheelEvent *event)
+{
+    if (!event->pixelDelta().isNull()) {
+        dragOrigin = scrollBackBuffer(dragOrigin + event->pixelDelta(), dragOrigin);
+        event->accept();
+    } else {
+        // TODO: angleDelta.
+    }
+}
+
 void TextRender::selectionHelper(QPointF scenePos, bool selectionOngoing)
 {
     int yCorr = fontDescent();
