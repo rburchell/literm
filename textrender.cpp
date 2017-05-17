@@ -75,6 +75,7 @@ TextRender::TextRender(QQuickItem *parent)
     , m_topSelectionDelegateInstance(0)
     , m_middleSelectionDelegateInstance(0)
     , m_bottomSelectionDelegateInstance(0)
+    , m_dragMode(DragScroll)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
     setFiltersChildMouseEvents(true);
@@ -134,6 +135,20 @@ TextRender::~TextRender()
 {
 }
 
+TextRender::DragMode TextRender::dragMode() const
+{
+    return m_dragMode;
+}
+
+void TextRender::setDragMode(DragMode dragMode)
+{
+    if (m_dragMode == dragMode)
+        return;
+
+    m_dragMode = dragMode;
+    emit dragModeChanged();
+}
+
 void TextRender::setContentItem(QQuickItem *contentItem)
 {
     Q_ASSERT(!m_contentItem); // changing this requires work
@@ -153,7 +168,7 @@ void TextRender::setFont(const QFont &font)
     if (iFont == font)
         return;
 
-    iFont = font; //QFont(sUtil->fontFamily(), sUtil->fontSize());
+    iFont = font;
     QFontMetricsF fontMetrics(iFont);
     iFontHeight = fontMetrics.height();
     iFontWidth = fontMetrics.maxWidth();
@@ -559,10 +574,10 @@ void TextRender::mouseMoveEvent(QMouseEvent *event)
     if (!allowGestures())
         return;
 
-    if(sUtil->dragMode() == Util::DragScroll) {
+    if(m_dragMode == DragScroll) {
         dragOrigin = scrollBackBuffer(eventPos, dragOrigin);
     }
-    else if(sUtil->dragMode() == Util::DragSelect) {
+    else if(m_dragMode == DragSelect) {
         selectionHelper(eventPos, true);
     }
 }
@@ -577,7 +592,7 @@ void TextRender::mouseReleaseEvent(QMouseEvent *event)
     if (!allowGestures())
         return;
 
-    if(sUtil->dragMode() == Util::DragGestures) {
+    if(m_dragMode == DragGestures) {
         int xdist = qAbs(eventPos.x() - dragOrigin.x());
         int ydist = qAbs(eventPos.y() - dragOrigin.y());
         if(eventPos.x() < dragOrigin.x()-reqDragLength && xdist > ydist*2)
@@ -589,10 +604,10 @@ void TextRender::mouseReleaseEvent(QMouseEvent *event)
         else if(eventPos.y() < dragOrigin.y()-reqDragLength && ydist > xdist*2)
             doGesture(PanUp);
     }
-    else if(sUtil->dragMode() == Util::DragScroll) {
+    else if(m_dragMode == DragScroll) {
         scrollBackBuffer(eventPos, dragOrigin);
     }
-    else if(sUtil->dragMode() == Util::DragSelect) {
+    else if(m_dragMode == DragSelect) {
         selectionHelper(eventPos, false);
     }
 }

@@ -29,6 +29,7 @@ class Util;
 
 class TextRender : public QQuickItem
 {
+    Q_PROPERTY(DragMode dragMode READ dragMode WRITE setDragMode NOTIFY dragModeChanged)
     Q_PROPERTY(QQuickItem* contentItem READ contentItem WRITE setContentItem NOTIFY contentItemChanged)
     Q_PROPERTY(QFont font READ font WRITE setFont NOTIFY fontChanged)
     Q_PROPERTY(bool showBufferScrollIndicator READ showBufferScrollIndicator WRITE setShowBufferScrollIndicator NOTIFY showBufferScrollIndicatorChanged)
@@ -43,6 +44,17 @@ public:
     explicit TextRender(QQuickItem *parent = 0);
     virtual ~TextRender();
     void updatePolish() override;
+
+    enum DragMode {
+        DragOff,
+        DragGestures,
+        DragScroll,
+        DragSelect
+    };
+    Q_ENUMS(DragMode)
+
+    DragMode dragMode() const;
+    void setDragMode(DragMode dragMode);
 
     static void setUtil(Util *util);
     static void setTerminal(Terminal *terminal);
@@ -80,6 +92,7 @@ signals:
     void cursorDelegateChanged();
     void selectionDelegateChanged();
     void visualBell();
+    void dragModeChanged();
 
 public slots:
     void redraw();
@@ -149,6 +162,7 @@ private:
     QQuickItem *m_topSelectionDelegateInstance;
     QQuickItem *m_middleSelectionDelegateInstance;
     QQuickItem *m_bottomSelectionDelegateInstance;
+    DragMode m_dragMode;
 };
 
 #endif // TEXTRENDER_H

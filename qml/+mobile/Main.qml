@@ -92,6 +92,7 @@ Item {
             TextRender {
                 id: textrender
 
+                dragMode: util.dragMode
                 onVisualBell: {
                     if (util.visualBellEnabled)
                         bellTimer.start()

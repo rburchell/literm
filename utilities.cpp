@@ -177,22 +177,22 @@ QString Util::fontFamily()
     return settingsValue("ui/fontFamily", DEFAULT_FONTFAMILY).toString();
 }
 
-int Util::dragMode()
+TextRender::DragMode Util::dragMode()
 {
     QString mode = settingsValue("ui/dragMode", "scroll").toString();
 
     if (mode == "gestures") {
-        return DragGestures;
+        return TextRender::DragGestures;
     } else if (mode == "scroll") {
-        return DragScroll;
+        return TextRender::DragScroll;
     } else if (mode == "select") {
-        return DragSelect;
+        return TextRender::DragSelect;
     } else {
-        return DragOff;
+        return TextRender::DragOff;
     }
 }
 
-void Util::setDragMode(int mode)
+void Util::setDragMode(TextRender::DragMode mode)
 {
     if (mode == dragMode()) {
         return;
@@ -200,16 +200,16 @@ void Util::setDragMode(int mode)
 
     QString modeString;
     switch(mode) {
-    case DragGestures:
+    case TextRender::DragGestures:
         modeString = "gestures";
         break;
-    case DragScroll:
+    case TextRender::DragScroll:
         modeString = "scroll";
         break;
-    case DragSelect:
+    case TextRender::DragSelect:
         modeString = "select";
         break;
-    case DragOff:
+    case TextRender::DragOff:
     default:
         modeString = "off";
     }

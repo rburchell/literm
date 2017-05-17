@@ -22,6 +22,8 @@
 
 #include <QtCore>
 
+#include "textrender.h"
+
 class Terminal;
 class TextRender;
 class QQuickView;
@@ -37,7 +39,7 @@ class Util : public QObject
     Q_PROPERTY(QString fontFamily READ fontFamily CONSTANT)
     Q_PROPERTY(int uiFontSize READ uiFontSize CONSTANT)
     Q_PROPERTY(int fontSize READ fontSize WRITE setFontSize NOTIFY fontSizeChanged)
-    Q_PROPERTY(int dragMode READ dragMode WRITE setDragMode NOTIFY dragModeChanged)
+    Q_PROPERTY(TextRender::DragMode dragMode READ dragMode WRITE setDragMode NOTIFY dragModeChanged)
     Q_PROPERTY(int keyboardMode READ keyboardMode WRITE setKeyboardMode NOTIFY keyboardModeChanged)
     Q_PROPERTY(int keyboardFadeOutDelay READ keyboardFadeOutDelay WRITE setKeyboardFadeOutDelay NOTIFY keyboardFadeOutDelayChanged)
     Q_PROPERTY(QString keyboardLayout READ keyboardLayout WRITE setKeyboardLayout NOTIFY keyboardLayoutChanged)
@@ -55,13 +57,6 @@ public:
         KeyboardOff,
         KeyboardFade,
         KeyboardMove
-    };
-
-    enum DragMode {
-        DragOff,
-        DragGestures,
-        DragScroll,
-        DragSelect
     };
 
     enum OrientationMode {
@@ -104,8 +99,8 @@ public:
 
     QString fontFamily();
 
-    int dragMode();
-    void setDragMode(int mode);
+    TextRender::DragMode dragMode();
+    void setDragMode(TextRender::DragMode mode);
 
     int keyboardMode();
     void setKeyboardMode(int mode);
