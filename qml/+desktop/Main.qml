@@ -66,6 +66,10 @@ Rectangle {
     TextRender {
         id: textrender
 
+        onVisualBell: {
+            if (util.visualBellEnabled)
+                bellTimer.start()
+        }
         contentItem: Item {
             anchors.fill: parent
             Behavior on opacity {
@@ -170,7 +174,6 @@ Rectangle {
 
     Connections {
         target: util
-        onVisualBell: bellTimer.start()
         onNotify: {
             textNotify.text = msg;
             textNotifyAnim.enabled = false;

@@ -167,14 +167,9 @@ void Util::keyReleaseFeedback()
 #endif
 }
 
-void Util::bellAlert()
+bool Util::visualBellEnabled()
 {
-    if(!iWindow)
-        return;
-
-    if( settingsValue("general/visualBell", true).toBool() ) {
-        emit visualBell();
-    }
+    return settingsValue("general/visualBell", true).toBool();
 }
 
 QString Util::fontFamily()

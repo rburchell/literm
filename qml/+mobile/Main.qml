@@ -92,6 +92,10 @@ Item {
             TextRender {
                 id: textrender
 
+                onVisualBell: {
+                    if (util.visualBellEnabled)
+                        bellTimer.start()
+                }
                 contentItem: Item {
                     anchors.fill: parent
                     Behavior on opacity {
@@ -227,7 +231,6 @@ Item {
 
             Connections {
                 target: util
-                onVisualBell: bellTimer.start()
                 onNotify: {
                     textNotify.text = msg;
                     textNotifyAnim.enabled = false;

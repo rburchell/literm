@@ -79,6 +79,7 @@ signals:
     void cellContentsDelegateChanged();
     void cursorDelegateChanged();
     void selectionDelegateChanged();
+    void visualBell();
 
 public slots:
     void redraw();

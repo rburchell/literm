@@ -369,7 +369,7 @@ void Terminal::insertInBuffer(const QString& chars)
                 oscSequence(oscSeq);
                 oscSeq.clear();
             } else {
-                iUtil->bellAlert();
+                emit visualBell();
             }
         }
         else if(ch.toLatin1()=='\t') {  //tab
@@ -1147,7 +1147,7 @@ void Terminal::escControlChar(const QString& seq)
         resetTerminal();
     }
     else if(ch.toLatin1()=='g') {  // visual bell
-        iUtil->bellAlert();
+        emit visualBell();
     }
     else {
         qDebug() << "unhandled escape code ESC" << seq;

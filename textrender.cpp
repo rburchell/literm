@@ -122,6 +122,7 @@ TextRender::TextRender(QQuickItem *parent)
     iShowBufferScrollIndicator = false;
 
     Q_ASSERT(sTerm);
+    connect(sTerm, SIGNAL(visualBell()), this, SIGNAL(visualBell()));
     connect(sTerm, SIGNAL(displayBufferChanged()), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(cursorPosChanged(QPoint)), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(termSizeChanged(int,int)), this, SLOT(redraw()));
