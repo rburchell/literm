@@ -157,7 +157,15 @@ void TextRender::setFont(const QFont &font)
     iFontHeight = fontMetrics.height();
     iFontWidth = fontMetrics.maxWidth();
     iFontDescent = fontMetrics.descent();
-    polish();
+
+    for (int y = 0; y < m_cellsContent.size(); ++y) {
+        for (int x = 0; x < m_cellsContent.at(y).size(); ++x) {
+            QQuickItem *it = m_cellsContent.at(y).at(x);
+            it->setProperty("font", iFont);
+        }
+    }
+
+    polish(); // may have changed sizes, so polish to reposition too
     emit fontChanged();
 }
 
@@ -187,6 +195,7 @@ void TextRender::ensureRowPopulated(QVector<QQuickItem*> &row, QVector<QQuickIte
         row.append(it);
 
         it = qobject_cast<QQuickItem*>(m_cellContentsDelegate->create(qmlContext(this)));
+        it->setProperty("font", iFont);
         it->setVisible(false);
         it->setParentItem(m_textContainer);
         Q_ASSERT(it);
@@ -262,8 +271,8 @@ void TextRender::updatePolish()
     // paint any remaining rows unused
     for (; yDelegateIndex < m_cells.size(); ++yDelegateIndex) {
         for (int j=0;j<sTerm->columns(); j++) {
-            m_cells[yDelegateIndex][j]->setVisible(false);
-            m_cellsContent[yDelegateIndex][j]->setVisible(false);
+            m_cells.at(yDelegateIndex).at(j)->setVisible(false);
+            m_cellsContent.at(yDelegateIndex).at(j)->setVisible(false);
         }
     }
 
@@ -348,7 +357,7 @@ void TextRender::updatePolish()
     }
 }
 
-void TextRender::paintFromBuffer(QList<QList<TermChar> >& buffer, int from, int to, qreal &y, int &yDelegateIndex)
+void TextRender::paintFromBuffer(const QList<QList<TermChar> >& buffer, int from, int to, qreal &y, int &yDelegateIndex)
 {
     const int leftmargin = 2;
     int cutAfter = property("cutAfter").toInt() + iFontDescent;
@@ -367,20 +376,21 @@ void TextRender::paintFromBuffer(QList<QList<TermChar> >& buffer, int from, int 
         if(y >= cutAfter)
             opacity = 0.3;
 
-        int xcount = qMin(buffer.at(i).count(), sTerm->columns());
+        const auto &lineBuffer = buffer.at(i);;
+        int xcount = qMin(lineBuffer.count(), sTerm->columns());
 
         // background for the current line
         currentX = leftmargin;
         qreal fragWidth = 0;
         int xDelegateIndex = 0;
         for(int j=0; j<xcount; j++) {
-            tmp = buffer[i][j];
             fragWidth += iFontWidth;
             if (j==0) {
+                tmp = lineBuffer.at(j);
                 currAttrib = tmp;
                 nextAttrib = tmp;
             } else if (j<xcount-1) {
-                nextAttrib = buffer[i][j+1];
+                nextAttrib = lineBuffer.at(j+1);
             }
 
             if (currAttrib.attrib != nextAttrib.attrib ||
@@ -388,7 +398,7 @@ void TextRender::paintFromBuffer(QList<QList<TermChar> >& buffer, int from, int 
                 currAttrib.fgColor != nextAttrib.fgColor ||
                 j==xcount-1)
             {
-                QQuickItem *backgroundRectangle = m_cells[yDelegateIndex][xDelegateIndex++];
+                QQuickItem *backgroundRectangle = m_cells.at(yDelegateIndex).at(xDelegateIndex++);
                 drawBgFragment(backgroundRectangle, currentX, y-iFontHeight+iFontDescent, std::ceil(fragWidth), currAttrib);
                 backgroundRectangle->setOpacity(opacity);
                 currentX += fragWidth;
@@ -400,8 +410,8 @@ void TextRender::paintFromBuffer(QList<QList<TermChar> >& buffer, int from, int 
         }
 
         // Mark all remaining background cells unused.
-        for (int j=xDelegateIndex;j<m_cells[yDelegateIndex].size(); j++) {
-            m_cells[yDelegateIndex][j]->setVisible(false);
+        for (int j=xDelegateIndex;j<m_cells.at(yDelegateIndex).size(); j++) {
+            m_cells.at(yDelegateIndex).at(j)->setVisible(false);
         }
 
         // text for the current line
@@ -409,13 +419,13 @@ void TextRender::paintFromBuffer(QList<QList<TermChar> >& buffer, int from, int 
         currentX = leftmargin;
         xDelegateIndex = 0;
         for (int j=0; j<xcount; j++) {
-            tmp = buffer[i][j];
+            tmp = lineBuffer.at(j);
             line += tmp.c;
             if (j==0) {
                 currAttrib = tmp;
                 nextAttrib = tmp;
             } else if(j<xcount-1) {
-                nextAttrib = buffer[i][j+1];
+                nextAttrib = lineBuffer.at(j+1);
             }
 
             if (currAttrib.attrib != nextAttrib.attrib ||
@@ -423,7 +433,7 @@ void TextRender::paintFromBuffer(QList<QList<TermChar> >& buffer, int from, int 
                 currAttrib.fgColor != nextAttrib.fgColor ||
                 j==xcount-1)
             {
-                QQuickItem *foregroundText = m_cellsContent[yDelegateIndex][xDelegateIndex++];
+                QQuickItem *foregroundText = m_cellsContent.at(yDelegateIndex).at(xDelegateIndex++);
                 drawTextFragment(foregroundText, currentX, y-iFontHeight+iFontDescent, line, currAttrib);
                 foregroundText->setOpacity(opacity);
                 currentX += iFontWidth*line.length();
@@ -435,8 +445,8 @@ void TextRender::paintFromBuffer(QList<QList<TermChar> >& buffer, int from, int 
         }
 
         // Mark all remaining foreground cells unused.
-        for (int j=xDelegateIndex;j<m_cellsContent[yDelegateIndex].size(); j++) {
-            m_cellsContent[yDelegateIndex][j]->setVisible(false);
+        for (int j=xDelegateIndex;j<m_cellsContent.at(yDelegateIndex).size(); j++) {
+            m_cellsContent.at(yDelegateIndex).at(j)->setVisible(false);
         }
     }
 }
@@ -482,7 +492,6 @@ void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qre
     cellContentsDelegate->setY(y);
     cellContentsDelegate->setHeight(iFontHeight);
     cellContentsDelegate->setProperty("color", qtColor);
-    cellContentsDelegate->setProperty("font", iFont);
     cellContentsDelegate->setProperty("text", text);
     cellContentsDelegate->setVisible(true);
 }
