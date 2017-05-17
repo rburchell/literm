@@ -123,6 +123,7 @@ TextRender::TextRender(QQuickItem *parent)
     iShowBufferScrollIndicator = false;
 
     Q_ASSERT(sTerm);
+    connect(sTerm, SIGNAL(windowTitleChanged(const QString&)), this, SLOT(handleTitleChanged(const QString&)));
     connect(sTerm, SIGNAL(visualBell()), this, SIGNAL(visualBell()));
     connect(sTerm, SIGNAL(displayBufferChanged()), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(cursorPosChanged(QPoint)), this, SLOT(redraw()));
@@ -133,6 +134,20 @@ TextRender::TextRender(QQuickItem *parent)
 
 TextRender::~TextRender()
 {
+}
+
+QString TextRender::title() const
+{
+    return m_title;
+}
+
+void TextRender::handleTitleChanged(const QString &newTitle)
+{
+    if (m_title == newTitle)
+        return;
+
+    m_title = newTitle;
+    emit titleChanged();
 }
 
 TextRender::DragMode TextRender::dragMode() const

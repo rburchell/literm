@@ -31,7 +31,6 @@ class QQuickView;
 class Util : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString windowTitle READ windowTitle NOTIFY windowTitleChanged)
     Q_PROPERTY(int windowOrientation READ windowOrientation WRITE setWindowOrientation NOTIFY windowOrientationChanged)
     Q_PROPERTY(bool canPaste READ canPaste NOTIFY clipboardOrSelectionChanged)
     Q_PROPERTY(bool terminalHasSelection READ terminalHasSelection NOTIFY clipboardOrSelectionChanged)
@@ -69,8 +68,6 @@ public:
     virtual ~Util();
 
     void setWindow(QQuickView* win);
-    void setWindowTitle(QString title);
-    QString windowTitle();
     int windowOrientation();
     void setWindowOrientation(int orientation);
     void setTerm(Terminal* term);
@@ -124,7 +121,6 @@ public:
 signals:
     void notify(QString msg);
     void clipboardOrSelectionChanged();
-    void windowTitleChanged();
     void windowOrientationChanged();
     void fontSizeChanged();
     void dragModeChanged();
@@ -136,8 +132,6 @@ signals:
 
 private:
     Q_DISABLE_COPY(Util)
-
-    QString iCurrentWinTitle;
 
     QSettings* iSettings;
     QQuickView* iWindow;

@@ -1079,9 +1079,7 @@ void Terminal::oscSequence(const QString& seq)
         (seq.at(1)=='0' || seq.at(1)=='2') &&
         seq.at(2)==';' )
     {
-        if(iWindow) {
-            iUtil->setWindowTitle(seq.mid(3));
-        }
+        emit windowTitleChanged(seq.mid(3));
         return;
     }
 

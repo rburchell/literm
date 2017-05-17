@@ -19,6 +19,7 @@
 
 import QtQuick 2.0
 import QtQuick.XmlListModel 2.0
+import QtQuick.Window 2.3
 import FingerTerm 1.0
 
 Item {
@@ -75,7 +76,7 @@ Item {
             Button {
                 text: title
                 isShellCommand: true
-                enabled: disableOn.length === 0 || util.windowTitle.search(disableOn) === -1
+                enabled: disableOn.length === 0 || Window.window.title.search(disableOn) === -1
                 onClicked: {
                     menuWin.showing = false;
                     term.putString(command, true);

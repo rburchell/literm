@@ -114,6 +114,7 @@ signals:
     void scrollBackBufferAdjusted(bool reset);
     void selectionFinished();
     void visualBell();
+    void windowTitleChanged(const QString &windowTitle);
 
 private:
     Q_DISABLE_COPY(Terminal)

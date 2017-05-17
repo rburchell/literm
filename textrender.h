@@ -29,6 +29,7 @@ class Util;
 
 class TextRender : public QQuickItem
 {
+    Q_PROPERTY(QString title READ title NOTIFY titleChanged)
     Q_PROPERTY(DragMode dragMode READ dragMode WRITE setDragMode NOTIFY dragModeChanged)
     Q_PROPERTY(QQuickItem* contentItem READ contentItem WRITE setContentItem NOTIFY contentItemChanged)
     Q_PROPERTY(QFont font READ font WRITE setFont NOTIFY fontChanged)
@@ -44,6 +45,8 @@ public:
     explicit TextRender(QQuickItem *parent = 0);
     virtual ~TextRender();
     void updatePolish() override;
+
+    QString title() const;
 
     enum DragMode {
         DragOff,
@@ -92,6 +95,7 @@ signals:
     void cursorDelegateChanged();
     void selectionDelegateChanged();
     void visualBell();
+    void titleChanged();
     void dragModeChanged();
 
 public slots:
@@ -106,6 +110,7 @@ protected:
 
 private slots:
     void handleScrollBack(bool reset);
+    void handleTitleChanged(const QString &title);
 
 private:
     Q_DISABLE_COPY(TextRender)
@@ -163,6 +168,7 @@ private:
     QQuickItem *m_middleSelectionDelegateInstance;
     QQuickItem *m_bottomSelectionDelegateInstance;
     DragMode m_dragMode;
+    QString m_title;
 };
 
 #endif // TEXTRENDER_H

@@ -58,18 +58,6 @@ void Util::setWindow(QQuickView* win)
     connect(win, SIGNAL(contentOrientationChanged(Qt::ScreenOrientation)), this, SIGNAL(windowOrientationChanged()));
 }
 
-void Util::setWindowTitle(QString title)
-{
-    iCurrentWinTitle = title;
-    iWindow->setTitle(title);
-    emit windowTitleChanged();
-}
-
-QString Util::windowTitle()
-{
-    return iCurrentWinTitle;
-}
-
 int Util::windowOrientation()
 {
     return iWindow->contentOrientation();
