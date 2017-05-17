@@ -6,6 +6,7 @@
         <file>qml/Keyboard.qml</file>
         <file>qml/Lineview.qml</file>
         <file>qml/Button.qml</file>
+        <file>qml/ScrollDecorator.qml</file>
         <file>qml/MenuFingerterm.qml</file>
         <file>qml/NotifyWin.qml</file>
         <file>qml/PopupWindow.qml</file>

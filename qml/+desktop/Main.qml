@@ -85,6 +85,16 @@ Rectangle {
                 NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
             }
         }
+
+        ScrollDecorator {
+            color: "#DFDFDF"
+            anchors.right: parent.right
+            anchors.rightMargin: window.paddingMedium
+            y: ((parent.contentY + (parent.visibleHeight/2)) / parent.contentHeight) * (parent.height - height)
+            height: (parent.visibleHeight / parent.contentHeight) * parent.height
+            visible: parent.contentHeight > parent.visibleHeight
+        }
+
         cellDelegate: Rectangle {
         }
         cellContentsDelegate: Text {
@@ -161,15 +171,6 @@ Rectangle {
             source: "qrc:/icons/menu.png"
             scale: window.pixelRatio
         }
-    }
-
-    Image {
-        // terminal buffer scroll indicator
-        source: "qrc:/icons/scroll-indicator.png"
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        visible: textrender.showBufferScrollIndicator
-        scale: window.pixelRatio
     }
 
     Timer {

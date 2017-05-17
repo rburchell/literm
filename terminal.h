@@ -110,6 +110,8 @@ public:
     int rows();
     int columns();
 
+    bool useAltScreenBuffer() const { return iUseAltScreenBuffer; }
+
     TermChar zeroChar;
 
 signals:

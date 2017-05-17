@@ -203,6 +203,11 @@ void TextRender::updatePolish()
     if (!m_contentItem)
         return;
 
+    // ### these should be handled more carefully
+    emit contentYChanged();
+    emit visibleHeightChanged();
+    emit contentHeightChanged();
+
     // Make sure the terminal's size is right
     QSize size((width() - 4) / iFontWidth, (height() - 4) / iFontHeight);
     sTerm->setTermSize(size);
@@ -746,6 +751,28 @@ void TextRender::setSelectionDelegate(QQmlComponent *component)
     m_selectionDelegate = component;
 
     emit selectionDelegateChanged();
+}
+
+int TextRender::contentHeight() const
+{
+    if (sTerm->useAltScreenBuffer())
+        return sTerm->buffer().size();
+    else
+        return sTerm->buffer().size() + sTerm->backBuffer().size();
+}
+
+int TextRender::visibleHeight() const
+{
+    return sTerm->buffer().size();
+}
+
+int TextRender::contentY() const
+{
+    if (sTerm->useAltScreenBuffer())
+        return 0;
+
+    int scrollPos = sTerm->backBuffer().size() - sTerm->backBufferScrollPos();
+    return scrollPos;
 }
 
 QPointF TextRender::scrollBackBuffer(QPointF now, QPointF last)

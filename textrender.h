@@ -39,12 +39,19 @@ class TextRender : public QQuickItem
     Q_PROPERTY(QQmlComponent* cellContentsDelegate READ cellContentsDelegate WRITE setCellContentsDelegate NOTIFY cellContentsDelegateChanged)
     Q_PROPERTY(QQmlComponent* cursorDelegate READ cursorDelegate WRITE setCursorDelegate NOTIFY cursorDelegateChanged)
     Q_PROPERTY(QQmlComponent* selectionDelegate READ selectionDelegate WRITE setSelectionDelegate NOTIFY selectionDelegateChanged)
+    Q_PROPERTY(int contentHeight READ contentHeight NOTIFY contentHeightChanged)
+    Q_PROPERTY(int visibleHeight READ visibleHeight NOTIFY visibleHeightChanged)
+    Q_PROPERTY(int contentY READ contentY NOTIFY contentYChanged)
 
     Q_OBJECT
 public:
     explicit TextRender(QQuickItem *parent = 0);
     virtual ~TextRender();
     void updatePolish() override;
+
+    int contentHeight() const;
+    int visibleHeight() const;
+    int contentY() const;
 
     QString title() const;
 
@@ -97,6 +104,9 @@ signals:
     void visualBell();
     void titleChanged();
     void dragModeChanged();
+    void contentHeightChanged();
+    void visibleHeightChanged();
+    void contentYChanged();
 
 public slots:
     void redraw();

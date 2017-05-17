@@ -84,12 +84,10 @@ Item {
             }
         }
 
-        Rectangle {
-            y: menuFlickArea.visibleArea.yPosition*menuFlickArea.height + window.scrollBarWidth
+        ScrollDecorator {
             x: parent.width-window.paddingMedium
-            width: window.scrollBarWidth
+            y: menuFlickArea.visibleArea.yPosition*menuFlickArea.height + window.scrollBarWidth
             height: menuFlickArea.visibleArea.heightRatio*menuFlickArea.height
-            radius: 3*window.pixelRatio
             color: "#202020"
         }
 
