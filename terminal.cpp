@@ -880,71 +880,7 @@ void Terminal::ansiSequence(const QString& seq)
         break;
 
     case 'm': //graphics mode
-        if(!extra.isEmpty()) {
-            unhandled=true;
-            break;
-        }
-        if(params.count() > 0) {
-            // xterm 256-colour support
-            if(params.count() > 1 && (params[0] == 38 || params[0] == 48)) {
-                if(params.count() > 2 && params[1] == 5 &&
-                   params[2] >= 0 && params[2] <= 255) {
-                    if(params[0] == 38)
-                        iTermAttribs.currentFgColor = params[2];
-                    else
-                        iTermAttribs.currentBgColor = params[2];
-                }
-                // TODO: 2;r;g;b for 24-bit colour support (Konsole etc)
-                break;
-            }
-
-            if(params.contains(0)) {
-                iTermAttribs.currentFgColor = defaultFgColor;
-                iTermAttribs.currentBgColor = defaultBgColor;
-                iTermAttribs.currentAttrib = attribNone;
-            }
-            if(params.contains(1))
-                iTermAttribs.currentAttrib |= attribBold;
-            if(params.contains(4))
-                iTermAttribs.currentAttrib |= attribUnderline;
-            if(params.contains(7))
-                iTermAttribs.currentAttrib |= attribNegative;
-
-            if(params.contains(22))
-                iTermAttribs.currentAttrib &= ~attribBold;
-            if(params.contains(24))
-                iTermAttribs.currentAttrib &= ~attribUnderline;
-            if(params.contains(27))
-                iTermAttribs.currentAttrib &= ~attribNegative;
-
-            foreach(int p, params) {
-                if(p >= 30 && p<= 37) {
-                    iTermAttribs.currentFgColor = p-30;
-                }
-                if(p >= 40 && p<= 47) {
-                    iTermAttribs.currentBgColor = p-40;
-                }
-            }
-
-            // high-intensity regular-weight extension (nonstandard)
-            foreach(int p, params) {
-                if(p >= 90 && p<= 97) {
-                    iTermAttribs.currentFgColor = p-90+8;
-                }
-                if(p >= 100 && p<= 107) {
-                    iTermAttribs.currentBgColor = p-100+8;
-                }
-            }
-
-            if(params.contains(39))
-                iTermAttribs.currentFgColor = defaultFgColor;
-            if(params.contains(49))
-                iTermAttribs.currentBgColor = defaultBgColor;
-        } else {
-            iTermAttribs.currentFgColor = defaultFgColor;
-            iTermAttribs.currentBgColor = defaultBgColor;
-            iTermAttribs.currentAttrib = attribNone;
-        }
+        handleSGR(params, extra);
         break;
 
     case 'h':
@@ -1067,6 +1003,75 @@ void Terminal::ansiSequence(const QString& seq)
 
     if (unhandled)
         qDebug() << "unhandled ansi sequence " << cmdChar << params << extra;
+}
+
+void Terminal::handleSGR(const QList<int> &params, const QString &extra)
+{
+    if(!extra.isEmpty()) {
+        qDebug() << "got SGR with empty extra, params: " << params;
+        return;
+    }
+    if(params.count() > 0) {
+        // xterm 256-colour support
+        if(params.count() > 1 && (params[0] == 38 || params[0] == 48)) {
+            if(params.count() > 2 && params[1] == 5 &&
+               params[2] >= 0 && params[2] <= 255) {
+                if(params[0] == 38)
+                    iTermAttribs.currentFgColor = params[2];
+                else
+                    iTermAttribs.currentBgColor = params[2];
+            }
+            // TODO: 2;r;g;b for 24-bit colour support (Konsole etc)
+            return;
+        }
+
+        if(params.contains(0)) {
+            iTermAttribs.currentFgColor = defaultFgColor;
+            iTermAttribs.currentBgColor = defaultBgColor;
+            iTermAttribs.currentAttrib = attribNone;
+        }
+        if(params.contains(1))
+            iTermAttribs.currentAttrib |= attribBold;
+        if(params.contains(4))
+            iTermAttribs.currentAttrib |= attribUnderline;
+        if(params.contains(7))
+            iTermAttribs.currentAttrib |= attribNegative;
+
+        if(params.contains(22))
+            iTermAttribs.currentAttrib &= ~attribBold;
+        if(params.contains(24))
+            iTermAttribs.currentAttrib &= ~attribUnderline;
+        if(params.contains(27))
+            iTermAttribs.currentAttrib &= ~attribNegative;
+
+        foreach(int p, params) {
+            if(p >= 30 && p<= 37) {
+                iTermAttribs.currentFgColor = p-30;
+            }
+            if(p >= 40 && p<= 47) {
+                iTermAttribs.currentBgColor = p-40;
+            }
+        }
+
+        // high-intensity regular-weight extension (nonstandard)
+        foreach(int p, params) {
+            if(p >= 90 && p<= 97) {
+                iTermAttribs.currentFgColor = p-90+8;
+            }
+            if(p >= 100 && p<= 107) {
+                iTermAttribs.currentBgColor = p-100+8;
+            }
+        }
+
+        if(params.contains(39))
+            iTermAttribs.currentFgColor = defaultFgColor;
+        if(params.contains(49))
+            iTermAttribs.currentBgColor = defaultBgColor;
+    } else {
+        iTermAttribs.currentFgColor = defaultFgColor;
+        iTermAttribs.currentBgColor = defaultBgColor;
+        iTermAttribs.currentAttrib = attribNone;
+    }
 }
 
 void Terminal::oscSequence(const QString& seq)
