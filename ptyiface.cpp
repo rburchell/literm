@@ -103,7 +103,7 @@ void PtyIFace::readActivated()
 
     int ret = 0;
     char ch[4096];
-    ret = read(iMasterFd, &ch, sizeof(ch));
+    ret = read(iMasterFd, ch, sizeof(ch));
     if(iTerm && ret > 0)
         iTerm->insertInBuffer(iTextCodec->toUnicode(QByteArray::fromRawData(ch, ret)));
 }
