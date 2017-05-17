@@ -46,7 +46,6 @@ private:
     Q_DISABLE_COPY(PtyIFace)
 
     void writeTerm(const QByteArray &chars);
-    void readTerm(QByteArray &chars);
 
     Terminal *iTerm;
     int iPid;

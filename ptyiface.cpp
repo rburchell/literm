@@ -98,10 +98,14 @@ PtyIFace::~PtyIFace()
 
 void PtyIFace::readActivated()
 {
-    QByteArray data;
-    readTerm(data);
-    if(iTerm)
-        iTerm->insertInBuffer( iTextCodec->toUnicode(data) );
+    if(childProcessQuit)
+        return;
+
+    int ret = 0;
+    char ch[4096];
+    ret = read(iMasterFd, &ch, sizeof(ch));
+    if(iTerm && ret > 0)
+        iTerm->insertInBuffer(iTextCodec->toUnicode(QByteArray::fromRawData(ch, ret)));
 }
 
 void PtyIFace::resize(int rows, int columns)
@@ -131,16 +135,3 @@ void PtyIFace::writeTerm(const QByteArray &chars)
         qDebug() << "write error!";
 }
 
-void PtyIFace::readTerm(QByteArray &chars)
-{
-    if(childProcessQuit)
-        return;
-
-    int ret = 0;
-    char ch[64];
-    while(ret != -1) {
-        ret = read(iMasterFd, &ch, 64);
-        if(ret > 0)
-            chars.append((char*)&ch, ret);
-    }
-}
