@@ -83,43 +83,6 @@ TextRender::TextRender(QQuickItem *parent)
     connect(this,SIGNAL(widthChanged()),this,SLOT(redraw()));
     connect(this,SIGNAL(heightChanged()),this,SLOT(redraw()));
 
-    //normal
-    iColorTable.append(QColor(0, 0, 0));
-    iColorTable.append(QColor(210, 0, 0));
-    iColorTable.append(QColor(0, 210, 0));
-    iColorTable.append(QColor(210, 210, 0));
-    iColorTable.append(QColor(0, 0, 240));
-    iColorTable.append(QColor(210, 0, 210));
-    iColorTable.append(QColor(0, 210, 210));
-    iColorTable.append(QColor(235, 235, 235));
-
-    //bright
-    iColorTable.append(QColor(127, 127, 127));
-    iColorTable.append(QColor(255, 0, 0));
-    iColorTable.append(QColor(0, 255, 0));
-    iColorTable.append(QColor(255, 255, 0));
-    iColorTable.append(QColor(92, 92, 255));
-    iColorTable.append(QColor(255, 0, 255));
-    iColorTable.append(QColor(0, 255, 255));
-    iColorTable.append(QColor(255, 255, 255));
-
-    //colour cube
-    for (int r = 0x00; r < 0x100; r += 0x33)
-        for (int g = 0x00; g < 0x100; g += 0x33)
-            for (int b = 0x00; b < 0x100; b += 0x33)
-                iColorTable.append(QColor(r, g, b));
-
-    //greyscale ramp
-    int ramp[] = {
-          0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
-        133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
-    };
-    for (int i = 0; i < 24; i++)
-        iColorTable.append(QColor(ramp[i], ramp[i], ramp[i]));
-
-    if(iColorTable.size() != 256)
-        qFatal("invalid color table");
-
     iShowBufferScrollIndicator = false;
 
     Q_ASSERT(sTerm);
@@ -322,7 +285,7 @@ void TextRender::updatePolish()
         m_cursorDelegateInstance->setY(cursor.y());
         m_cursorDelegateInstance->setWidth(csize.width());
         m_cursorDelegateInstance->setHeight(csize.height());
-        m_cursorDelegateInstance->setProperty("color", iColorTable[Terminal::defaultFgColor]);
+        m_cursorDelegateInstance->setProperty("color", Terminal::defaultFgColor);
     } else if (m_cursorDelegateInstance) {
         m_cursorDelegateInstance->setVisible(false);
     }
@@ -485,14 +448,14 @@ void TextRender::paintFromBuffer(const QList<QList<TermChar> >& buffer, int from
 void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int width, TermChar style)
 {
     if (style.attrib & attribNegative) {
-        int c = style.fgColor;
+        QColor c = style.fgColor;
         style.fgColor = style.bgColor;
         style.bgColor = c;
     }
 
     QColor qtColor = Qt::transparent;
     if (style.bgColor != Terminal::defaultBgColor)
-        qtColor = QColor(iColorTable[style.bgColor]);
+        qtColor = style.bgColor;
 
     cellDelegate->setX(x);
     cellDelegate->setY(y);
@@ -505,19 +468,17 @@ void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int 
 void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, QString text, TermChar style)
 {
     if (style.attrib & attribNegative) {
-        int c = style.fgColor;
+        QColor c = style.fgColor;
         style.fgColor = style.bgColor;
         style.bgColor = c;
     }
     if (style.attrib & attribBold) {
         iFont.setBold(true);
-        if(style.fgColor < 8)
-            style.fgColor += 8;
     } else if(iFont.bold()) {
         iFont.setBold(false);
     }
 
-    QColor qtColor = QColor(iColorTable[style.fgColor]);
+    QColor qtColor = style.fgColor;
 
     cellContentsDelegate->setX(x);
     cellContentsDelegate->setY(y);

@@ -38,11 +38,54 @@ static bool charIsHexDigit(QChar ch)
     return false;
 }
 
+QColor Terminal::defaultFgColor = QColor();
+QColor Terminal::defaultBgColor = QColor();
+
 Terminal::Terminal(QObject *parent) :
     QObject(parent), iPtyIFace(0), iWindow(0), iUtil(0),
     iTermSize(0,0), iEmitCursorChangeSignal(true),
     iShowCursor(true), iUseAltScreenBuffer(false), iAppCursorKeys(false)
 {
+    //normal
+    iColorTable.append(QColor(0, 0, 0));
+    iColorTable.append(QColor(210, 0, 0));
+    iColorTable.append(QColor(0, 210, 0));
+    iColorTable.append(QColor(210, 210, 0));
+    iColorTable.append(QColor(0, 0, 240));
+    iColorTable.append(QColor(210, 0, 210));
+    iColorTable.append(QColor(0, 210, 210));
+    iColorTable.append(QColor(235, 235, 235));
+
+    //bright
+    iColorTable.append(QColor(127, 127, 127));
+    iColorTable.append(QColor(255, 0, 0));
+    iColorTable.append(QColor(0, 255, 0));
+    iColorTable.append(QColor(255, 255, 0));
+    iColorTable.append(QColor(92, 92, 255));
+    iColorTable.append(QColor(255, 0, 255));
+    iColorTable.append(QColor(0, 255, 255));
+    iColorTable.append(QColor(255, 255, 255));
+
+    //colour cube
+    for (int r = 0x00; r < 0x100; r += 0x33)
+        for (int g = 0x00; g < 0x100; g += 0x33)
+            for (int b = 0x00; b < 0x100; b += 0x33)
+                iColorTable.append(QColor(r, g, b));
+
+    //greyscale ramp
+    int ramp[] = {
+          0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
+        133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
+    };
+    for (int i = 0; i < 24; i++)
+        iColorTable.append(QColor(ramp[i], ramp[i], ramp[i]));
+
+    if(iColorTable.size() != 256)
+        qFatal("invalid color table");
+
+    defaultFgColor = iColorTable[7];
+    defaultBgColor = iColorTable[0];
+
     zeroChar.c = ' ';
     zeroChar.bgColor = defaultBgColor;
     zeroChar.fgColor = defaultFgColor;
@@ -1011,15 +1054,24 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
         qDebug() << "got SGR with empty extra, params: " << params;
         return;
     }
+
+    // XXX: textrender used to do this for bold fg colors. why, and how can we
+    // best replace it?
+    //if(style.fgColor < 8)
+    //    style.fgColor += 8;
+
     if(params.count() > 0) {
         // xterm 256-colour support
         if(params.count() > 1 && (params[0] == 38 || params[0] == 48)) {
-            if(params.count() > 2 && params[1] == 5 &&
-               params[2] >= 0 && params[2] <= 255) {
+            if (params.count() < 2) {
+                qDebug() << "got invalid extended SGR: " << params << extra;
+                return;
+            }
+            if(params[1] == 5 && params[2] >= 0 && params[2] <= 255) {
                 if(params[0] == 38)
-                    iTermAttribs.currentFgColor = params[2];
+                    iTermAttribs.currentFgColor = iColorTable[params[2]];
                 else
-                    iTermAttribs.currentBgColor = params[2];
+                    iTermAttribs.currentBgColor = iColorTable[params[2]];
             }
             // TODO: 2;r;g;b for 24-bit colour support (Konsole etc)
             return;
@@ -1046,20 +1098,20 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
 
         foreach(int p, params) {
             if(p >= 30 && p<= 37) {
-                iTermAttribs.currentFgColor = p-30;
+                iTermAttribs.currentFgColor = iColorTable[p-30];
             }
             if(p >= 40 && p<= 47) {
-                iTermAttribs.currentBgColor = p-40;
+                iTermAttribs.currentBgColor = iColorTable[p-40];
             }
         }
 
         // high-intensity regular-weight extension (nonstandard)
         foreach(int p, params) {
             if(p >= 90 && p<= 97) {
-                iTermAttribs.currentFgColor = p-90+8;
+                iTermAttribs.currentFgColor = iColorTable[p-90+8];
             }
             if(p >= 100 && p<= 107) {
-                iTermAttribs.currentBgColor = p-100+8;
+                iTermAttribs.currentBgColor = iColorTable[p-100+8];
             }
         }
 

@@ -18,6 +18,7 @@
 */
 
 #include <QCoreApplication>
+#include <QDebug>
 
 extern "C" {
 #include <stdio.h>

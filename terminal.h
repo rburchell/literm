@@ -20,7 +20,9 @@
 #ifndef TERMINAL_H
 #define TERMINAL_H
 
-#include <QtCore>
+#include <QObject>
+#include <QColor>
+#include <QRect>
 
 class PtyIFace;
 class Util;
@@ -28,8 +30,8 @@ class QQuickView;
 
 struct TermChar {
     QChar c;
-    int fgColor;
-    int bgColor;
+    QColor fgColor;
+    QColor bgColor;
     int attrib;
 };
 
@@ -45,8 +47,8 @@ struct TermAttribs {
     bool wrapAroundMode;
     bool originMode;
 
-    int currentFgColor;
-    int currentBgColor;
+    QColor currentFgColor;
+    QColor currentBgColor;
     int currentAttrib;
 };
 
@@ -57,8 +59,8 @@ class Terminal : public QObject
     Q_PROPERTY(int columns READ columns NOTIFY termSizeChanged)
 
 public:
-    static const int defaultFgColor = 7;
-    static const int defaultBgColor = 0;
+    static QColor defaultFgColor;
+    static QColor defaultBgColor;
 
     explicit Terminal(QObject *parent = 0);
     virtual ~Terminal() {}
@@ -170,6 +172,7 @@ private:
     QString oscSeq;
     int escape;
     QRect iSelection;
+    QList<QColor> iColorTable;
 };
 
 #endif // TERMINAL_H

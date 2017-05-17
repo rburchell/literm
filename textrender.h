@@ -152,7 +152,6 @@ private:
     static Terminal *sTerm;
     static Util *sUtil;
 
-    QList<QColor> iColorTable;
     QQuickItem *m_contentItem;
     QQuickItem *m_backgroundContainer;
     QQuickItem *m_textContainer;
