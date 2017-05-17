@@ -26,6 +26,39 @@
 Terminal* TextRender::sTerm = 0;
 Util* TextRender::sUtil = 0;
 
+/*!
+ * \internal
+ *
+ * TextRender is a QQuickItem that acts as a view for data from a Terminal,
+ * and serves as an interaction point with a Terminal.
+ *
+ * TextRender is organized of a number of different parts. The user is expected
+ * to set a number of "delegates", which are the pieces instantiated by
+ * TextRender to correspond with the data from the Terminal. For instance, there
+ * is a background cell delegate (for coloring), a cell contents delegate (for
+ * the text), a cursor delegate, and so on.
+ *
+ * TextRender organises its child delegate instances in a slightly complex way,
+ * due to the amount of items it manages, and the requirements involved:
+ *
+ * TextRender
+ *      contentItem
+ *          backgroundContainer
+ *              cellDelegates
+ *          textContainer
+ *              cellContentsDelegates
+ *          overlayContainer
+ *              cursorDelegate
+ *              selectionDelegates
+ *
+ * The contentItem is separate from TextRender itself so that contentItem can
+ * have visual effects applied (like a <1.0 opacity) without affecting items
+ * that are placed inside TextRender on the user's side. This is used in the
+ * mobile UX for instance, where the keyboard is placed inside TextRender, and
+ * opacity on the keyboard and TextRender's contentItem are swapped when the
+ * keyboard transitions to and from active state.
+ */
+
 TextRender::TextRender(QQuickItem *parent)
     : QQuickItem(parent)
     , newSelection(true)
