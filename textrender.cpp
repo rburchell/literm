@@ -352,7 +352,7 @@ void TextRender::updatePolish()
     }
 }
 
-void TextRender::paintFromBuffer(const QList<QList<TermChar> >& buffer, int from, int to, qreal &y, int &yDelegateIndex)
+void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to, qreal &y, int &yDelegateIndex)
 {
     const int leftmargin = 2;
     int cutAfter = property("cutAfter").toInt() + iFontDescent;

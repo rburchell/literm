@@ -53,6 +53,9 @@ struct TermAttribs {
     int currentAttrib;
 };
 
+typedef QVector<TermChar> TerminalLine;
+typedef QVector<TerminalLine> TerminalBuffer;
+
 class Terminal : public QObject
 {
     Q_OBJECT
@@ -79,10 +82,10 @@ public:
     QSize termSize() { return iTermSize; }
     void setTermSize(QSize size);
 
-    QList<QList<TermChar> >& buffer();
-    QList<QList<TermChar> >& backBuffer() { return iBackBuffer; }
+    TerminalBuffer &buffer();
+    TerminalBuffer &backBuffer() { return iBackBuffer; }
 
-    QList<TermChar>& currentLine();
+    TerminalLine &currentLine();
 
     Q_INVOKABLE void keyPress(int key, int modifiers, const QString& text="");
     Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
@@ -146,10 +149,10 @@ private:
     QQuickView* iWindow;
     Util* iUtil;
 
-    QList<QList<TermChar> > iBuffer;
-    QList<QList<TermChar> > iAltBuffer;
-    QList<QList<TermChar> > iBackBuffer;
-    QList<QList<int> > iTabStops;
+    TerminalBuffer iBuffer;
+    TerminalBuffer iAltBuffer;
+    TerminalBuffer iBackBuffer;
+    QVector<QVector<int> > iTabStops;
 
     QSize iTermSize;
     bool iEmitCursorChangeSignal;

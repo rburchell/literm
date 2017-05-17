@@ -154,7 +154,7 @@ bool Terminal::showCursor()
     return iShowCursor;
 }
 
-QList<QList<TermChar> >& Terminal::buffer()
+TerminalBuffer &Terminal::buffer()
 {
     if(iUseAltScreenBuffer)
         return iAltBuffer;
@@ -529,7 +529,7 @@ void Terminal::clearAt(QPoint pos)
 
     // just in case...
     while(buffer().size() < pos.y())
-        buffer().append(QList<TermChar>());
+        buffer().append(TerminalLine());
     while(buffer()[pos.y()-1].size() < pos.x() )
         buffer()[pos.y()-1].append(zeroChar);
 
@@ -1163,7 +1163,7 @@ void Terminal::escControlChar(const QString& seq)
         if( seq.at(0) == '#' && seq.at(1)=='8' ) { // test mode, fill screen with 'E'
             clearAll(true);
             for (int i = 0; i < rows(); i++) {
-                QList<TermChar> line;
+                TerminalLine line;
                 for(int j = 0; j < columns(); j++) {
                     TermChar c = zeroChar;
                     c.c = 'E';
@@ -1186,7 +1186,7 @@ void Terminal::escControlChar(const QString& seq)
 
     else if(ch.toLatin1()=='H') {  // set a tab stop at cursor position
         while(iTabStops.size() < cursorPos().y())
-            iTabStops.append(QList<int>());
+            iTabStops.append(QVector<int>());
 
         iTabStops[cursorPos().y()-1].append(cursorPos().x());
         qSort(iTabStops[cursorPos().y()-1]);
@@ -1217,10 +1217,10 @@ void Terminal::escControlChar(const QString& seq)
     }
 }
 
-QList<TermChar>& Terminal::currentLine()
+TerminalLine &Terminal::currentLine()
 {
     while(buffer().size() <= cursorPos().y()-1)
-        buffer().append(QList<TermChar>());
+        buffer().append(TerminalLine());
 
     if( cursorPos().y() >= 1 &&
             cursorPos().y() <= buffer().size() )
@@ -1278,9 +1278,9 @@ void Terminal::scrollBack(int lines, int insertAt)
             if(iBackBuffer.size()>0 && useBackbuffer)
                 buffer().insert(insertAt, iBackBuffer.takeLast());
             else
-                buffer().insert(insertAt, QList<TermChar>());
+                buffer().insert(insertAt, TerminalLine());
         } else {
-            buffer().insert(insertAt, QList<TermChar>());
+            buffer().insert(insertAt, TerminalLine());
         }
 
         int rm = iMarginBottom;
@@ -1306,10 +1306,10 @@ void Terminal::scrollFwd(int lines, int removeAt)
     removeAt--;
 
     while(buffer().size() < iMarginBottom)
-        buffer().append(QList<TermChar>());
+        buffer().append(TerminalLine());
 
     while(lines>0) {
-        buffer().insert(iMarginBottom, QList<TermChar>());
+        buffer().insert(iMarginBottom, TerminalLine());
 
         if(!iUseAltScreenBuffer)
             iBackBuffer.append( buffer().takeAt(removeAt) );
@@ -1357,7 +1357,7 @@ void Terminal::resetTabs()
     iTabStops.clear();
     for(int i=0; i<iTermSize.height(); i++) {
         int tab=1;
-        iTabStops.append(QList<int>());
+        iTabStops.append(QVector<int>());
         while(tab <= iTermSize.width()) {
             iTabStops.last().append(tab);
             tab += 8;

@@ -120,7 +120,7 @@ private:
 
     void drawBgFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, int width, TermChar style);
     void drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, QString text, TermChar style);
-    void paintFromBuffer(const QList<QList<TermChar> >& buffer, int from, int to, qreal &y, int &yDelegateIndex);
+    void paintFromBuffer(const TerminalBuffer &buffer, int from, int to, qreal &y, int &yDelegateIndex);
     QPointF charsToPixels(QPoint pos);
     void selectionHelper(QPointF scenePos, bool selectionOngoing);
     void ensureRowPopulated(QVector<QQuickItem*> &row, QVector<QQuickItem*> &rowContents, int columnCount);
