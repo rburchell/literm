@@ -107,6 +107,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
+    void timerEvent(QTimerEvent *event) override;
 
 private slots:
     void handleScrollBack(bool reset);
@@ -168,6 +169,7 @@ private:
     QQuickItem *m_bottomSelectionDelegateInstance;
     DragMode m_dragMode;
     QString m_title;
+    int m_dispatch_timer;
 };
 
 #endif // TEXTRENDER_H

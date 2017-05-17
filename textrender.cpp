@@ -76,6 +76,7 @@ TextRender::TextRender(QQuickItem *parent)
     , m_middleSelectionDelegateInstance(0)
     , m_bottomSelectionDelegateInstance(0)
     , m_dragMode(DragScroll)
+    , m_dispatch_timer(0)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
     setFiltersChildMouseEvents(true);
@@ -490,6 +491,16 @@ void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qre
 
 void TextRender::redraw()
 {
+    if (m_dispatch_timer)
+        return;
+
+    m_dispatch_timer = startTimer(3);
+}
+
+void TextRender::timerEvent(QTimerEvent *)
+{
+    killTimer(m_dispatch_timer);
+    m_dispatch_timer = 0;
     polish();
 }
 
