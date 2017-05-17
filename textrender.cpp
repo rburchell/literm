@@ -448,7 +448,7 @@ void TextRender::paintFromBuffer(const QList<QList<TermChar> >& buffer, int from
 void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int width, TermChar style)
 {
     if (style.attrib & attribNegative) {
-        QColor c = style.fgColor;
+        QRgb c = style.fgColor;
         style.fgColor = style.bgColor;
         style.bgColor = c;
     }
@@ -468,7 +468,7 @@ void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int 
 void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, QString text, TermChar style)
 {
     if (style.attrib & attribNegative) {
-        QColor c = style.fgColor;
+        QRgb c = style.fgColor;
         style.fgColor = style.bgColor;
         style.bgColor = c;
     }

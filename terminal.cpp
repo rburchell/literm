@@ -38,8 +38,8 @@ static bool charIsHexDigit(QChar ch)
     return false;
 }
 
-QColor Terminal::defaultFgColor = QColor();
-QColor Terminal::defaultBgColor = QColor();
+QRgb Terminal::defaultFgColor;
+QRgb Terminal::defaultBgColor;
 
 Terminal::Terminal(QObject *parent) :
     QObject(parent), iPtyIFace(0), iWindow(0), iUtil(0),
@@ -47,30 +47,30 @@ Terminal::Terminal(QObject *parent) :
     iShowCursor(true), iUseAltScreenBuffer(false), iAppCursorKeys(false)
 {
     //normal
-    iColorTable.append(QColor(0, 0, 0));
-    iColorTable.append(QColor(210, 0, 0));
-    iColorTable.append(QColor(0, 210, 0));
-    iColorTable.append(QColor(210, 210, 0));
-    iColorTable.append(QColor(0, 0, 240));
-    iColorTable.append(QColor(210, 0, 210));
-    iColorTable.append(QColor(0, 210, 210));
-    iColorTable.append(QColor(235, 235, 235));
+    iColorTable.append(QColor(0, 0, 0).rgb());
+    iColorTable.append(QColor(210, 0, 0).rgb());
+    iColorTable.append(QColor(0, 210, 0).rgb());
+    iColorTable.append(QColor(210, 210, 0).rgb());
+    iColorTable.append(QColor(0, 0, 240).rgb());
+    iColorTable.append(QColor(210, 0, 210).rgb());
+    iColorTable.append(QColor(0, 210, 210).rgb());
+    iColorTable.append(QColor(235, 235, 235).rgb());
 
     //bright
-    iColorTable.append(QColor(127, 127, 127));
-    iColorTable.append(QColor(255, 0, 0));
-    iColorTable.append(QColor(0, 255, 0));
-    iColorTable.append(QColor(255, 255, 0));
-    iColorTable.append(QColor(92, 92, 255));
-    iColorTable.append(QColor(255, 0, 255));
-    iColorTable.append(QColor(0, 255, 255));
-    iColorTable.append(QColor(255, 255, 255));
+    iColorTable.append(QColor(127, 127, 127).rgb());
+    iColorTable.append(QColor(255, 0, 0).rgb());
+    iColorTable.append(QColor(0, 255, 0).rgb());
+    iColorTable.append(QColor(255, 255, 0).rgb());
+    iColorTable.append(QColor(92, 92, 255).rgb());
+    iColorTable.append(QColor(255, 0, 255).rgb());
+    iColorTable.append(QColor(0, 255, 255).rgb());
+    iColorTable.append(QColor(255, 255, 255).rgb());
 
     //colour cube
     for (int r = 0x00; r < 0x100; r += 0x33)
         for (int g = 0x00; g < 0x100; g += 0x33)
             for (int b = 0x00; b < 0x100; b += 0x33)
-                iColorTable.append(QColor(r, g, b));
+                iColorTable.append(QColor(r, g, b).rgb());
 
     //greyscale ramp
     int ramp[] = {
@@ -78,7 +78,7 @@ Terminal::Terminal(QObject *parent) :
         133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
     };
     for (int i = 0; i < 24; i++)
-        iColorTable.append(QColor(ramp[i], ramp[i], ramp[i]));
+        iColorTable.append(QColor(ramp[i], ramp[i], ramp[i]).rgb());
 
     if(iColorTable.size() != 256)
         qFatal("invalid color table");
@@ -1072,8 +1072,16 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
                     iTermAttribs.currentFgColor = iColorTable[params[2]];
                 else
                     iTermAttribs.currentBgColor = iColorTable[params[2]];
+            } else if (params[1] == 2 && params.count() >= 5) {
+                if (params[0] == 38)
+                    iTermAttribs.currentFgColor = QColor(params.at(2), params.at(3), params.at(4)).rgb();
+                else
+                    iTermAttribs.currentBgColor = QColor(params.at(2), params.at(3), params.at(4)).rgb();
+            } else {
+                qDebug() << "got malformed extended SGR: " << params << extra;
+                return;
             }
-            // TODO: 2;r;g;b for 24-bit colour support (Konsole etc)
+
             return;
         }
 

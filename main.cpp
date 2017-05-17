@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         qFatal("forkpty failed");
         exit(1);
     } else if( pid==0 ) {
-        setenv("TERM", settings->value("terminal/envVarTERM", "xterm").toByteArray(), 1);
+        setenv("TERM", settings->value("terminal/envVarTERM", "xterm-256color").toByteArray(), 1);
 
         QString execCmd;
         for(int i=0; i<argc-1; i++) {
