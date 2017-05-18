@@ -1071,6 +1071,15 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
     while (pidx < params.count()) {
         int p = params.at(pidx++);
         switch (p) {
+        // Consider supporting:
+        // 2 (faint)
+        // 8 (invisible)
+        // 9 (crossed out -- what is this?)
+        // 21 (double underline)
+        // 22 (normal, not faint)
+        // 28 (visible)
+        // 29 (not crossed out)
+
         case 0:
             iTermAttribs.currentFgColor = defaultFgColor;
             iTermAttribs.currentBgColor = defaultBgColor;
