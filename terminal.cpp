@@ -998,6 +998,11 @@ void Terminal::handleMode(int mode, bool set, const QString &extra)
             iMarginTop = 1;
             iMarginBottom = iTermSize.height();
             break;
+        case 5: {
+            // inverse video (DECSCNM)
+            m_inverseVideoMode = set;
+            break;
+        }
         case 6: // origin mode
             iTermAttribs.originMode = set;
             break;
@@ -1383,6 +1388,7 @@ void Terminal::resetTerminal()
     iAppCursorKeys = false;
     iReplaceMode = false;
     iNewLineMode = false;
+    m_inverseVideoMode = false;
 
     resetBackBufferScrollPos();
 

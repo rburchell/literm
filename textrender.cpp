@@ -459,9 +459,13 @@ void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int 
         style.bgColor = c;
     }
 
-    QColor qtColor = Qt::transparent;
-    if (style.bgColor != Terminal::defaultBgColor)
+    QColor qtColor;
+
+    if (sTerm->inverseVideoMode() && style.bgColor == Terminal::defaultBgColor) {
+        qtColor = Terminal::defaultFgColor;
+    } else {
         qtColor = style.bgColor;
+    }
 
     cellDelegate->setX(x);
     cellDelegate->setY(y);
@@ -484,7 +488,13 @@ void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qre
         iFont.setBold(false);
     }
 
-    QColor qtColor = style.fgColor;
+    QColor qtColor;
+
+    if (sTerm->inverseVideoMode() && style.fgColor == Terminal::defaultFgColor) {
+        qtColor = Terminal::defaultBgColor;
+    } else {
+        qtColor = style.fgColor;
+    }
 
     cellContentsDelegate->setX(x);
     cellContentsDelegate->setY(y);
