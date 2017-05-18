@@ -34,7 +34,8 @@ struct TermChar {
         NoAttributes = 0x0,
         BoldAttribute = 0x1,
         UnderlineAttribute = 0x2,
-        NegativeAttribute = 0x4
+        NegativeAttribute = 0x4,
+        BlinkAttribute = 0x8
     };
 
     QChar c;

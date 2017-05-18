@@ -112,6 +112,29 @@ Item {
                 cellDelegate: Rectangle {
                 }
                 cellContentsDelegate: Text {
+                    id: text
+                    property bool blinking: false
+
+                    opacity: blinking ? 0.5 : 1.0
+                    SequentialAnimation {
+                        running: blinking
+                        loops: Animation.Infinite
+                        NumberAnimation {
+                            target: text
+                            property: "opacity"
+                            to: 0.8
+                            duration: 200
+                        }
+                        PauseAnimation {
+                            duration: 400
+                        }
+                        NumberAnimation {
+                            target: text
+                            property: "opacity"
+                            to: 0.5
+                            duration: 200
+                        }
+                    }
                 }
                 cursorDelegate: Rectangle {
                     id: cursor

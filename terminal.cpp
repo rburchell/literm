@@ -1082,6 +1082,9 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
         case 4:
             iTermAttribs.currentAttrib |= TermChar::UnderlineAttribute;
             break;
+        case 5:
+            iTermAttribs.currentAttrib |= TermChar::BlinkAttribute;
+            break;
         case 7:
             iTermAttribs.currentAttrib |= TermChar::NegativeAttribute;
             break;
@@ -1090,6 +1093,9 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
             break;
         case 24:
             iTermAttribs.currentAttrib &= ~TermChar::UnderlineAttribute;
+            break;
+        case 25:
+            iTermAttribs.currentAttrib &= ~TermChar::BlinkAttribute;
             break;
         case 27:
             iTermAttribs.currentAttrib &= ~TermChar::NegativeAttribute;

@@ -506,6 +506,13 @@ void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qre
     cellContentsDelegate->setHeight(iFontHeight);
     cellContentsDelegate->setProperty("color", qtColor);
     cellContentsDelegate->setProperty("text", text);
+
+    if (style.attrib & TermChar::BlinkAttribute) {
+        cellContentsDelegate->setProperty("blinking", true);
+    } else {
+        cellContentsDelegate->setProperty("blinking", false);
+    }
+
     cellContentsDelegate->setVisible(true);
 }
 
