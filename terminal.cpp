@@ -930,6 +930,8 @@ void Terminal::ansiSequence(const QString& seq)
         break;
 
     case 'm': //graphics mode
+        if (params.count() == 0)
+            params.append(0);
         handleSGR(params, extra);
         break;
 
@@ -1057,87 +1059,126 @@ void Terminal::ansiSequence(const QString& seq)
 
 void Terminal::handleSGR(const QList<int> &params, const QString &extra)
 {
-    if(!extra.isEmpty()) {
-        qDebug() << "got SGR with empty extra, params: " << params;
-        return;
-    }
+// I think this check was wrong. At least vttest sends 5; 7; sometimes.
+//    if(!extra.isEmpty()) {
+//        qDebug() << "got SGR with empty extra, params: " << params;
+//        return;
+//    }
 
     // XXX: textrender used to do this for bold fg colors. why, and how can we
     // best replace it?
     //if(style.fgColor < 8)
     //    style.fgColor += 8;
 
-    if(params.count() > 0) {
-        // xterm 256-colour support
-        if(params.count() > 1 && (params[0] == 38 || params[0] == 48)) {
-            if (params.count() < 2) {
-                qDebug() << "got invalid extended SGR: " << params << extra;
-                return;
-            }
-            if(params[1] == 5 && params[2] >= 0 && params[2] <= 255) {
-                if(params[0] == 38)
-                    iTermAttribs.currentFgColor = iColorTable[params[2]];
-                else
-                    iTermAttribs.currentBgColor = iColorTable[params[2]];
-            } else if (params[1] == 2 && params.count() >= 5) {
-                if (params[0] == 38)
-                    iTermAttribs.currentFgColor = QColor(params.at(2), params.at(3), params.at(4)).rgb();
-                else
-                    iTermAttribs.currentBgColor = QColor(params.at(2), params.at(3), params.at(4)).rgb();
-            } else {
-                qDebug() << "got malformed extended SGR: " << params << extra;
-                return;
-            }
+    int pidx = 0;
 
-            return;
-        }
-
-        if(params.contains(0)) {
+    while (pidx < params.count()) {
+        int p = params.at(pidx++);
+        switch (p) {
+        case 0:
             iTermAttribs.currentFgColor = defaultFgColor;
             iTermAttribs.currentBgColor = defaultBgColor;
             iTermAttribs.currentAttrib = attribNone;
-        }
-        if(params.contains(1))
+            break;
+        case 1:
             iTermAttribs.currentAttrib |= attribBold;
-        if(params.contains(4))
+            break;
+        case 4:
             iTermAttribs.currentAttrib |= attribUnderline;
-        if(params.contains(7))
+            break;
+        case 7:
             iTermAttribs.currentAttrib |= attribNegative;
-
-        if(params.contains(22))
+            break;
+        case 22:
             iTermAttribs.currentAttrib &= ~attribBold;
-        if(params.contains(24))
+            break;
+        case 24:
             iTermAttribs.currentAttrib &= ~attribUnderline;
-        if(params.contains(27))
+            break;
+        case 27:
             iTermAttribs.currentAttrib &= ~attribNegative;
+            break;
 
-        foreach(int p, params) {
-            if(p >= 30 && p<= 37) {
-                iTermAttribs.currentFgColor = iColorTable[p-30];
-            }
-            if(p >= 40 && p<= 47) {
-                iTermAttribs.currentBgColor = iColorTable[p-40];
-            }
-        }
+        case 30: // fg black
+        case 31:
+        case 32:
+        case 33:
+        case 34:
+        case 35:
+        case 36:
+        case 37:
+            iTermAttribs.currentFgColor = iColorTable[p-30];
+            break;
 
-        // high-intensity regular-weight extension (nonstandard)
-        foreach(int p, params) {
-            if(p >= 90 && p<= 97) {
-                iTermAttribs.currentFgColor = iColorTable[p-90+8];
-            }
-            if(p >= 100 && p<= 107) {
-                iTermAttribs.currentBgColor = iColorTable[p-100+8];
-            }
-        }
-
-        if(params.contains(39))
+        case 39: // fg default
             iTermAttribs.currentFgColor = defaultFgColor;
-        if(params.contains(49))
+            break;
+
+        case 40: // bg black
+        case 41:
+        case 42:
+        case 43:
+        case 44:
+        case 45:
+        case 46:
+        case 47:
+            iTermAttribs.currentBgColor = iColorTable[p-40];
+            break;
+
+        case 49: // bg default
             iTermAttribs.currentBgColor = defaultBgColor;
-    } else {
-        iTermAttribs.currentFgColor = defaultFgColor;
-        iTermAttribs.currentBgColor = defaultBgColor;
-        iTermAttribs.currentAttrib = attribNone;
+            break;
+
+
+        case 90: // fg black, bold/bright, nonstandard
+        case 91:
+        case 92:
+        case 93:
+        case 94:
+        case 95:
+        case 96:
+        case 97:
+            iTermAttribs.currentFgColor = iColorTable[p-90+8];
+            break;
+
+        case 100: // fg black, bold/bright, nonstandard
+        case 101:
+        case 102:
+        case 103:
+        case 104:
+        case 105:
+        case 106:
+        case 107:
+            iTermAttribs.currentFgColor = iColorTable[p-100+8];
+            break;
+
+        case 38:
+        case 48:
+            // xterm 256-colour support
+            if (params.count() - pidx < 2) {
+                qDebug() << "got invalid extended SGR: " << params << extra;
+                continue;
+            }
+            if(params[pidx] == 5 && params[pidx+1] >= 0 && params[pidx+1] <= 255) {
+                if(p == 38)
+                    iTermAttribs.currentFgColor = iColorTable[params[pidx+1]];
+                else
+                    iTermAttribs.currentBgColor = iColorTable[params[pidx+1]];
+
+                pidx += 2; // eat the '5' and color index
+            } else if (params[pidx] == 2 && params.count() - pidx >= 5) {
+                if (p == 38)
+                    iTermAttribs.currentFgColor = QColor(params.at(pidx+1), params.at(pidx+2), params.at(pidx+3)).rgb();
+                else
+                    iTermAttribs.currentBgColor = QColor(params.at(pidx+1), params.at(pidx+2), params.at(pidx+3)).rgb();
+
+                pidx += 4; // '2' and 3 colors.
+            } else {
+                qDebug() << "got malformed extended SGR: " << params << extra;
+                continue;
+            }
+            break;
+        }
     }
 }
 
