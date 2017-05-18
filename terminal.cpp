@@ -1039,6 +1039,9 @@ void Terminal::handleMode(int mode, bool set, const QString &extra)
             resetTabs();
             emit displayBufferChanged();
             break;
+        case 2004: // bracketed paste mode
+            m_bracketedPasteMode = set;
+            break;
         default:
             qDebug() << "Unhandled DEC mode " << mode << set << extra;
         }
@@ -1417,6 +1420,7 @@ void Terminal::resetTerminal()
     iReplaceMode = false;
     iNewLineMode = false;
     m_inverseVideoMode = false;
+    m_bracketedPasteMode = false;
 
     resetBackBufferScrollPos();
 
@@ -1440,10 +1444,18 @@ void Terminal::resetTabs()
 void Terminal::pasteFromClipboard()
 {
     QClipboard *cb = QGuiApplication::clipboard();
+    QString cbText = cb->text();
 
-    if(iPtyIFace && !cb->text().isEmpty()) {
+    if(iPtyIFace && !cbText.isEmpty()) {
         resetBackBufferScrollPos();
+
+        if (m_bracketedPasteMode) {
+            iPtyIFace->writeTerm(QString::fromLatin1("\e[200~"));
+        }
         iPtyIFace->writeTerm(cb->text());
+        if (m_bracketedPasteMode) {
+            iPtyIFace->writeTerm(QString::fromLatin1("\e[201~"));
+        }
     }
 }
 

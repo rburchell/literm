@@ -178,6 +178,7 @@ private:
     bool iReplaceMode;
     bool iNewLineMode;
     bool m_inverseVideoMode;
+    bool m_bracketedPasteMode;
 
     int iMarginTop;
     int iMarginBottom;
