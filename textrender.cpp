@@ -153,14 +153,7 @@ void TextRender::setFont(const QFont &font)
     iFontWidth = fontMetrics.maxWidth();
     iFontDescent = fontMetrics.descent();
 
-    for (int y = 0; y < m_cellsContent.size(); ++y) {
-        for (int x = 0; x < m_cellsContent.at(y).size(); ++x) {
-            QQuickItem *it = m_cellsContent.at(y).at(x);
-            it->setProperty("font", iFont);
-        }
-    }
-
-    polish(); // may have changed sizes, so polish to reposition too
+    polish();
     emit fontChanged();
 }
 
@@ -190,7 +183,6 @@ void TextRender::ensureRowPopulated(QVector<QQuickItem*> &row, QVector<QQuickIte
         row.append(it);
 
         it = qobject_cast<QQuickItem*>(m_cellContentsDelegate->create(qmlContext(this)));
-        it->setProperty("font", iFont);
         it->setVisible(false);
         it->setParentItem(m_textContainer);
         Q_ASSERT(it);
@@ -506,6 +498,7 @@ void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qre
     cellContentsDelegate->setHeight(iFontHeight);
     cellContentsDelegate->setProperty("color", qtColor);
     cellContentsDelegate->setProperty("text", text);
+    cellContentsDelegate->setProperty("font", iFont);
 
     if (style.attrib & TermChar::BlinkAttribute) {
         cellContentsDelegate->setProperty("blinking", true);
