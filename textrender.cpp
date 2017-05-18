@@ -487,6 +487,11 @@ void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qre
     } else if(iFont.bold()) {
         iFont.setBold(false);
     }
+    if (style.attrib & TermChar::UnderlineAttribute) {
+        iFont.setUnderline(true);
+    } else if(iFont.underline()) {
+        iFont.setUnderline(false);
+    }
 
     QColor qtColor;
 
