@@ -101,7 +101,7 @@ public:
 
     Q_INVOKABLE void keyPress(int key, int modifiers, const QString& text="");
     Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
-    Q_INVOKABLE void putString(QString str, bool unEscape=false);
+    Q_INVOKABLE void putString(QString str);
 
     void paste(const QString &text);
     Q_INVOKABLE const QStringList grabURLsFromBuffer();

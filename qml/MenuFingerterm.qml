@@ -78,7 +78,7 @@ Item {
                 enabled: disableOn.length === 0 || util.windowTitle.search(disableOn) === -1
                 onClicked: {
                     menuWin.showing = false;
-                    term.putString(command, true);
+                    term.putString(command);
                 }
             }
         }

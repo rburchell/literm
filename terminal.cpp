@@ -181,40 +181,38 @@ void Terminal::setTermSize(QSize size)
     }
 }
 
-void Terminal::putString(QString str, bool unEscape)
+void Terminal::putString(QString str)
 {
-    if (unEscape) {
-        str.replace("\\r", "\r");
-        str.replace("\\n", "\n");
-        str.replace("\\e", QChar('\e'));
-        str.replace("\\b", "\b");
-        str.replace("\\t", "\t");
+    str.replace("\\r", "\r");
+    str.replace("\\n", "\n");
+    str.replace("\\e", QChar('\e'));
+    str.replace("\\b", "\b");
+    str.replace("\\t", "\t");
 
-        //hex
-        while(str.indexOf("\\x") != -1) {
-            int i = str.indexOf("\\x")+2;
-            QString num;
-            while(num.length() < 2 && str.length()>i && charIsHexDigit(str.at(i))) {
-                num.append(str.at(i));
-                i++;
-            }
-            str.remove(i-2-num.length(), num.length()+2);
-            bool ok;
-            str.insert(i-2-num.length(), QChar(num.toInt(&ok,16)));
+    //hex
+    while(str.indexOf("\\x") != -1) {
+        int i = str.indexOf("\\x")+2;
+        QString num;
+        while(num.length() < 2 && str.length()>i && charIsHexDigit(str.at(i))) {
+            num.append(str.at(i));
+            i++;
         }
-        //octal
-        while(str.indexOf("\\0") != -1) {
-            int i = str.indexOf("\\0")+2;
-            QString num;
-            while(num.length() < 3 && str.length()>i &&
-                  (str.at(i).toLatin1() >= 48 && str.at(i).toLatin1() <= 55)) { //accept only 0-7
-                num.append(str.at(i));
-                i++;
-            }
-            str.remove(i-2-num.length(), num.length()+2);
-            bool ok;
-            str.insert(i-2-num.length(), QChar(num.toInt(&ok,8)));
+        str.remove(i-2-num.length(), num.length()+2);
+        bool ok;
+        str.insert(i-2-num.length(), QChar(num.toInt(&ok,16)));
+    }
+    //octal
+    while(str.indexOf("\\0") != -1) {
+        int i = str.indexOf("\\0")+2;
+        QString num;
+        while(num.length() < 3 && str.length()>i &&
+              (str.at(i).toLatin1() >= 48 && str.at(i).toLatin1() <= 55)) { //accept only 0-7
+            num.append(str.at(i));
+            i++;
         }
+        str.remove(i-2-num.length(), num.length()+2);
+        bool ok;
+        str.insert(i-2-num.length(), QChar(num.toInt(&ok,8)));
     }
 
     if(iPtyIFace)
