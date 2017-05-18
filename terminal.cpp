@@ -1064,6 +1064,7 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
     // best replace it?
     //if(style.fgColor < 8)
     //    style.fgColor += 8;
+    // answer: it makes black on black readable.
 
     int pidx = 0;
 
