@@ -477,8 +477,6 @@ void Terminal::insertInBuffer(const QString& chars)
                     insertAtCursor(ch, !iReplaceMode);
                 else if (ch.toLatin1()==ch_ESC)
                     escape=0;
-                else if (ch.toLatin1() != 0)
-                    qDebug() << "unprintable char" << int(ch.toLatin1());
             }
         }
     }
