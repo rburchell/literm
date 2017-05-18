@@ -92,6 +92,18 @@ void Util::openNewWindow()
     QProcess::startDetached("/usr/bin/fingerterm");
 }
 
+QString Util::getUserMenuXml()
+{
+    QString ret;
+    QFile f(configPath()+"/menu.xml" );
+    if(f.open(QIODevice::ReadOnly|QIODevice::Text)) {
+        ret = f.readAll();
+        f.close();
+    }
+
+    return ret;
+}
+
 QString Util::configPath()
 {
     if(!iSettings)

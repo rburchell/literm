@@ -106,8 +106,6 @@ public:
     void paste(const QString &text);
     Q_INVOKABLE const QStringList grabURLsFromBuffer();
 
-    Q_INVOKABLE QString getUserMenuXml();
-
     void scrollBackBufferFwd(int lines);
     void scrollBackBufferBack(int lines);
     int backBufferScrollPos() { return iBackBufferScrollPos; }

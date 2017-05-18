@@ -74,6 +74,7 @@ public:
     void setTerm(Terminal* term);
 
     Q_INVOKABLE void openNewWindow();
+    Q_INVOKABLE QString getUserMenuXml();
 
     Q_INVOKABLE QString versionString();
     Q_INVOKABLE QString configPath();

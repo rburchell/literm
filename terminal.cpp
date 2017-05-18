@@ -1518,21 +1518,6 @@ const QStringList Terminal::grabURLsFromBuffer()
     return ret;
 }
 
-QString Terminal::getUserMenuXml()
-{
-    if(!iUtil)
-        return QString();
-
-    QString ret;
-    QFile f( iUtil->configPath()+"/menu.xml" );
-    if(f.open(QIODevice::ReadOnly|QIODevice::Text)) {
-        ret = f.readAll();
-        f.close();
-    }
-
-    return ret;
-}
-
 void Terminal::scrollBackBufferFwd(int lines)
 {
     if (lines<=0)

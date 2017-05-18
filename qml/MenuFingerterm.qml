@@ -62,7 +62,7 @@ Item {
 
         XmlListModel {
             id: xmlModel
-            xml: term.getUserMenuXml()
+            xml: util.getUserMenuXml()
             query: "/userMenu/item"
 
             XmlRole { name: "title"; query: "title/string()" }
