@@ -30,16 +30,26 @@ class Util;
 class QQuickView;
 
 struct TermChar {
+    enum TextAttributes {
+        NoAttributes = 0x0,
+        BoldAttribute = 0x1,
+        UnderlineAttribute = 0x2,
+        NegativeAttribute = 0x4
+    };
+
     QChar c;
     QRgb fgColor;
     QRgb bgColor;
-    int attrib;
+    TextAttributes attrib;
 };
+inline TermChar::TextAttributes operator~ (TermChar::TextAttributes a) { return (TermChar::TextAttributes)~(int)a; }
+inline TermChar::TextAttributes operator| (TermChar::TextAttributes a, TermChar::TextAttributes b) { return (TermChar::TextAttributes)((int)a | (int)b); }
+inline TermChar::TextAttributes operator& (TermChar::TextAttributes a, TermChar::TextAttributes b) { return (TermChar::TextAttributes)((int)a & (int)b); }
+inline TermChar::TextAttributes operator^ (TermChar::TextAttributes a, TermChar::TextAttributes b) { return (TermChar::TextAttributes)((int)a ^ (int)b); }
+inline TermChar::TextAttributes& operator|= (TermChar::TextAttributes& a, TermChar::TextAttributes b) { return (TermChar::TextAttributes&)((int&)a |= (int)b); }
+inline TermChar::TextAttributes& operator&= (TermChar::TextAttributes& a, TermChar::TextAttributes b) { return (TermChar::TextAttributes&)((int&)a &= (int)b); }
+inline TermChar::TextAttributes& operator^= (TermChar::TextAttributes& a, TermChar::TextAttributes b) { return (TermChar::TextAttributes&)((int&)a ^= (int)b); }
 
-const int attribNone = 0;
-const int attribBold = 1;
-const int attribUnderline = 2;
-const int attribNegative = 4;
 const QByteArray multiCharEscapes("().*+-/%#");
 
 struct TermAttribs {
@@ -50,7 +60,7 @@ struct TermAttribs {
 
     QRgb currentFgColor;
     QRgb currentBgColor;
-    int currentAttrib;
+    TermChar::TextAttributes currentAttrib;
 };
 
 typedef QVector<TermChar> TerminalLine;

@@ -95,13 +95,13 @@ Terminal::Terminal(QObject *parent) :
     zeroChar.c = ' ';
     zeroChar.bgColor = defaultBgColor;
     zeroChar.fgColor = defaultFgColor;
-    zeroChar.attrib = 0;
+    zeroChar.attrib = TermChar::NoAttributes;
 
     escape = -1;
 
     iTermAttribs.currentFgColor = defaultFgColor;
     iTermAttribs.currentBgColor = defaultBgColor;
-    iTermAttribs.currentAttrib = 0;
+    iTermAttribs.currentAttrib = TermChar::NoAttributes;
     iTermAttribs.cursorPos = QPoint(0,0);
     iMarginBottom = 0;
     iMarginTop = 0;
@@ -1073,25 +1073,25 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
         case 0:
             iTermAttribs.currentFgColor = defaultFgColor;
             iTermAttribs.currentBgColor = defaultBgColor;
-            iTermAttribs.currentAttrib = attribNone;
+            iTermAttribs.currentAttrib = TermChar::NoAttributes;
             break;
         case 1:
-            iTermAttribs.currentAttrib |= attribBold;
+            iTermAttribs.currentAttrib |= TermChar::BoldAttribute;
             break;
         case 4:
-            iTermAttribs.currentAttrib |= attribUnderline;
+            iTermAttribs.currentAttrib |= TermChar::UnderlineAttribute;
             break;
         case 7:
-            iTermAttribs.currentAttrib |= attribNegative;
+            iTermAttribs.currentAttrib |= TermChar::NegativeAttribute;
             break;
         case 22:
-            iTermAttribs.currentAttrib &= ~attribBold;
+            iTermAttribs.currentAttrib &= ~TermChar::BoldAttribute;
             break;
         case 24:
-            iTermAttribs.currentAttrib &= ~attribUnderline;
+            iTermAttribs.currentAttrib &= ~TermChar::UnderlineAttribute;
             break;
         case 27:
-            iTermAttribs.currentAttrib &= ~attribNegative;
+            iTermAttribs.currentAttrib &= ~TermChar::NegativeAttribute;
             break;
 
         case 30: // fg black
@@ -1372,7 +1372,7 @@ void Terminal::resetTerminal()
 
     iTermAttribs.currentFgColor = defaultFgColor;
     iTermAttribs.currentBgColor = defaultBgColor;
-    iTermAttribs.currentAttrib = 0;
+    iTermAttribs.currentAttrib = TermChar::NoAttributes;
     iTermAttribs.cursorPos = QPoint(1,1);
     iTermAttribs.wrapAroundMode = true;
     iTermAttribs.originMode = false;

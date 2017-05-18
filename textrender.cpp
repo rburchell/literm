@@ -453,7 +453,7 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
 
 void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int width, TermChar style)
 {
-    if (style.attrib & attribNegative) {
+    if (style.attrib & TermChar::NegativeAttribute) {
         QRgb c = style.fgColor;
         style.fgColor = style.bgColor;
         style.bgColor = c;
@@ -477,12 +477,12 @@ void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int 
 
 void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, QString text, TermChar style)
 {
-    if (style.attrib & attribNegative) {
+    if (style.attrib & TermChar::NegativeAttribute) {
         QRgb c = style.fgColor;
         style.fgColor = style.bgColor;
         style.bgColor = c;
     }
-    if (style.attrib & attribBold) {
+    if (style.attrib & TermChar::BoldAttribute) {
         iFont.setBold(true);
     } else if(iFont.bold()) {
         iFont.setBold(false);
