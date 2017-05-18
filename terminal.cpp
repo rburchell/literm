@@ -186,7 +186,7 @@ void Terminal::putString(QString str, bool unEscape)
     if (unEscape) {
         str.replace("\\r", "\r");
         str.replace("\\n", "\n");
-        str.replace("\\e", QChar(ch_ESC));
+        str.replace("\\e", QChar('\e'));
         str.replace("\\b", "\b");
         str.replace("\\t", "\t");
 
@@ -263,7 +263,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
             if( key==Qt::Key_F12 ) fmt = "%1[24~";
             
             if (!fmt.isEmpty())
-                toWrite += fmt.arg(ch_ESC);
+                toWrite += fmt.arg('\e');
 
         } else {
             QString fmt;
@@ -294,7 +294,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
             if( key==Qt::Key_F12 ) fmt = "%1[24;%2~";
 
             if (!fmt.isEmpty())
-                toWrite += fmt.arg(ch_ESC).arg(modChar);
+                toWrite += fmt.arg('\e').arg(modChar);
 
         }
 
@@ -324,9 +324,9 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
             if ( key == Qt::Key_Backtab ) modifiers |= Qt::ShiftModifier;
             if (modifiers & MyControlModifier) {
                 char modChar = '5' + (modifiers & Qt::ShiftModifier ? 1 : 0);
-                toWrite += QString("%1[1;%2I").arg(ch_ESC).arg(modChar);
+                toWrite += QString("%1[1;%2I").arg('\e').arg(modChar);
             } else if (modifiers & Qt::ShiftModifier) {
-                toWrite += QString("%1[Z").arg(ch_ESC);
+                toWrite += QString("%1[Z").arg('\e');
             } else {
                 toWrite += "\t";
             }
@@ -336,7 +336,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
             if (modifiers & Qt::ShiftModifier)
                 toWrite += QChar(0x9B);
             else
-                toWrite += QString(1,ch_ESC);
+                toWrite += QString(1,'\e');
         }
 
         if (!toWrite.isEmpty()) {
@@ -355,7 +355,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
     }
 
     if((modifiers & Qt::AltModifier) != 0) {
-        toWrite.append(ch_ESC);
+        toWrite.append('\e');
     }
 
     if ((modifiers & MyControlModifier) != 0) {
@@ -452,7 +452,7 @@ void Terminal::insertInBuffer(const QString& chars)
                     oscSequence(oscSeq);
                     oscSeq.clear();
                 }
-                else if (ch.toLatin1()==ch_ESC) {
+                else if (ch.toLatin1()=='\e') {
                     escape = 0;
                 }
                 else if( escape=='[' || multiCharEscapes.contains(escape) ) {
@@ -482,7 +482,7 @@ void Terminal::insertInBuffer(const QString& chars)
             } else {
                 if (ch.isPrint())
                     insertAtCursor(ch, !iReplaceMode);
-                else if (ch.toLatin1()==ch_ESC)
+                else if (ch.toLatin1()=='\e')
                     escape=0;
             }
             break;
@@ -873,7 +873,7 @@ void Terminal::ansiSequence(const QString& seq)
         if(params.count()==0)
             params.append(0);
         if(params.count()==1 && params.at(0)==0) {
-            QString toWrite = QString("%1[?1;2c").arg(ch_ESC).toLatin1();
+            QString toWrite = QString("%1[?1;2c").arg('\e').toLatin1();
             if(iPtyIFace)
                 iPtyIFace->writeTerm(toWrite);
         } else unhandled=true;
@@ -908,7 +908,7 @@ void Terminal::ansiSequence(const QString& seq)
 
     case 'n':
         if(params.count()>=1 && params.at(0)==6 && extra=="") {  // write cursor pos
-            QString toWrite = QString("%1[%2;%3R").arg(ch_ESC).arg(cursorPos().y()).arg(cursorPos().x()).toLatin1();
+            QString toWrite = QString("%1[%2;%3R").arg('\e').arg(cursorPos().y()).arg(cursorPos().x()).toLatin1();
             if(iPtyIFace)
                 iPtyIFace->writeTerm(toWrite);
         } else unhandled=true;
@@ -1548,7 +1548,7 @@ void Terminal::scrollBackBufferFwd(int lines)
             cursorModif = 'O';
 
         fmt = QString("%2%1B").arg(cursorModif);
-        iPtyIFace->writeTerm(fmt.arg(ch_ESC));
+        iPtyIFace->writeTerm(fmt.arg('\e'));
     } else {
         clearSelection();
 
@@ -1572,7 +1572,7 @@ void Terminal::scrollBackBufferBack(int lines)
             cursorModif = 'O';
 
         fmt = QString("%2%1A").arg(cursorModif);
-        iPtyIFace->writeTerm(fmt.arg(ch_ESC));
+        iPtyIFace->writeTerm(fmt.arg('\e'));
     } else {
         clearSelection();
 
