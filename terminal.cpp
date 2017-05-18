@@ -391,8 +391,11 @@ void Terminal::insertInBuffer(const QString& chars)
     iEmitCursorChangeSignal = false;
 
     for(int i=0; i<chars.size(); i++) {
-        QChar ch = chars.at(i);
-        if(ch.toLatin1()=='\n' || ch.toLatin1()==11 || ch.toLatin1()==12) {  // line feed, vertical tab or form feed
+        const QChar &ch = chars.at(i);
+        switch (ch.toLatin1()) {
+        case '\n':
+        case 11: // vertical tab
+        case 12: // form feed
             if(cursorPos().y()==iMarginBottom) {
                 scrollFwd(1);
                 if(iNewLineMode)
@@ -405,14 +408,16 @@ void Terminal::insertInBuffer(const QString& chars)
                 else
                     setCursorPos(QPoint(cursorPos().x(), cursorPos().y()+1));
             }
-        }
-        else if(ch.toLatin1()=='\r') {  // carriage return
+            break;
+        case '\r':
             setCursorPos(QPoint(1,cursorPos().y()));
-        }
-        else if(ch.toLatin1()=='\b' || ch.toLatin1()==127) {  //backspace & del (only move cursor, don't erase)
+            break;
+        case '\b':
+        case 127: // del
+            // only move cursor, don't actually erase.
             setCursorPos(QPoint(cursorPos().x()-1,cursorPos().y()));
-        }
-        else if(ch.toLatin1()=='\a') {  // BEL
+            break;
+        case '\a': // BEL
             if(escape==']') {  // BEL also ends OSC sequence
                 escape=-1;
                 oscSequence(oscSeq);
@@ -420,13 +425,15 @@ void Terminal::insertInBuffer(const QString& chars)
             } else {
                 emit visualBell();
             }
-        }
-        else if(ch.toLatin1()=='\t') {  //tab
+            break;
+        case '\t':
             forwardTab();
-        }
-        else if(ch.toLatin1()==14 || ch.toLatin1()==15) {  //SI and SO, related to character set... ignore
-        }
-        else {
+            break;
+        case 14: // SI
+        case 15: // SO
+            // related to character set... ignore
+            break;
+        default:
             if( escape>=0 ) {
                 if( escape==0 && (ch.toLatin1()=='[') ) {
                     escape='['; //ansi sequence
@@ -478,6 +485,7 @@ void Terminal::insertInBuffer(const QString& chars)
                 else if (ch.toLatin1()==ch_ESC)
                     escape=0;
             }
+            break;
         }
     }
 
