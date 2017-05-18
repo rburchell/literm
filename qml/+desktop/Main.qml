@@ -42,7 +42,7 @@ Rectangle {
     Binding {
         target: window
         property: "pixelRatio"
-        value: Window.window.devicePixelRatio
+        value: Window.window ? Window.window.devicePixelRatio : 1.0
     }
 
     // layout constants
