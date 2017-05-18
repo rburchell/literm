@@ -1538,30 +1538,50 @@ QString Terminal::getUserMenuXml()
 
 void Terminal::scrollBackBufferFwd(int lines)
 {
-    if(iUseAltScreenBuffer || lines<=0)
+    if (lines<=0)
         return;
 
-    clearSelection();
+    if (iUseAltScreenBuffer) {
+        QString fmt;
+        char cursorModif='[';
+        if(iAppCursorKeys)
+            cursorModif = 'O';
 
-    iBackBufferScrollPos -= lines;
-    if(iBackBufferScrollPos < 0)
-        iBackBufferScrollPos = 0;
+        fmt = QString("%2%1B").arg(cursorModif);
+        iPtyIFace->writeTerm(fmt.arg(ch_ESC));
+    } else {
+        clearSelection();
 
-    emit scrollBackBufferAdjusted(false);
+        iBackBufferScrollPos -= lines;
+        if(iBackBufferScrollPos < 0)
+            iBackBufferScrollPos = 0;
+
+        emit scrollBackBufferAdjusted(false);
+    }
 }
 
 void Terminal::scrollBackBufferBack(int lines)
 {
-    if (iUseAltScreenBuffer || lines<=0)
+    if (lines<=0)
         return;
 
-    clearSelection();
+    if (iUseAltScreenBuffer) {
+        QString fmt;
+        char cursorModif='[';
+        if(iAppCursorKeys)
+            cursorModif = 'O';
 
-    iBackBufferScrollPos += lines;
-    if (iBackBufferScrollPos > iBackBuffer.size())
-        iBackBufferScrollPos = iBackBuffer.size();
+        fmt = QString("%2%1A").arg(cursorModif);
+        iPtyIFace->writeTerm(fmt.arg(ch_ESC));
+    } else {
+        clearSelection();
 
-    emit scrollBackBufferAdjusted(false);
+        iBackBufferScrollPos += lines;
+        if (iBackBufferScrollPos > iBackBuffer.size())
+            iBackBufferScrollPos = iBackBuffer.size();
+
+        emit scrollBackBufferAdjusted(false);
+    }
 }
 
 void Terminal::resetBackBufferScrollPos()
