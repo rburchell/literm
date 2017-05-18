@@ -484,6 +484,11 @@ void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qre
     } else if(iFont.underline()) {
         iFont.setUnderline(false);
     }
+    if (style.attrib & TermChar::ItalicAttribute) {
+        iFont.setItalic(true);
+    } else if(iFont.italic()) {
+        iFont.setItalic(false);
+    }
 
     QColor qtColor;
 

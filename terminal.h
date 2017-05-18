@@ -31,11 +31,12 @@ class QQuickView;
 
 struct TermChar {
     enum TextAttributes {
-        NoAttributes = 0x0,
-        BoldAttribute = 0x1,
-        UnderlineAttribute = 0x2,
-        NegativeAttribute = 0x4,
-        BlinkAttribute = 0x8
+        NoAttributes = 0x00,
+        BoldAttribute = 0x01,
+        ItalicAttribute = 0x02,
+        UnderlineAttribute = 0x04,
+        NegativeAttribute = 0x08,
+        BlinkAttribute = 0x10
     };
 
     QChar c;

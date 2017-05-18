@@ -1079,6 +1079,9 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
         case 1:
             iTermAttribs.currentAttrib |= TermChar::BoldAttribute;
             break;
+        case 3:
+            iTermAttribs.currentAttrib |= TermChar::ItalicAttribute;
+            break;
         case 4:
             iTermAttribs.currentAttrib |= TermChar::UnderlineAttribute;
             break;
@@ -1090,6 +1093,9 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
             break;
         case 22:
             iTermAttribs.currentAttrib &= ~TermChar::BoldAttribute;
+            break;
+        case 23:
+            iTermAttribs.currentAttrib &= ~TermChar::ItalicAttribute;
             break;
         case 24:
             iTermAttribs.currentAttrib &= ~TermChar::UnderlineAttribute;
