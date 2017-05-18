@@ -664,6 +664,11 @@ void TextRender::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void TextRender::keyPressEvent(QKeyEvent *event)
+{
+    sTerm->keyPress(event->key(), event->modifiers(), event->text());
+}
+
 void TextRender::wheelEvent(QWheelEvent *event)
 {
     if (!event->pixelDelta().isNull()) {

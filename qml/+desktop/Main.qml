@@ -27,11 +27,7 @@ Rectangle {
 
     width: 540
     height: 960
-    focus: true
     color: "#000000"
-    Keys.onPressed: {
-        term.keyPress(event.key,event.modifiers,event.text);
-    }
 
     property int fontSize: 14*pixelRatio
 
@@ -71,6 +67,7 @@ Rectangle {
 
     TextRender {
         id: textrender
+        focus: true
 
         onTitleChanged: {
             util.windowTitle = title

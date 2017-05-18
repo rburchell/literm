@@ -99,7 +99,7 @@ public:
 
     bool inverseVideoMode() const { return m_inverseVideoMode; }
 
-    Q_INVOKABLE void keyPress(int key, int modifiers, const QString& text="");
+    void keyPress(int key, int modifiers, const QString& text="");
     Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
     Q_INVOKABLE void putString(QString str);
 

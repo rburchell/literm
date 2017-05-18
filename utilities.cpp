@@ -363,6 +363,14 @@ void Util::notifyText(QString text)
     emit notify(text);
 }
 
+void Util::fakeKeyPress(int key, int modifiers)
+{
+    QKeyEvent pev(QEvent::KeyPress, key, Qt::KeyboardModifiers(modifiers));
+    QCoreApplication::sendEvent(iWindow, &pev);
+    QKeyEvent rev(QEvent::KeyRelease, key, Qt::KeyboardModifiers(modifiers));
+    QCoreApplication::sendEvent(iWindow, &rev);
+}
+
 void Util::copyTextToClipboard(QString str)
 {
     QClipboard *cb = QGuiApplication::clipboard();

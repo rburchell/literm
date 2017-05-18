@@ -46,10 +46,6 @@ Item {
         height: portrait ? root.height : root.width
         anchors.centerIn: parent
         rotation: Screen.angleBetween(orientation, Screen.primaryOrientation)
-        focus: true
-        Keys.onPressed: {
-            term.keyPress(event.key,event.modifiers,event.text);
-        }
 
         Rectangle {
             id: window
@@ -91,6 +87,7 @@ Item {
 
             TextRender {
                 id: textrender
+                focus: true
 
                 onTitleChanged: {
                     util.windowTitle = title
@@ -206,7 +203,7 @@ Item {
                     property bool visibleSetting: true
 
                     y: parent.height-vkb.height
-                    visible: page.activeFocus && visibleSetting
+                    visible: textrender.activeFocus && visibleSetting
 
                     opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.6
                                                                                     : 0.3
@@ -349,7 +346,7 @@ Item {
 
             function vkbKeypress(key,modifiers) {
                 wakeVKB();
-                term.keyPress(key,modifiers);
+                util.fakeKeyPress(key,modifiers);
             }
 
             function wakeVKB()

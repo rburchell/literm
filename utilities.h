@@ -89,6 +89,7 @@ public:
     Q_INVOKABLE void keyPressFeedback();
     Q_INVOKABLE void keyReleaseFeedback();
     Q_INVOKABLE void notifyText(QString text);
+    Q_INVOKABLE void fakeKeyPress(int key, int modifiers);
 
     Q_INVOKABLE void copyTextToClipboard(QString str);
 
