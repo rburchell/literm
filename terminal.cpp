@@ -1441,18 +1441,15 @@ void Terminal::resetTabs()
     }
 }
 
-void Terminal::pasteFromClipboard()
+void Terminal::paste(const QString &text)
 {
-    QClipboard *cb = QGuiApplication::clipboard();
-    QString cbText = cb->text();
-
-    if(iPtyIFace && !cbText.isEmpty()) {
+    if(iPtyIFace && !text.isEmpty()) {
         resetBackBufferScrollPos();
 
         if (m_bracketedPasteMode) {
             iPtyIFace->writeTerm(QString::fromLatin1("\e[200~"));
         }
-        iPtyIFace->writeTerm(cb->text());
+        iPtyIFace->writeTerm(text);
         if (m_bracketedPasteMode) {
             iPtyIFace->writeTerm(QString::fromLatin1("\e[201~"));
         }
@@ -1595,13 +1592,11 @@ void Terminal::resetBackBufferScrollPos()
     emit scrollBackBufferAdjusted(true);
 }
 
-void Terminal::copySelectionToClipboard()
+// ### should be const really
+QString Terminal::selectedText()
 {
     if (selection().isNull())
-        return;
-
-    QClipboard *cb = QGuiApplication::clipboard();
-    cb->clear();
+        return QString();
 
     QString text;
     QString line;
@@ -1653,9 +1648,7 @@ void Terminal::copySelectionToClipboard()
         }
     }
 
-    //qDebug() << text.trimmed();
-
-    cb->setText(text.trimmed());
+    return text.trimmed();
 }
 
 void Terminal::adjustSelectionPosition(int lines)

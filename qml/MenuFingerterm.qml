@@ -125,21 +125,21 @@ Item {
                                 text: "Copy"
                                 onClicked: {
                                     menuWin.showing = false;
-                                    term.copySelectionToClipboard();
+                                    textrender.copy();
                                 }
                                 width: window.buttonWidthHalf
                                 height: window.buttonHeightLarge
-                                enabled: util.terminalHasSelection
+                                enabled: textrender.selectedText.length
                             }
                             Button {
                                 text: "Paste"
                                 onClicked: {
                                     menuWin.showing = false;
-                                    term.pasteFromClipboard();
+                                    textrender.paste();
                                 }
                                 width: window.buttonWidthHalf
                                 height: window.buttonHeightLarge
-                                enabled: util.canPaste
+                                enabled: textrender.canPaste
                             }
                         }
                         Button {
@@ -256,7 +256,7 @@ Item {
                                         highlighted: util.dragMode == Util.DragGestures
                                         onClicked: {
                                             util.dragMode = Util.DragGestures
-                                            term.clearSelection();
+                                            textrender.deselect();
                                             menuWin.showing = false;
                                         }
                                         width: window.buttonWidthSmall
@@ -267,7 +267,7 @@ Item {
                                         highlighted: util.dragMode == Util.DragScroll
                                         onClicked: {
                                             util.dragMode = Util.DragScroll
-                                            term.clearSelection();
+                                            textrender.deselect();
                                             menuWin.showing = false;
                                         }
                                         width: window.buttonWidthSmall

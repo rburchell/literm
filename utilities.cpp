@@ -40,7 +40,6 @@ Util::Util(QSettings *settings, QObject *parent) :
     iWindow(0),
     iTerm(0)
 {
-    connect(QGuiApplication::clipboard(), SIGNAL(dataChanged()), this, SIGNAL(clipboardOrSelectionChanged()));
 }
 
 Util::~Util()
@@ -86,7 +85,6 @@ void Util::setTerm(Terminal *term)
         qFatal("Should set terminal only once");
     }
     iTerm = term;
-    connect(iTerm, SIGNAL(selectionFinished()), this, SIGNAL(clipboardOrSelectionChanged()));
 }
 
 void Util::openNewWindow()
@@ -361,17 +359,3 @@ void Util::copyTextToClipboard(QString str)
     cb->setText(str);
 }
 
-bool Util::terminalHasSelection()
-{
-    if (!iTerm) {
-        return false;
-    }
-    return !iTerm->selection().isNull();
-}
-
-bool Util::canPaste()
-{
-    QClipboard *cb = QGuiApplication::clipboard();
-
-    return !cb->text().isEmpty();
-}

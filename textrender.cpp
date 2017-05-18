@@ -81,6 +81,8 @@ TextRender::TextRender(QQuickItem *parent)
     setAcceptedMouseButtons(Qt::LeftButton);
     setFiltersChildMouseEvents(true);
 
+    connect(QGuiApplication::clipboard(), SIGNAL(dataChanged()), this, SIGNAL(clipboardChanged()));
+
     connect(this,SIGNAL(widthChanged()),this,SLOT(redraw()));
     connect(this,SIGNAL(heightChanged()),this,SLOT(redraw()));
 
@@ -95,10 +97,42 @@ TextRender::TextRender(QQuickItem *parent)
     connect(sTerm, SIGNAL(termSizeChanged(int,int)), this, SIGNAL(terminalSizeChanged()));
     connect(sTerm, SIGNAL(selectionChanged()), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(scrollBackBufferAdjusted(bool)), this, SLOT(handleScrollBack(bool)));
+    connect(sTerm, SIGNAL(selectionChanged()), this, SIGNAL(selectionChanged()));
 }
 
 TextRender::~TextRender()
 {
+}
+
+void TextRender::copy()
+{
+    QClipboard *cb = QGuiApplication::clipboard();
+    cb->clear();
+    cb->setText(selectedText());
+}
+
+void TextRender::paste()
+{
+    QClipboard *cb = QGuiApplication::clipboard();
+    QString cbText = cb->text();
+    sTerm->paste(cbText);
+}
+
+bool TextRender::canPaste() const
+{
+    QClipboard *cb = QGuiApplication::clipboard();
+
+    return !cb->text().isEmpty();
+}
+
+void TextRender::deselect()
+{
+    sTerm->clearSelection();
+}
+
+QString TextRender::selectedText() const
+{
+    return sTerm->selectedText();
 }
 
 QSize TextRender::terminalSize() const

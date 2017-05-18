@@ -103,8 +103,7 @@ public:
     Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
     Q_INVOKABLE void putString(QString str, bool unEscape=false);
 
-    Q_INVOKABLE void pasteFromClipboard();
-    Q_INVOKABLE void copySelectionToClipboard();
+    void paste(const QString &text);
     Q_INVOKABLE const QStringList grabURLsFromBuffer();
 
     Q_INVOKABLE QString getUserMenuXml();
@@ -114,6 +113,7 @@ public:
     int backBufferScrollPos() { return iBackBufferScrollPos; }
     void resetBackBufferScrollPos();
 
+    QString selectedText();
     void setSelection(QPoint start, QPoint end, bool selectionOngoing);
     QRect selection();
     Q_INVOKABLE void clearSelection();

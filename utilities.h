@@ -33,8 +33,6 @@ class Util : public QObject
     Q_OBJECT
     Q_PROPERTY(QString windowTitle READ windowTitle WRITE setWindowTitle NOTIFY windowTitleChanged)
     Q_PROPERTY(int windowOrientation READ windowOrientation WRITE setWindowOrientation NOTIFY windowOrientationChanged)
-    Q_PROPERTY(bool canPaste READ canPaste NOTIFY clipboardOrSelectionChanged)
-    Q_PROPERTY(bool terminalHasSelection READ terminalHasSelection NOTIFY clipboardOrSelectionChanged)
     Q_PROPERTY(bool visualBellEnabled READ visualBellEnabled CONSTANT)
     Q_PROPERTY(QString fontFamily READ fontFamily CONSTANT)
     Q_PROPERTY(int uiFontSize READ uiFontSize CONSTANT)
@@ -93,9 +91,7 @@ public:
 
     Q_INVOKABLE void copyTextToClipboard(QString str);
 
-    bool canPaste();
     bool visualBellEnabled();
-    bool terminalHasSelection();
 
     QString fontFamily();
 
@@ -123,7 +119,6 @@ public:
 
 signals:
     void notify(QString msg);
-    void clipboardOrSelectionChanged();
     void windowTitleChanged();
     void windowOrientationChanged();
     void fontSizeChanged();

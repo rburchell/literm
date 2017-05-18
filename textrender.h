@@ -43,12 +43,21 @@ class TextRender : public QQuickItem
     Q_PROPERTY(int visibleHeight READ visibleHeight NOTIFY visibleHeightChanged)
     Q_PROPERTY(int contentY READ contentY NOTIFY contentYChanged)
     Q_PROPERTY(QSize terminalSize READ terminalSize NOTIFY terminalSizeChanged)
+    Q_PROPERTY(QString selectedText READ selectedText NOTIFY selectionChanged)
+    Q_PROPERTY(bool canPaste READ canPaste NOTIFY clipboardChanged)
 
     Q_OBJECT
 public:
     explicit TextRender(QQuickItem *parent = 0);
     virtual ~TextRender();
     void updatePolish() override;
+
+    bool canPaste() const;
+    Q_INVOKABLE void copy();
+    Q_INVOKABLE void paste();
+    Q_INVOKABLE void deselect();
+
+    QString selectedText() const;
 
     int contentHeight() const;
     int visibleHeight() const;
@@ -110,6 +119,8 @@ signals:
     void visibleHeightChanged();
     void contentYChanged();
     void terminalSizeChanged();
+    void clipboardChanged();
+    void selectionChanged();
 
 public slots:
     void redraw();
