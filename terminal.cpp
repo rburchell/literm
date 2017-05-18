@@ -936,88 +936,15 @@ void Terminal::ansiSequence(const QString& seq)
         break;
 
     case 'h':
-        if(params.count()>=1 && params.contains(1) && extra=="?") { // application cursor keys
-            iAppCursorKeys = true;
+        for (int i = 0; i < params.size(); ++i) {
+            handleMode(params.at(i), true, extra);
         }
-        else if(params.count()>=1 && params.contains(3) && extra=="?") { //column mode
-            // not supported, just clear screen, move cursor home & reset scrolling region
-            clearAll();
-            resetTabs();
-            iMarginTop = 1;
-            iMarginBottom = iTermSize.height();
-        }
-        else if(params.count()>=1 && params.contains(6) && extra=="?") { //origin mode enable
-            iTermAttribs.originMode = true;
-        }
-        else if(params.count()>=1 && params.contains(7) && extra=="?") { //wraparound mode enable
-            iTermAttribs.wrapAroundMode = true;
-        }
-        else if(params.count()>=1 && params.contains(12) && extra=="?") { // start blinking cursor
-            // just ignore, we don't blink
-        }
-        else if(params.count()>=1 && params.contains(25) && extra=="?") { // show cursor
-            iShowCursor = true;
-        }
-        else if(params.count()>=1 && params.contains(1049) && extra=="?") { //use alt screen buffer & save cursor
-            iTermAttribs_saved_alt = iTermAttribs;
-            iUseAltScreenBuffer = true;
-            iMarginTop = 1;
-            iMarginBottom = iTermSize.height();
-            resetBackBufferScrollPos();
-
-            clearAll();
-            resetTabs();
-            emit displayBufferChanged();
-        }
-        else if(params.count()>=1 && params.contains(4) && extra=="") {
-            iReplaceMode = true;
-        }
-        else if(params.count()>=1 && params.contains(20) && extra=="") {
-            iNewLineMode = true;
-        }
-        else unhandled=true;
         break;
 
     case 'l':
-        if(params.count()>=1 && params.contains(1) && extra=="?") { // normal cursor keys
-            iAppCursorKeys = false;
+        for (int i = 0; i < params.size(); ++i) {
+            handleMode(params.at(i), false, extra);
         }
-        else if(params.count()>=1 && params.contains(3) && extra=="?") { //column mode
-            // not supported, just clear screen, move cursor home & reset scrolling region
-            clearAll();
-            resetTabs();
-            iMarginTop = 1;
-            iMarginBottom = iTermSize.height();
-        }
-        else if(params.count()>=1 && params.contains(6) && extra=="?") { //origin mode disable
-            iTermAttribs.originMode = false;
-        }
-        else if(params.count()>=1 && params.contains(7) && extra=="?") { //wraparound mode disable
-            iTermAttribs.wrapAroundMode = false;
-        }
-        else if(params.count()>=1 && params.contains(12) && extra=="?") { // stop blinking cursor
-            // no need to do anything, we don't blink
-        }
-        else if(params.count()>=1 && params.contains(25) && extra=="?") { // hide cursor
-            iShowCursor = false;
-        }
-        else if(params.count()>=1 && params.contains(1049) && extra=="?") { //return from alt screen buffer & restore cursor
-            iUseAltScreenBuffer = false;
-            iTermAttribs = iTermAttribs_saved_alt;
-            iMarginBottom = iTermSize.height();
-            iMarginTop = 1;
-            resetBackBufferScrollPos();
-            resetTabs();
-            emit displayBufferChanged();
-        }
-
-        else if(params.count()>=1 && params.contains(4) && extra=="") {
-            iReplaceMode = false;
-        }
-        else if(params.count()>=1 && params.contains(20) && extra=="") {
-            iNewLineMode = false;
-        }
-        else unhandled=true;
         break;
 
     case 'r':  // scrolling region
@@ -1055,6 +982,69 @@ void Terminal::ansiSequence(const QString& seq)
 
     if (unhandled)
         qDebug() << "unhandled ansi sequence " << cmdChar << params << extra;
+}
+
+void Terminal::handleMode(int mode, bool set, const QString &extra)
+{
+    if (extra == "?") {
+        switch (mode) {
+        case 1:
+            iAppCursorKeys = set;
+            break;
+        case 3: // column mode
+            // not supported, just clear screen, move cursor home & reset scrolling region
+            clearAll();
+            resetTabs();
+            iMarginTop = 1;
+            iMarginBottom = iTermSize.height();
+            break;
+        case 6: // origin mode
+            iTermAttribs.originMode = set;
+            break;
+        case 7:
+            iTermAttribs.wrapAroundMode = set;
+            break;
+        case 12: // start blinking cursor
+            break;
+        case 25: // show cursor
+            iShowCursor = set;
+            break;
+        case 1049: // use alt screen buffer and save cursor
+            if (set) {
+                iTermAttribs_saved_alt = iTermAttribs;
+                iUseAltScreenBuffer = true;
+                iMarginTop = 1;
+                iMarginBottom = iTermSize.height();
+                resetBackBufferScrollPos();
+
+                clearAll();
+            } else {
+                iUseAltScreenBuffer = false;
+                iTermAttribs = iTermAttribs_saved_alt;
+                iMarginBottom = iTermSize.height();
+                iMarginTop = 1;
+                resetBackBufferScrollPos();
+            }
+            resetTabs();
+            emit displayBufferChanged();
+            break;
+        default:
+            qDebug() << "Unhandled DEC mode " << mode << set << extra;
+        }
+    } else if (extra == "") {
+        switch (mode) {
+        case 4:
+            iReplaceMode = set;
+            break;
+        case 20:
+            iNewLineMode = set;
+            break;
+        default:
+            qDebug() << "Unhandled DEC mode " << mode << set << extra;
+        }
+    } else {
+        qDebug() << "Unhandled DEC mode " << mode << set << extra;
+    }
 }
 
 void Terminal::handleSGR(const QList<int> &params, const QString &extra)

@@ -135,6 +135,7 @@ private:
     void eraseLineAtCursor(int from=-1, int to=-1);
     void clearAll(bool wholeBuffer=false);
     void ansiSequence(const QString& seq);
+    void handleMode(int mode, bool set, const QString &extra);
     void handleSGR(const QList<int> &params, const QString &extra);
     void oscSequence(const QString& seq);
     void escControlChar(const QString& seq);
