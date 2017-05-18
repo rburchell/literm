@@ -42,6 +42,7 @@ class TextRender : public QQuickItem
     Q_PROPERTY(int contentHeight READ contentHeight NOTIFY contentHeightChanged)
     Q_PROPERTY(int visibleHeight READ visibleHeight NOTIFY visibleHeightChanged)
     Q_PROPERTY(int contentY READ contentY NOTIFY contentYChanged)
+    Q_PROPERTY(QSize terminalSize READ terminalSize NOTIFY terminalSizeChanged)
 
     Q_OBJECT
 public:
@@ -72,6 +73,7 @@ public:
     QQuickItem *contentItem() const { return m_contentItem; }
     void setContentItem(QQuickItem *contentItem);
 
+    QSize terminalSize() const;
     QFont font() const;
     void setFont(const QFont &font);
     bool showBufferScrollIndicator() { return iShowBufferScrollIndicator; }
@@ -107,6 +109,7 @@ signals:
     void contentHeightChanged();
     void visibleHeightChanged();
     void contentYChanged();
+    void terminalSizeChanged();
 
 public slots:
     void redraw();

@@ -174,7 +174,7 @@ Item {
                                         text: "<font size=\"+3\">+</font>"
                                         onClicked: {
                                             util.fontSize = util.fontSize + window.pixelRatio
-                                            util.notifyText(term.columns + "×" + term.rows);
+                                            util.notifyText(textrender.terminalSize.width + "×" + textrender.terminalSize.height);
                                         }
                                         width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
@@ -183,7 +183,7 @@ Item {
                                         text: "<font size=\"+3\">-</font>"
                                         onClicked: {
                                             util.fontSize = util.fontSize - window.pixelRatio
-                                            util.notifyText(term.columns + "×" + term.rows);
+                                            util.notifyText(textrender.terminalSize.width + "×" + textrender.terminalSize.height);
                                         }
                                         width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall

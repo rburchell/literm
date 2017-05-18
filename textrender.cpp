@@ -92,12 +92,18 @@ TextRender::TextRender(QQuickItem *parent)
     connect(sTerm, SIGNAL(displayBufferChanged()), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(cursorPosChanged(QPoint)), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(termSizeChanged(int,int)), this, SLOT(redraw()));
+    connect(sTerm, SIGNAL(termSizeChanged(int,int)), this, SIGNAL(terminalSizeChanged()));
     connect(sTerm, SIGNAL(selectionChanged()), this, SLOT(redraw()));
     connect(sTerm, SIGNAL(scrollBackBufferAdjusted(bool)), this, SLOT(handleScrollBack(bool)));
 }
 
 TextRender::~TextRender()
 {
+}
+
+QSize TextRender::terminalSize() const
+{
+    return QSize(sTerm->columns(), sTerm->rows());
 }
 
 QString TextRender::title() const

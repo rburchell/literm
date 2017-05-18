@@ -71,8 +71,6 @@ typedef QVector<TerminalLine> TerminalBuffer;
 class Terminal : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(int rows READ rows NOTIFY termSizeChanged)
-    Q_PROPERTY(int columns READ columns NOTIFY termSizeChanged)
 
 public:
     static QRgb defaultFgColor;
