@@ -26,6 +26,12 @@
 #include "textrender.h"
 #include "utilities.h"
 
+#if defined(Q_OS_MAC)
+# define MyControlModifier Qt::MetaModifier
+#else
+# define MyControlModifier Qt::ControlModifier
+#endif
+
 static bool charIsHexDigit(QChar ch)
 {
     if (ch.isDigit()) // 0-9
@@ -224,7 +230,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
     if (key > 0xFFFF) {
         int modcode = (modifiers & Qt::ShiftModifier ? 1 : 0) | 
                       (modifiers & Qt::AltModifier ? 2 : 0) |
-                      (modifiers & Qt::ControlModifier ? 4 : 0);
+                      (modifiers & MyControlModifier? 4 : 0);
 
         if (modcode == 0) {
             QString fmt;
@@ -293,10 +299,10 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
         }
 
         if( key==Qt::Key_Enter || key==Qt::Key_Return ) {
-            if ( (modifiers & (Qt::ShiftModifier | Qt::ControlModifier)) ==
-                (Qt::ShiftModifier | Qt::ControlModifier) )
+            if ( (modifiers & (Qt::ShiftModifier | MyControlModifier)) ==
+                (Qt::ShiftModifier | MyControlModifier) )
                 toWrite += QChar(0x9E);
-            else if (modifiers & Qt::ControlModifier)
+            else if (modifiers & MyControlModifier)
                 toWrite += QChar(0x1E); // ^^
             else if (modifiers & Qt::ShiftModifier)
                 toWrite += "\n";
@@ -306,17 +312,17 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
                 toWrite += "\r";
         }
         if( key==Qt::Key_Backspace ) {
-            if ( (modifiers & (Qt::ShiftModifier | Qt::ControlModifier)) ==
-                (Qt::ShiftModifier | Qt::ControlModifier) )
+            if ( (modifiers & (Qt::ShiftModifier | MyControlModifier)) ==
+                (Qt::ShiftModifier | MyControlModifier) )
                 toWrite += QChar(0x9F);
-            else if (modifiers & Qt::ControlModifier)
+            else if (modifiers & MyControlModifier)
                 toWrite += QChar(0x1F); // ^_
             else
                 toWrite += "\x7F";
         }
         if( key==Qt::Key_Tab || key==Qt::Key_Backtab ) {
             if ( key == Qt::Key_Backtab ) modifiers |= Qt::ShiftModifier;
-            if (modifiers & Qt::ControlModifier) {
+            if (modifiers & MyControlModifier) {
                 char modChar = '5' + (modifiers & Qt::ShiftModifier ? 1 : 0);
                 toWrite += QString("%1[1;%2I").arg(ch_ESC).arg(modChar);
             } else if (modifiers & Qt::ShiftModifier) {
@@ -352,7 +358,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
         toWrite.append(ch_ESC);
     }
 
-    if ((modifiers & Qt::ControlModifier) != 0) {
+    if ((modifiers & MyControlModifier) != 0) {
         char asciiVal = c.toUpper().toLatin1();
 
         if (asciiVal >= 0x41 && asciiVal <= 0x5f) {
