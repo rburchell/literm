@@ -19,7 +19,7 @@
 
 import QtQuick 2.0
 import FingerTerm 1.0
-import QtQuick.Window 2.2
+import QtQuick.Window 2.0
 
 Item {
     id: root
@@ -92,10 +92,8 @@ Item {
             TextRender {
                 id: textrender
 
-                Binding {
-                    target: textrender.Window.window
-                    property: "title"
-                    value: textrender.title
+                onTitleChanged: {
+                    util.windowTitle = title
                 }
                 dragMode: util.dragMode
                 onVisualBell: {
@@ -296,8 +294,8 @@ Item {
                             util.configPath() + "/<br><br>\n" +
                             "Source code:<br>\n<a href=\"https://git.merproject.org/mer-core/fingerterm/\">https://git.merproject.org/mer-core/fingerterm/</a>"
                     if (term.rows != 0 && term.columns != 0) {
-                        str += "<br><br>Current window title: <font color=\"gray\">" + Window.window.title.substring(0,40) + "</font>"; //cut long window title
-                        if(Window.window.title.length>40)
+                        str += "<br><br>Current window title: <font color=\"gray\">" +util.windowTitle .substring(0,40) + "</font>"; //cut long window title
+                        if(util.windowTitle.length>40)
                             str += "...";
                         str += "<br>Current terminal size: <font color=\"gray\">" + term.columns + "×" + term.rows + "</font>";
                         str += "<br>Charset: <font color=\"gray\">" + util.charset + "</font>";

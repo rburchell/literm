@@ -56,6 +56,18 @@ void Util::setWindow(QQuickView* win)
     if(!iWindow)
         qFatal("invalid main window");
     connect(win, SIGNAL(contentOrientationChanged(Qt::ScreenOrientation)), this, SIGNAL(windowOrientationChanged()));
+    connect(win, SIGNAL(windowTitleChanged(QString)), this, SIGNAL(windowTitleChanged()));
+}
+
+void Util::setWindowTitle(QString title)
+{
+    iWindow->setTitle(title);
+    emit windowTitleChanged();
+}
+
+QString Util::windowTitle()
+{
+    return iWindow->title();
 }
 
 int Util::windowOrientation()
