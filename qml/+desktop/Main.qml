@@ -105,6 +105,7 @@ Rectangle {
             id: text
             property bool blinking: false
 
+            textFormat: Text.PlainText
             opacity: blinking ? 0.5 : 1.0
             SequentialAnimation {
                 running: blinking
