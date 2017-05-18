@@ -1060,12 +1060,6 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
 //        return;
 //    }
 
-    // XXX: textrender used to do this for bold fg colors. why, and how can we
-    // best replace it?
-    //if(style.fgColor < 8)
-    //    style.fgColor += 8;
-    // answer: it makes black on black readable.
-
     int pidx = 0;
 
     while (pidx < params.count()) {
@@ -1124,6 +1118,8 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
         case 35:
         case 36:
         case 37:
+            if (iTermAttribs.currentFgColor & TermChar::BoldAttribute)
+                p += 8;
             iTermAttribs.currentFgColor = iColorTable[p-30];
             break;
 
@@ -1177,8 +1173,12 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
                 continue;
             }
             if(params[pidx] == 5 && params[pidx+1] >= 0 && params[pidx+1] <= 255) {
-                if(p == 38)
-                    iTermAttribs.currentFgColor = iColorTable[params[pidx+1]];
+                if(p == 38) {
+                    int cidx = params[pidx+1];
+                    if (iTermAttribs.currentAttrib & TermChar::BoldAttribute)
+                        cidx += 8;
+                    iTermAttribs.currentFgColor = iColorTable[cidx];
+                }
                 else
                     iTermAttribs.currentBgColor = iColorTable[params[pidx+1]];
 
