@@ -35,8 +35,8 @@ available. After that, run:
 # history
 
 literm started off life as fingerterm, a terminal emulator designed for
-touch-based interaction, written for the Nokia N9 and Jolla's Sailfish OS
-devices.
+touch-based interaction, written by Heikki Holstila for the Nokia N9 and Jolla's
+Sailfish OS devices.
 
 I decided to take it a bit further, specifically: giving it a desktop-friendly
 interface, adding some odd features here and there, and fixing things up as I
