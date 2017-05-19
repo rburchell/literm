@@ -80,8 +80,9 @@ public:
     explicit Terminal(QObject *parent = 0);
     virtual ~Terminal() {}
 
+    void init();
+
     void setWindow(QQuickView* win) { iWindow=win; }
-    void setUtil(Util* util);
 
     QPoint cursorPos();
     void setCursorPos(QPoint pos);
@@ -133,7 +134,7 @@ signals:
     void windowTitleChanged(const QString &windowTitle);
 
 protected:
-    void timerEvent(QTimerEvent *);
+    void timerEvent(QTimerEvent *) override;
 
 private slots:
     void onDataAvailable();
@@ -198,6 +199,12 @@ private:
     QRect iSelection;
     QVector<QRgb> iColorTable;
     int m_dispatch_timer;
+
+    QString m_charset;
+    QString m_terminalCommand;
+    QByteArray m_terminalEnvironment;
+
+    friend class TextRender;
 };
 
 #endif // TERMINAL_H

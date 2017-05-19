@@ -81,7 +81,6 @@ int main(int argc, char *argv[])
 
     Terminal term;
     Util util(settingsFile);
-    term.setUtil(&util);
     TextRender::setUtil(&util);
     TextRender::setTerminal(&term);
 

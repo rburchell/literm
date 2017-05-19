@@ -20,11 +20,11 @@
 #include <QGuiApplication>
 #include <QClipboard>
 #include <QDebug>
+#include <QRegularExpression>
 
 #include "terminal.h"
 #include "ptyiface.h"
 #include "textrender.h"
-#include "utilities.h"
 
 #if defined(Q_OS_MAC)
 # define MyControlModifier Qt::MetaModifier
@@ -50,7 +50,6 @@ QRgb Terminal::defaultBgColor;
 Terminal::Terminal(QObject *parent)
     : QObject(parent)
     , iWindow(0)
-    , iUtil(0)
     , iTermSize(0,0)
     , iEmitCursorChangeSignal(true)
     , iShowCursor(true)
@@ -58,6 +57,7 @@ Terminal::Terminal(QObject *parent)
     , iAppCursorKeys(false)
     , m_dispatch_timer(0)
 {
+
     //normal
     iColorTable.append(QColor(0, 0, 0).rgb());
     iColorTable.append(QColor(210, 0, 0).rgb());
@@ -120,10 +120,9 @@ Terminal::Terminal(QObject *parent)
     resetTerminal();
 }
 
-void Terminal::setUtil(Util *util)
+void Terminal::init()
 {
-    iUtil = util;
-    m_pty = new PtyIFace(this, util->charset(), util->terminalEmulator(), util->terminalCommand(), this);
+    m_pty = new PtyIFace(this, m_charset, m_terminalEnvironment, m_terminalCommand, this);
     if (m_pty->failed())
         qFatal("pty failure");
     connect(m_pty, SIGNAL(dataAvailable()), this, SLOT(onDataAvailable()));
@@ -1477,8 +1476,7 @@ const QStringList Terminal::grabURLsFromBuffer()
     QByteArray buf;
 
     //backbuffer
-    if ((iUtil->settingsValue("general/grabUrlsFromBackbuffer", false).toBool()
-         && !iUseAltScreenBuffer)
+    if (!iUseAltScreenBuffer
         || backBufferScrollPos() > 0)  //a lazy workaround: just grab everything when the buffer is being scrolled (TODO: make a proper fix)
     {
         for (int i=0; i<iBackBuffer.size(); i++) {

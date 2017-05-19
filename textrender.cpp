@@ -104,6 +104,58 @@ TextRender::~TextRender()
 {
 }
 
+void TextRender::componentComplete()
+{
+    QQuickItem::componentComplete();
+    sTerm->init();
+}
+
+QString TextRender::charset() const
+{
+    return sTerm->m_charset;
+}
+
+void TextRender::setCharset(const QString &charset)
+{
+    // ### disable setting after complete
+    if (sTerm->m_charset == charset)
+        return;
+
+    sTerm->m_charset = charset;
+    emit charsetChanged();
+
+}
+
+QString TextRender::terminalCommand() const
+{
+    return sTerm->m_terminalCommand;
+}
+
+void TextRender::setTerminalCommand(const QString &terminalCommand)
+{
+    // ### disable setting after complete
+    if (sTerm->m_terminalCommand == terminalCommand)
+        return;
+
+    sTerm->m_terminalCommand = terminalCommand;
+    emit terminalCommandChanged();
+}
+
+QByteArray TextRender::terminalEnvironment() const
+{
+    return sTerm->m_terminalEnvironment;
+}
+
+void TextRender::setTerminalEnvironment(const QByteArray &terminalEnvironment)
+{
+    // ### disable setting after complete
+    if (sTerm->m_terminalEnvironment == terminalEnvironment)
+        return;
+
+    sTerm->m_terminalEnvironment = terminalEnvironment;
+    emit terminalEnvironmentChanged();
+}
+
 void TextRender::copy()
 {
     QClipboard *cb = QGuiApplication::clipboard();

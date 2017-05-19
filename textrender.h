@@ -45,12 +45,22 @@ class TextRender : public QQuickItem
     Q_PROPERTY(QSize terminalSize READ terminalSize NOTIFY terminalSizeChanged)
     Q_PROPERTY(QString selectedText READ selectedText NOTIFY selectionChanged)
     Q_PROPERTY(bool canPaste READ canPaste NOTIFY clipboardChanged)
+    Q_PROPERTY(QString charset READ charset WRITE setCharset NOTIFY charsetChanged)
+    Q_PROPERTY(QString terminalCommand READ terminalCommand WRITE setTerminalCommand NOTIFY terminalCommandChanged)
+    Q_PROPERTY(QByteArray terminalEnvironment READ terminalEnvironment WRITE setTerminalEnvironment NOTIFY terminalEnvironmentChanged)
 
     Q_OBJECT
 public:
     explicit TextRender(QQuickItem *parent = 0);
     virtual ~TextRender();
     void updatePolish() override;
+
+    QString charset() const;
+    void setCharset(const QString &charset);
+    QString terminalCommand() const;
+    void setTerminalCommand(const QString &terminalCommand);
+    QByteArray terminalEnvironment() const;
+    void setTerminalEnvironment(const QByteArray &terminalEnvironment);
 
     bool canPaste() const;
     Q_INVOKABLE void copy();
@@ -121,6 +131,9 @@ signals:
     void terminalSizeChanged();
     void clipboardChanged();
     void selectionChanged();
+    void charsetChanged();
+    void terminalCommandChanged();
+    void terminalEnvironmentChanged();
 
 public slots:
     void redraw();
@@ -133,6 +146,7 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
     void timerEvent(QTimerEvent *event) override;
+    void componentComplete() override;
 
 private slots:
     void handleScrollBack(bool reset);

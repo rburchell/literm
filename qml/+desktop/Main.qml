@@ -69,6 +69,9 @@ Rectangle {
         id: textrender
         focus: true
 
+        charset: util.charset
+        terminalCommand: util.terminalCommand
+        terminalEnvironment: util.terminalEmulator
         onTitleChanged: {
             util.windowTitle = title
         }
