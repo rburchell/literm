@@ -38,9 +38,14 @@ public:
     void writeTerm(const QString &chars);
     bool failed() { return iFailed; }
 
+    QString takeData() { QString tmp = m_pendingData; m_pendingData = QString(); return tmp; }
+
 private slots:
     void resize(int rows, int columns);
     void readActivated();
+
+signals:
+    void dataAvailable();
 
 private:
     Q_DISABLE_COPY(PtyIFace)
@@ -55,6 +60,8 @@ private:
     QSocketNotifier *iReadNotifier;
 
     QTextCodec *iTextCodec;
+
+    QString m_pendingData;
 };
 
 #endif // PTYIFACE_H

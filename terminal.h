@@ -83,8 +83,6 @@ public:
     void setWindow(QQuickView* win) { iWindow=win; }
     void setUtil(Util* util) { iUtil = util; }
 
-    void insertInBuffer(const QString& chars);
-
     QPoint cursorPos();
     void setCursorPos(QPoint pos);
     bool showCursor();
@@ -134,6 +132,12 @@ signals:
     void visualBell();
     void windowTitleChanged(const QString &windowTitle);
 
+protected:
+    void timerEvent(QTimerEvent *);
+
+private slots:
+    void onDataAvailable();
+
 private:
     Q_DISABLE_COPY(Terminal)
     static const int maxScrollBackLines = 300;
@@ -156,6 +160,7 @@ private:
     void adjustSelectionPosition(int lines);
     void forwardTab();
     void backwardTab();
+    void insertInBuffer(const QString& chars);
 
     PtyIFace* iPtyIFace;
     QQuickView* iWindow;
@@ -191,6 +196,7 @@ private:
     int escape;
     QRect iSelection;
     QVector<QRgb> iColorTable;
+    int m_dispatch_timer;
 };
 
 #endif // TERMINAL_H

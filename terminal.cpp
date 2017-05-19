@@ -47,10 +47,17 @@ static bool charIsHexDigit(QChar ch)
 QRgb Terminal::defaultFgColor;
 QRgb Terminal::defaultBgColor;
 
-Terminal::Terminal(QObject *parent) :
-    QObject(parent), iPtyIFace(0), iWindow(0), iUtil(0),
-    iTermSize(0,0), iEmitCursorChangeSignal(true),
-    iShowCursor(true), iUseAltScreenBuffer(false), iAppCursorKeys(false)
+Terminal::Terminal(QObject *parent)
+    : QObject(parent)
+    , iPtyIFace(0)
+    , iWindow(0)
+    , iUtil(0)
+    , iTermSize(0,0)
+    , iEmitCursorChangeSignal(true)
+    , iShowCursor(true)
+    , iUseAltScreenBuffer(false)
+    , iAppCursorKeys(false)
+    , m_dispatch_timer(0)
 {
     //normal
     iColorTable.append(QColor(0, 0, 0).rgb());
@@ -114,12 +121,29 @@ Terminal::Terminal(QObject *parent) :
     resetTerminal();
 }
 
+void Terminal::onDataAvailable()
+{
+    if (m_dispatch_timer)
+        return;
+
+    // ### instantly dispatch if there's a lot of data?
+    m_dispatch_timer = startTimer(3);
+}
+
+void Terminal::timerEvent(QTimerEvent *)
+{
+    killTimer(m_dispatch_timer);
+    m_dispatch_timer = 0;
+    insertInBuffer(iPtyIFace->takeData());
+}
+
 void Terminal::setPtyIFace(PtyIFace *pty)
 {
     iPtyIFace = pty;
     if(!pty) {
         qDebug() << "warning: null pty iface";
     }
+    connect(iPtyIFace, SIGNAL(dataAvailable()), this, SLOT(onDataAvailable()));
 }
 
 void Terminal::setCursorPos(QPoint pos)

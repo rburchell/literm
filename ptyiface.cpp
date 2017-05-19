@@ -104,8 +104,10 @@ void PtyIFace::readActivated()
     int ret = 0;
     char ch[4096];
     ret = read(iMasterFd, ch, sizeof(ch));
-    if(iTerm && ret > 0)
-        iTerm->insertInBuffer(iTextCodec->toUnicode(QByteArray::fromRawData(ch, ret)));
+    if(iTerm && ret > 0) {
+        m_pendingData += iTextCodec->toUnicode(QByteArray::fromRawData(ch,  ret));
+        emit dataAvailable();
+    }
 }
 
 void PtyIFace::resize(int rows, int columns)
