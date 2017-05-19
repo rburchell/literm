@@ -32,7 +32,7 @@ class PtyIFace : public QObject
 {
     Q_OBJECT
 public:
-    explicit PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObject *parent = 0);
+    explicit PtyIFace(Terminal *term, const QString &charset, const QByteArray &terminalEnv, const QString &commandOverride, QObject *parent);
     virtual ~PtyIFace();
 
     void writeTerm(const QString &chars);

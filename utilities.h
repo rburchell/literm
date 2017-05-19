@@ -46,6 +46,8 @@ class Util : public QObject
     Q_PROPERTY(int keyboardMargins READ keyboardMargins CONSTANT)
     Q_PROPERTY(int orientationMode READ orientationMode WRITE setOrientationMode NOTIFY orientationModeChanged)
     Q_PROPERTY(bool showWelcomeScreen READ showWelcomeScreen WRITE setShowWelcomeScreen NOTIFY showWelcomeScreenChanged)
+    Q_PROPERTY(QByteArray terminalEmulator READ terminalEmulator CONSTANT)
+    Q_PROPERTY(QString terminalCommand READ terminalCommand CONSTANT)
     Q_ENUMS(KeyboardMode)
     Q_ENUMS(DragMode)
     Q_ENUMS(OrientationMode)
@@ -65,6 +67,9 @@ public:
 
     explicit Util(QSettings* settings, QObject *parent = 0);
     virtual ~Util();
+
+    QByteArray terminalEmulator() const;
+    QString terminalCommand() const;
 
     void setWindow(QQuickView* win);
     void setWindowTitle(QString title);

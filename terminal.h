@@ -25,7 +25,8 @@
 #include <QRect>
 #include <QVector>
 
-class PtyIFace;
+#include "ptyiface.h"
+
 class Util;
 class QQuickView;
 
@@ -79,9 +80,8 @@ public:
     explicit Terminal(QObject *parent = 0);
     virtual ~Terminal() {}
 
-    void setPtyIFace(PtyIFace* pty);
     void setWindow(QQuickView* win) { iWindow=win; }
-    void setUtil(Util* util) { iUtil = util; }
+    void setUtil(Util* util);
 
     QPoint cursorPos();
     void setCursorPos(QPoint pos);
@@ -162,7 +162,8 @@ private:
     void backwardTab();
     void insertInBuffer(const QString& chars);
 
-    PtyIFace* iPtyIFace;
+    // ### this should not be a pointer once we remove the util dep?
+    PtyIFace *m_pty;
     QQuickView* iWindow;
     Util* iUtil;
 

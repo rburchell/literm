@@ -47,6 +47,16 @@ Util::~Util()
     delete iSettings;
 }
 
+QByteArray Util::terminalEmulator() const
+{
+    return iSettings->value("terminal/envVarTERM", "xterm-256color").toByteArray();
+}
+
+QString Util::terminalCommand() const
+{
+    return iSettings->value("general/execCmd").toString();
+}
+
 void Util::setWindow(QQuickView* win)
 {
     if (iWindow)

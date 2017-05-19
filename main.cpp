@@ -25,19 +25,6 @@
 #include <QDir>
 #include <QString>
 
-extern "C" {
-#if defined(Q_OS_LINUX)
-# include <pty.h>
-#elif defined(Q_OS_MAC)
-# include <util.h>
-#endif
-#include <stdlib.h>
-#include <unistd.h>
-#include <pwd.h>
-#include <sys/types.h>
-}
-
-#include "ptyiface.h"
 #include "terminal.h"
 #include "textrender.h"
 #include "utilities.h"
@@ -59,47 +46,6 @@ int main(int argc, char *argv[])
     QSettings *settings = new QSettings(settings_path + "/settings.ini", QSettings::IniFormat);
 
     QCoreApplication::setApplicationName("Fingerterm");
-
-    // fork the child process before creating QGuiApplication
-    int socketM;
-    int pid = forkpty(&socketM,NULL,NULL,NULL);
-    if( pid==-1 ) {
-        qFatal("forkpty failed");
-        exit(1);
-    } else if( pid==0 ) {
-        setenv("TERM", settings->value("terminal/envVarTERM", "xterm-256color").toByteArray(), 1);
-
-        QString execCmd;
-        for(int i=0; i<argc-1; i++) {
-            if( QString(argv[i]) == "-e" )
-                execCmd = QString(argv[i+1]);
-        }
-        if(execCmd.isEmpty()) {
-            execCmd = settings->value("general/execCmd").toString();
-        }
-        if(execCmd.isEmpty()) {
-            // execute the user's default shell
-            passwd *pwdstruct = getpwuid(getuid());
-            execCmd = QString(pwdstruct->pw_shell);
-            execCmd.append(" --login");
-        }
-
-        delete settings; // don't need 'em here
-
-        QStringList execParts = execCmd.split(' ', QString::SkipEmptyParts);
-        if(execParts.length()==0)
-            exit(0);
-        char *ptrs[execParts.length()+1];
-        for(int i=0; i<execParts.length(); i++) {
-            ptrs[i] = new char[execParts.at(i).toLatin1().length()+1];
-            memcpy(ptrs[i], execParts.at(i).toLatin1().data(), execParts.at(i).toLatin1().length());
-            ptrs[i][execParts.at(i).toLatin1().length()] = 0;
-        }
-        ptrs[execParts.length()] = 0;
-
-        execvp(execParts.first().toLatin1(), ptrs);
-        exit(0);
-    }
 
     QGuiApplication app(argc, argv);
 
@@ -204,11 +150,6 @@ int main(int argc, char *argv[])
     } else {
         view.show();
     }
-
-    PtyIFace ptyiface(pid, socketM, &term, util.charset());
-
-    if( ptyiface.failed() )
-        qFatal("pty failure");
 
     return app.exec();
 }

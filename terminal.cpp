@@ -49,7 +49,6 @@ QRgb Terminal::defaultBgColor;
 
 Terminal::Terminal(QObject *parent)
     : QObject(parent)
-    , iPtyIFace(0)
     , iWindow(0)
     , iUtil(0)
     , iTermSize(0,0)
@@ -121,6 +120,15 @@ Terminal::Terminal(QObject *parent)
     resetTerminal();
 }
 
+void Terminal::setUtil(Util *util)
+{
+    iUtil = util;
+    m_pty = new PtyIFace(this, util->charset(), util->terminalEmulator(), util->terminalCommand(), this);
+    if (m_pty->failed())
+        qFatal("pty failure");
+    connect(m_pty, SIGNAL(dataAvailable()), this, SLOT(onDataAvailable()));
+}
+
 void Terminal::onDataAvailable()
 {
     if (m_dispatch_timer)
@@ -134,16 +142,7 @@ void Terminal::timerEvent(QTimerEvent *)
 {
     killTimer(m_dispatch_timer);
     m_dispatch_timer = 0;
-    insertInBuffer(iPtyIFace->takeData());
-}
-
-void Terminal::setPtyIFace(PtyIFace *pty)
-{
-    iPtyIFace = pty;
-    if(!pty) {
-        qDebug() << "warning: null pty iface";
-    }
-    connect(iPtyIFace, SIGNAL(dataAvailable()), this, SLOT(onDataAvailable()));
+    insertInBuffer(m_pty->takeData());
 }
 
 void Terminal::setCursorPos(QPoint pos)
@@ -239,8 +238,7 @@ void Terminal::putString(QString str)
         str.insert(i-2-num.length(), QChar(num.toInt(&ok,8)));
     }
 
-    if(iPtyIFace)
-        iPtyIFace->writeTerm(str);
+    m_pty->writeTerm(str);
 }
 
 void Terminal::keyPress(int key, int modifiers, const QString& text)
@@ -362,8 +360,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
         }
 
         if (!toWrite.isEmpty()) {
-            if(iPtyIFace)
-                iPtyIFace->writeTerm(toWrite);
+            m_pty->writeTerm(toWrite);
         } else {
             qDebug() << "unknown special key: " << key;
         }
@@ -397,9 +394,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
         }
     }
 
-    if (iPtyIFace) {
-        iPtyIFace->writeTerm(toWrite);
-    }
+    m_pty->writeTerm(toWrite);
     return;
 }
 
@@ -896,8 +891,7 @@ void Terminal::ansiSequence(const QString& seq)
             params.append(0);
         if(params.count()==1 && params.at(0)==0) {
             QString toWrite = QString("%1[?1;2c").arg('\e').toLatin1();
-            if(iPtyIFace)
-                iPtyIFace->writeTerm(toWrite);
+            m_pty->writeTerm(toWrite);
         } else unhandled=true;
         break;
 
@@ -931,8 +925,7 @@ void Terminal::ansiSequence(const QString& seq)
     case 'n':
         if(params.count()>=1 && params.at(0)==6 && extra=="") {  // write cursor pos
             QString toWrite = QString("%1[%2;%3R").arg('\e').arg(cursorPos().y()).arg(cursorPos().x()).toLatin1();
-            if(iPtyIFace)
-                iPtyIFace->writeTerm(toWrite);
+            m_pty->writeTerm(toWrite);
         } else unhandled=true;
         break;
 
@@ -1465,15 +1458,15 @@ void Terminal::resetTabs()
 
 void Terminal::paste(const QString &text)
 {
-    if(iPtyIFace && !text.isEmpty()) {
+    if(!text.isEmpty()) {
         resetBackBufferScrollPos();
 
         if (m_bracketedPasteMode) {
-            iPtyIFace->writeTerm(QString::fromLatin1("\e[200~"));
+            m_pty->writeTerm(QString::fromLatin1("\e[200~"));
         }
-        iPtyIFace->writeTerm(text);
+        m_pty->writeTerm(text);
         if (m_bracketedPasteMode) {
-            iPtyIFace->writeTerm(QString::fromLatin1("\e[201~"));
+            m_pty->writeTerm(QString::fromLatin1("\e[201~"));
         }
     }
 }
@@ -1552,7 +1545,7 @@ void Terminal::scrollBackBufferFwd(int lines)
             cursorModif = 'O';
 
         fmt = QString("%2%1B").arg(cursorModif);
-        iPtyIFace->writeTerm(fmt.arg('\e'));
+        m_pty->writeTerm(fmt.arg('\e'));
     } else {
         clearSelection();
 
@@ -1576,7 +1569,7 @@ void Terminal::scrollBackBufferBack(int lines)
             cursorModif = 'O';
 
         fmt = QString("%2%1A").arg(cursorModif);
-        iPtyIFace->writeTerm(fmt.arg('\e'));
+        m_pty->writeTerm(fmt.arg('\e'));
     } else {
         clearSelection();
 

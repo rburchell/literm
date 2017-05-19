@@ -29,6 +29,15 @@ extern "C" {
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/wait.h>
+#if defined(Q_OS_LINUX)
+# include <pty.h>
+#elif defined(Q_OS_MAC)
+# include <util.h>
+#endif
+#include <stdlib.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <sys/types.h>
 }
 
 #include "terminal.h"
@@ -50,23 +59,72 @@ void sighandler(int sig)
     }
 }
 
-PtyIFace::PtyIFace(int pid, int masterFd, Terminal *term, QString charset, QObject *parent) :
-    QObject(parent),
-    iTerm(term),
-    iPid(pid),
-    iMasterFd(masterFd),
-    iFailed(false),
-    iReadNotifier(0),
-    iTextCodec(0)
+PtyIFace::PtyIFace(Terminal *term, const QString &charset, const QByteArray &termEnv, const QString &commandOverride, QObject *parent)
+    : QObject(parent)
+    , iTerm(term)
+    , iFailed(false)
+    , iReadNotifier(0)
+    , iTextCodec(0)
 {
+
+    // fork the child process before creating QGuiApplication
+    int socketM;
+    int pid = forkpty(&socketM,NULL,NULL,NULL);
+    if( pid==-1 ) {
+        qFatal("forkpty failed");
+        exit(1);
+    } else if( pid==0 ) {
+        setenv("TERM", termEnv, 1);
+
+        QString execCmd;
+        bool next = false;
+        // ### this belongs elsewhere
+        for (int i = 0; i < qApp->arguments().count(); ++i) {
+            if (next) {
+                execCmd = qApp->arguments().at(i);
+                break;
+            }
+            if (qApp->arguments().at(i) == "-e") {
+                next = true;
+            }
+        }
+        if(execCmd.isEmpty()) {
+            execCmd = commandOverride;
+        }
+        if(execCmd.isEmpty()) {
+            // execute the user's default shell
+            passwd *pwdstruct = getpwuid(getuid());
+            execCmd = QString(pwdstruct->pw_shell);
+            execCmd.append(" --login");
+        }
+
+        QStringList execParts = execCmd.split(' ', QString::SkipEmptyParts);
+        if(execParts.length()==0)
+            exit(0);
+        char *ptrs[execParts.length()+1];
+        for(int i=0; i<execParts.length(); i++) {
+            ptrs[i] = new char[execParts.at(i).toLatin1().length()+1];
+            memcpy(ptrs[i], execParts.at(i).toLatin1().data(), execParts.at(i).toLatin1().length());
+            ptrs[i][execParts.at(i).toLatin1().length()] = 0;
+        }
+        ptrs[execParts.length()] = 0;
+
+        execvp(execParts.first().toLatin1(), ptrs);
+        exit(0);
+    }
+
+    iPid = pid;
+    iMasterFd = socketM;
+
+
+
+
     childProcessPid = iPid;
 
     if(!iTerm || childProcessQuit) {
         iFailed = true;
         qFatal("PtyIFace: null Terminal pointer");
     }
-
-    iTerm->setPtyIFace(this);
 
     resize(iTerm->rows(), iTerm->columns());
     connect(iTerm,SIGNAL(termSizeChanged(int,int)),this,SLOT(resize(int,int)));
