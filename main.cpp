@@ -35,16 +35,6 @@ static void copyFileFromResources(QString from, QString to);
 
 int main(int argc, char *argv[])
 {
-    QString settings_path(QDir::homePath() + "/.config/FingerTerm");
-    QDir dir;
-
-    if (!dir.exists(settings_path)) {
-        if (!dir.mkdir(settings_path))
-            qWarning() << "Could not create fingerterm settings path" << settings_path;
-    }
-
-    QSettings *settings = new QSettings(settings_path + "/settings.ini", QSettings::IniFormat);
-
     QCoreApplication::setApplicationName("Fingerterm");
 
     QGuiApplication app(argc, argv);
@@ -78,8 +68,19 @@ int main(int argc, char *argv[])
         view.setHeight(screenSize.height() / 2);
     }
 
+    QString settings_path(QDir::homePath() + "/.config/FingerTerm");
+    QDir dir;
+
+    if (!dir.exists(settings_path)) {
+        if (!dir.mkdir(settings_path))
+            qWarning() << "Could not create fingerterm settings path" << settings_path;
+    }
+
+    QString settingsFile = settings_path + "/settings.ini";
+
+
     Terminal term;
-    Util util(settings); // takes ownership
+    Util util(settingsFile);
     term.setUtil(&util);
     TextRender::setUtil(&util);
     TextRender::setTerminal(&term);

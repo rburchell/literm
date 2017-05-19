@@ -34,27 +34,26 @@
 #include <QFeedbackEffect>
 #endif
 
-Util::Util(QSettings *settings, QObject *parent) :
-    QObject(parent),
-    iSettings(settings),
-    iWindow(0),
-    iTerm(0)
+Util::Util(const QString &settingsFile, QObject *parent)
+    : QObject(parent)
+    , m_settings(settingsFile, QSettings::IniFormat)
+    , iWindow(0)
+    , iTerm(0)
 {
 }
 
 Util::~Util()
 {
-    delete iSettings;
 }
 
 QByteArray Util::terminalEmulator() const
 {
-    return iSettings->value("terminal/envVarTERM", "xterm-256color").toByteArray();
+    return m_settings.value("terminal/envVarTERM", "xterm-256color").toByteArray();
 }
 
 QString Util::terminalCommand() const
 {
-    return iSettings->value("general/execCmd").toString();
+    return m_settings.value("general/execCmd").toString();
 }
 
 void Util::setWindow(QQuickView* win)
@@ -116,25 +115,18 @@ QString Util::getUserMenuXml()
 
 QString Util::configPath()
 {
-    if(!iSettings)
-        return QString();
-
-    QFileInfo f(iSettings->fileName());
+    QFileInfo f(m_settings.fileName());
     return f.path();
 }
 
 QVariant Util::settingsValue(QString key, const QVariant &defaultValue)
 {
-    if(!iSettings)
-        return defaultValue;
-
-    return iSettings->value(key, defaultValue);
+    return m_settings.value(key, defaultValue);
 }
 
 void Util::setSettingsValue(QString key, QVariant value)
 {
-    if(iSettings)
-        iSettings->setValue(key, value);
+    m_settings.setValue(key, value);
 }
 
 QString Util::versionString()

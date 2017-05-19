@@ -65,7 +65,7 @@ public:
         OrientationPortrait
     };
 
-    explicit Util(QSettings* settings, QObject *parent = 0);
+    explicit Util(const QString &settingsFile, QObject *parent = 0);
     virtual ~Util();
 
     QByteArray terminalEmulator() const;
@@ -139,7 +139,7 @@ signals:
 private:
     Q_DISABLE_COPY(Util)
 
-    QSettings* iSettings;
+    QSettings m_settings;
     QQuickView* iWindow;
     Terminal* iTerm;
 };
