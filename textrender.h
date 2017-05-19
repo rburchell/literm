@@ -25,8 +25,6 @@
 
 #include "terminal.h"
 
-class Util;
-
 class TextRender : public QQuickItem
 {
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
@@ -90,8 +88,6 @@ public:
     DragMode dragMode() const;
     void setDragMode(DragMode dragMode);
 
-    static void setUtil(Util *util);
-
     QQuickItem *contentItem() const { return m_contentItem; }
     void setContentItem(QQuickItem *contentItem);
 
@@ -138,6 +134,10 @@ signals:
     void terminalCommandChanged();
     void terminalEnvironmentChanged();
     void displayBufferChanged();
+    void panLeft();
+    void panRight();
+    void panUp();
+    void panDown();
 
 public slots:
     void redraw();
@@ -181,7 +181,6 @@ private:
      * @return The new value for last (modified by any consumed offset)
      **/
     QPointF scrollBackBuffer(QPointF now, QPointF last);
-    void doGesture(PanGesture gesture);
 
     bool newSelection;
     QPointF dragOrigin;
@@ -192,8 +191,6 @@ private:
     qreal iFontDescent;
     bool iShowBufferScrollIndicator;
     bool iAllowGestures;
-
-    static Util *sUtil;
 
     QQuickItem *m_contentItem;
     QQuickItem *m_backgroundContainer;

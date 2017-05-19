@@ -45,6 +45,46 @@ Util::~Util()
 {
 }
 
+QString Util::panLeftTitle() const
+{
+    return settingsValue("gestures/panLeftTitle", "Alt-Right").toString();
+}
+
+QString Util::panLeftCommand() const
+{
+    return settingsValue("gestures/panLeftCommand", "\\e\\e[C").toString();
+}
+
+QString Util::panRightTitle() const
+{
+    return settingsValue("gestures/panRightTitle", "Alt-Left").toString();
+}
+
+QString Util::panRightCommand() const
+{
+    return settingsValue("gestures/panRightCommand", "\\e\\e[D").toString();
+}
+
+QString Util::panDownTitle() const
+{
+    return settingsValue("gestures/panDownTitle", "Page Up").toString();
+}
+
+QString Util::panDownCommand() const
+{
+    return settingsValue("gestures/panDownCommand", "\\e[5~").toString();
+}
+
+QString Util::panUpTitle() const
+{
+    return settingsValue("gestures/panUpTitle", "Page Down").toString();
+}
+
+QString Util::panUpCommand() const
+{
+    return settingsValue("gestures/panUpCommand", "\\e[6~").toString();
+}
+
 QByteArray Util::terminalEmulator() const
 {
     return m_settings.value("terminal/envVarTERM", "xterm-256color").toByteArray();
@@ -110,7 +150,7 @@ QString Util::configPath()
     return f.path();
 }
 
-QVariant Util::settingsValue(QString key, const QVariant &defaultValue)
+QVariant Util::settingsValue(QString key, const QVariant &defaultValue) const
 {
     return m_settings.value(key, defaultValue);
 }

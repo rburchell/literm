@@ -48,6 +48,16 @@ class Util : public QObject
     Q_PROPERTY(bool showWelcomeScreen READ showWelcomeScreen WRITE setShowWelcomeScreen NOTIFY showWelcomeScreenChanged)
     Q_PROPERTY(QByteArray terminalEmulator READ terminalEmulator CONSTANT)
     Q_PROPERTY(QString terminalCommand READ terminalCommand CONSTANT)
+    Q_PROPERTY(QString panLeftTitle READ panLeftTitle CONSTANT)
+    Q_PROPERTY(QString panLeftCommand READ panLeftCommand CONSTANT)
+    Q_PROPERTY(QString panRightTitle READ panRightTitle CONSTANT)
+    Q_PROPERTY(QString panRightCommand READ panRightCommand CONSTANT)
+    Q_PROPERTY(QString panDownTitle READ panDownTitle CONSTANT)
+    Q_PROPERTY(QString panDownCommand READ panDownCommand CONSTANT)
+    Q_PROPERTY(QString panUpTitle READ panUpTitle CONSTANT)
+    Q_PROPERTY(QString panUpCommand READ panUpCommand CONSTANT)
+
+
     Q_ENUMS(KeyboardMode)
     Q_ENUMS(DragMode)
     Q_ENUMS(OrientationMode)
@@ -68,6 +78,15 @@ public:
     explicit Util(const QString &settingsFile, QObject *parent = 0);
     virtual ~Util();
 
+    QString panLeftTitle() const;
+    QString panLeftCommand() const;
+    QString panRightTitle() const;
+    QString panRightCommand() const;
+    QString panDownTitle() const;
+    QString panDownCommand() const;
+    QString panUpTitle() const;
+    QString panUpCommand() const;
+
     QByteArray terminalEmulator() const;
     QString terminalCommand() const;
 
@@ -82,7 +101,7 @@ public:
 
     Q_INVOKABLE QString versionString();
     Q_INVOKABLE QString configPath();
-    QVariant settingsValue(QString key, const QVariant &defaultValue = QVariant());
+    QVariant settingsValue(QString key, const QVariant &defaultValue = QVariant()) const;
     void setSettingsValue(QString key, QVariant value);
 
     int uiFontSize();

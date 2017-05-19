@@ -21,9 +21,6 @@
 #include <QtGui>
 #include "textrender.h"
 #include "terminal.h"
-#include "utilities.h"
-
-Util* TextRender::sUtil = 0;
 
 /*!
  * \internal
@@ -635,11 +632,6 @@ void TextRender::timerEvent(QTimerEvent *)
     polish();
 }
 
-void TextRender::setUtil(Util *util)
-{
-    sUtil = util;
-}
-
 bool TextRender::childMouseEventFilter(QQuickItem *item, QEvent *event)
 {
     QMouseEvent *mev = static_cast<QMouseEvent*>(event);
@@ -709,13 +701,13 @@ void TextRender::mouseReleaseEvent(QMouseEvent *event)
         int xdist = qAbs(eventPos.x() - dragOrigin.x());
         int ydist = qAbs(eventPos.y() - dragOrigin.y());
         if(eventPos.x() < dragOrigin.x()-reqDragLength && xdist > ydist*2)
-            doGesture(PanLeft);
+            emit panLeft();
         else if(eventPos.x() > dragOrigin.x()+reqDragLength && xdist > ydist*2)
-            doGesture(PanRight);
+            emit panRight();
         else if(eventPos.y() > dragOrigin.y()+reqDragLength && ydist > xdist*2)
-            doGesture(PanDown);
+            emit panDown();
         else if(eventPos.y() < dragOrigin.y()-reqDragLength && ydist > xdist*2)
-            doGesture(PanUp);
+            emit panUp();
     }
     else if(m_dragMode == DragScroll) {
         scrollBackBuffer(eventPos, dragOrigin);
@@ -920,22 +912,3 @@ QPointF TextRender::scrollBackBuffer(QPointF now, QPointF last)
     return last;
 }
 
-void TextRender::doGesture(PanGesture gesture)
-{
-    if( gesture==PanLeft ) {
-        sUtil->notifyText(sUtil->settingsValue("gestures/panLeftTitle", "Alt-Right").toString());
-        m_terminal.putString(sUtil->settingsValue("gestures/panLeftCommand", "\\e\\e[C").toString());
-    }
-    else if( gesture==PanRight ) {
-        sUtil->notifyText(sUtil->settingsValue("gestures/panRightTitle", "Alt-Left").toString());
-        m_terminal.putString(sUtil->settingsValue("gestures/panRightCommand", "\\e\\e[D").toString());
-    }
-    else if( gesture==PanDown ) {
-        sUtil->notifyText(sUtil->settingsValue("gestures/panDownTitle", "Page Up").toString());
-        m_terminal.putString(sUtil->settingsValue("gestures/panDownCommand", "\\e[5~").toString());
-    }
-    else if( gesture==PanUp ) {
-        sUtil->notifyText(sUtil->settingsValue("gestures/panUpTitle", "Page Down").toString());
-        m_terminal.putString(sUtil->settingsValue("gestures/panUpCommand", "\\e[6~").toString());
-    }
-}

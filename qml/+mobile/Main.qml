@@ -89,6 +89,23 @@ Item {
                 id: textrender
                 focus: true
 
+                onPanLeft: {
+                    util.notifyText(util.panLeftTitle)
+                    textrender.putString(util.panLeftCommand)
+                }
+                onPanRight: {
+                    util.notifyText(util.panRightTitle)
+                    textrender.putString(util.panRightCommand)
+                }
+                onPanUp: {
+                    util.notifyText(util.panUpTitle)
+                    textrender.putString(util.panUpCommand)
+                }
+                onPanDown: {
+                    util.notifyText(util.panDownTitle)
+                    textrender.putString(util.panDownCommand)
+                }
+
                 onDisplayBufferChanged: window.displayBufferChanged()
                 charset: util.charset
                 terminalCommand: util.terminalCommand
