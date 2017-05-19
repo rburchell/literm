@@ -55,6 +55,10 @@ public:
     virtual ~TextRender();
     void updatePolish() override;
 
+    Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
+    Q_INVOKABLE void putString(QString str);
+    Q_INVOKABLE const QStringList grabURLsFromBuffer();
+
     QString charset() const;
     void setCharset(const QString &charset);
     QString terminalCommand() const;
@@ -87,7 +91,6 @@ public:
     void setDragMode(DragMode dragMode);
 
     static void setUtil(Util *util);
-    static void setTerminal(Terminal *terminal);
 
     QQuickItem *contentItem() const { return m_contentItem; }
     void setContentItem(QQuickItem *contentItem);
@@ -189,7 +192,6 @@ private:
     bool iShowBufferScrollIndicator;
     bool iAllowGestures;
 
-    static Terminal *sTerm;
     static Util *sUtil;
 
     QQuickItem *m_contentItem;
@@ -209,6 +211,7 @@ private:
     DragMode m_dragMode;
     QString m_title;
     int m_dispatch_timer;
+    Terminal m_terminal;
 };
 
 #endif // TEXTRENDER_H

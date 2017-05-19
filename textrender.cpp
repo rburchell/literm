@@ -23,7 +23,6 @@
 #include "terminal.h"
 #include "utilities.h"
 
-Terminal* TextRender::sTerm = 0;
 Util* TextRender::sUtil = 0;
 
 /*!
@@ -88,71 +87,85 @@ TextRender::TextRender(QQuickItem *parent)
 
     iShowBufferScrollIndicator = false;
 
-    Q_ASSERT(sTerm);
-    connect(sTerm, SIGNAL(windowTitleChanged(const QString&)), this, SLOT(handleTitleChanged(const QString&)));
-    connect(sTerm, SIGNAL(visualBell()), this, SIGNAL(visualBell()));
-    connect(sTerm, SIGNAL(displayBufferChanged()), this, SLOT(redraw()));
-    connect(sTerm, SIGNAL(cursorPosChanged(QPoint)), this, SLOT(redraw()));
-    connect(sTerm, SIGNAL(termSizeChanged(int,int)), this, SLOT(redraw()));
-    connect(sTerm, SIGNAL(termSizeChanged(int,int)), this, SIGNAL(terminalSizeChanged()));
-    connect(sTerm, SIGNAL(selectionChanged()), this, SLOT(redraw()));
-    connect(sTerm, SIGNAL(scrollBackBufferAdjusted(bool)), this, SLOT(handleScrollBack(bool)));
-    connect(sTerm, SIGNAL(selectionChanged()), this, SIGNAL(selectionChanged()));
+    connect(&m_terminal, SIGNAL(windowTitleChanged(const QString&)), this, SLOT(handleTitleChanged(const QString&)));
+    connect(&m_terminal, SIGNAL(visualBell()), this, SIGNAL(visualBell()));
+    connect(&m_terminal, SIGNAL(displayBufferChanged()), this, SLOT(redraw()));
+    connect(&m_terminal, SIGNAL(cursorPosChanged(QPoint)), this, SLOT(redraw()));
+    connect(&m_terminal, SIGNAL(termSizeChanged(int,int)), this, SLOT(redraw()));
+    connect(&m_terminal, SIGNAL(termSizeChanged(int,int)), this, SIGNAL(terminalSizeChanged()));
+    connect(&m_terminal, SIGNAL(selectionChanged()), this, SLOT(redraw()));
+    connect(&m_terminal, SIGNAL(scrollBackBufferAdjusted(bool)), this, SLOT(handleScrollBack(bool)));
+    connect(&m_terminal, SIGNAL(selectionChanged()), this, SIGNAL(selectionChanged()));
 }
 
 TextRender::~TextRender()
 {
 }
 
+const QStringList TextRender::printableLinesFromCursor(int lines)
+{
+    return m_terminal.printableLinesFromCursor(lines);
+}
+
+void TextRender::putString(QString str)
+{
+    m_terminal.putString(str);
+}
+
+const QStringList TextRender::grabURLsFromBuffer()
+{
+    return m_terminal.grabURLsFromBuffer();
+}
+
 void TextRender::componentComplete()
 {
     QQuickItem::componentComplete();
-    sTerm->init();
+    m_terminal.init();
 }
 
 QString TextRender::charset() const
 {
-    return sTerm->m_charset;
+    return m_terminal.m_charset;
 }
 
 void TextRender::setCharset(const QString &charset)
 {
     // ### disable setting after complete
-    if (sTerm->m_charset == charset)
+    if (m_terminal.m_charset == charset)
         return;
 
-    sTerm->m_charset = charset;
+    m_terminal.m_charset = charset;
     emit charsetChanged();
 
 }
 
 QString TextRender::terminalCommand() const
 {
-    return sTerm->m_terminalCommand;
+    return m_terminal.m_terminalCommand;
 }
 
 void TextRender::setTerminalCommand(const QString &terminalCommand)
 {
     // ### disable setting after complete
-    if (sTerm->m_terminalCommand == terminalCommand)
+    if (m_terminal.m_terminalCommand == terminalCommand)
         return;
 
-    sTerm->m_terminalCommand = terminalCommand;
+    m_terminal.m_terminalCommand = terminalCommand;
     emit terminalCommandChanged();
 }
 
 QByteArray TextRender::terminalEnvironment() const
 {
-    return sTerm->m_terminalEnvironment;
+    return m_terminal.m_terminalEnvironment;
 }
 
 void TextRender::setTerminalEnvironment(const QByteArray &terminalEnvironment)
 {
     // ### disable setting after complete
-    if (sTerm->m_terminalEnvironment == terminalEnvironment)
+    if (m_terminal.m_terminalEnvironment == terminalEnvironment)
         return;
 
-    sTerm->m_terminalEnvironment = terminalEnvironment;
+    m_terminal.m_terminalEnvironment = terminalEnvironment;
     emit terminalEnvironmentChanged();
 }
 
@@ -167,7 +180,7 @@ void TextRender::paste()
 {
     QClipboard *cb = QGuiApplication::clipboard();
     QString cbText = cb->text();
-    sTerm->paste(cbText);
+    m_terminal.paste(cbText);
 }
 
 bool TextRender::canPaste() const
@@ -179,17 +192,17 @@ bool TextRender::canPaste() const
 
 void TextRender::deselect()
 {
-    sTerm->clearSelection();
+    m_terminal.clearSelection();
 }
 
 QString TextRender::selectedText() const
 {
-    return sTerm->selectedText();
+    return m_terminal.selectedText();
 }
 
 QSize TextRender::terminalSize() const
 {
-    return QSize(sTerm->columns(), sTerm->rows());
+    return QSize(m_terminal.columns(), m_terminal.rows());
 }
 
 QString TextRender::title() const
@@ -294,7 +307,7 @@ void TextRender::updatePolish()
 
     // Make sure the terminal's size is right
     QSize size((width() - 4) / iFontWidth, (height() - 4) / iFontHeight);
-    sTerm->setTermSize(size);
+    m_terminal.setTermSize(size);
 
     m_contentItem->setWidth(width());
     m_contentItem->setHeight(height());
@@ -306,13 +319,13 @@ void TextRender::updatePolish()
     m_overlayContainer->setHeight(height());
 
     // If the height grows, make sure we have enough rows
-    if (m_cells.size() < sTerm->rows()) {
+    if (m_cells.size() < m_terminal.rows()) {
         const int oldSize = m_cells.size();
 
-        m_cells.resize(sTerm->rows());
-        m_cellsContent.resize(sTerm->rows());
+        m_cells.resize(m_terminal.rows());
+        m_cellsContent.resize(m_terminal.rows());
 
-        const int columnCount = sTerm->columns();
+        const int columnCount = m_terminal.columns();
 
         for (int row = oldSize; row < m_cells.size(); ++row) {
             auto &cellRow = m_cells[row];
@@ -322,9 +335,9 @@ void TextRender::updatePolish()
     }
 
     // Ensure that there's sufficient width too, if that changed.
-    if (m_cells[0].size() < sTerm->columns()) {
-        const int columnCount = sTerm->columns();
-        for (int row = 0; row < sTerm->rows(); ++row) {
+    if (m_cells[0].size() < m_terminal.columns()) {
+        const int columnCount = m_terminal.columns();
+        for (int row = 0; row < m_terminal.rows(); ++row) {
             auto &cellRow = m_cells[row];
             auto &contentsRow = m_cellsContent[row];
             ensureRowPopulated(cellRow, contentsRow, columnCount);
@@ -333,35 +346,35 @@ void TextRender::updatePolish()
 
     qreal y = 0;
     int yDelegateIndex = 0;
-    if (sTerm->backBufferScrollPos() != 0 && sTerm->backBuffer().size()>0) {
-        int from = sTerm->backBuffer().size() - sTerm->backBufferScrollPos();
+    if (m_terminal.backBufferScrollPos() != 0 && m_terminal.backBuffer().size()>0) {
+        int from = m_terminal.backBuffer().size() - m_terminal.backBufferScrollPos();
         if(from<0)
             from=0;
-        int to = sTerm->backBuffer().size();
-        if(to-from > sTerm->rows())
-            to = from + sTerm->rows();
-        paintFromBuffer(sTerm->backBuffer(), from, to, y, yDelegateIndex);
-        if(to-from < sTerm->rows() && sTerm->buffer().size()>0) {
-            int to2 = sTerm->rows() - (to-from);
-            if(to2 > sTerm->buffer().size())
-                to2 = sTerm->buffer().size();
-            paintFromBuffer(sTerm->buffer(), 0, to2, y, yDelegateIndex);
+        int to = m_terminal.backBuffer().size();
+        if(to-from > m_terminal.rows())
+            to = from + m_terminal.rows();
+        paintFromBuffer(m_terminal.backBuffer(), from, to, y, yDelegateIndex);
+        if(to-from < m_terminal.rows() && m_terminal.buffer().size()>0) {
+            int to2 = m_terminal.rows() - (to-from);
+            if(to2 > m_terminal.buffer().size())
+                to2 = m_terminal.buffer().size();
+            paintFromBuffer(m_terminal.buffer(), 0, to2, y, yDelegateIndex);
         }
     } else {
-        int count = qMin(sTerm->rows(), sTerm->buffer().size());
-        paintFromBuffer(sTerm->buffer(), 0, count, y, yDelegateIndex);
+        int count = qMin(m_terminal.rows(), m_terminal.buffer().size());
+        paintFromBuffer(m_terminal.buffer(), 0, count, y, yDelegateIndex);
     }
 
     // paint any remaining rows unused
     for (; yDelegateIndex < m_cells.size(); ++yDelegateIndex) {
-        for (int j=0;j<sTerm->columns(); j++) {
+        for (int j=0;j<m_terminal.columns(); j++) {
             m_cells.at(yDelegateIndex).at(j)->setVisible(false);
             m_cellsContent.at(yDelegateIndex).at(j)->setVisible(false);
         }
     }
 
     // cursor
-    if (sTerm->showCursor()) {
+    if (m_terminal.showCursor()) {
         if (!m_cursorDelegateInstance) {
             m_cursorDelegateInstance = qobject_cast<QQuickItem*>(m_cursorDelegate->create(qmlContext(this)));
             m_cursorDelegateInstance->setVisible(false);
@@ -380,7 +393,7 @@ void TextRender::updatePolish()
         m_cursorDelegateInstance->setVisible(false);
     }
 
-    QRect selection = sTerm->selection();
+    QRect selection = m_terminal.selection();
     if (!selection.isNull()) {
         if (!m_topSelectionDelegateInstance) {
             m_topSelectionDelegateInstance = qobject_cast<QQuickItem*>(m_selectionDelegate->create(qmlContext(this)));
@@ -412,14 +425,14 @@ void TextRender::updatePolish()
             m_middleSelectionDelegateInstance->setVisible(true);
 
             QPointF start = charsToPixels(selection.topLeft());
-            QPointF end = charsToPixels(QPoint(sTerm->columns(), selection.top()));
+            QPointF end = charsToPixels(QPoint(m_terminal.columns(), selection.top()));
             m_topSelectionDelegateInstance->setX(start.x());
             m_topSelectionDelegateInstance->setY(start.y());
             m_topSelectionDelegateInstance->setWidth(end.x() - start.x() + fontWidth());
             m_topSelectionDelegateInstance->setHeight(end.y() - start.y() + fontHeight());
 
             start = charsToPixels(QPoint(1, selection.top() + 1));
-            end = charsToPixels(QPoint(sTerm->columns(), selection.bottom() - 1));
+            end = charsToPixels(QPoint(m_terminal.columns(), selection.bottom() - 1));
 
             m_middleSelectionDelegateInstance->setX(start.x());
             m_middleSelectionDelegateInstance->setY(start.y());
@@ -446,9 +459,9 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
     const int leftmargin = 2;
     int cutAfter = property("cutAfter").toInt() + iFontDescent;
 
-    TermChar tmp = sTerm->zeroChar;
-    TermChar nextAttrib = sTerm->zeroChar;
-    TermChar currAttrib = sTerm->zeroChar;
+    TermChar tmp = m_terminal.zeroChar;
+    TermChar nextAttrib = m_terminal.zeroChar;
+    TermChar currAttrib = m_terminal.zeroChar;
     qreal currentX = leftmargin;
 
     for(int i=from; i<to; i++, yDelegateIndex++) {
@@ -461,7 +474,7 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
             opacity = 0.3;
 
         const auto &lineBuffer = buffer.at(i);;
-        int xcount = qMin(lineBuffer.count(), sTerm->columns());
+        int xcount = qMin(lineBuffer.count(), m_terminal.columns());
 
         // background for the current line
         currentX = leftmargin;
@@ -545,7 +558,7 @@ void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int 
 
     QColor qtColor;
 
-    if (sTerm->inverseVideoMode() && style.bgColor == Terminal::defaultBgColor) {
+    if (m_terminal.inverseVideoMode() && style.bgColor == Terminal::defaultBgColor) {
         qtColor = Terminal::defaultFgColor;
     } else {
         qtColor = style.bgColor;
@@ -584,7 +597,7 @@ void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qre
 
     QColor qtColor;
 
-    if (sTerm->inverseVideoMode() && style.fgColor == Terminal::defaultFgColor) {
+    if (m_terminal.inverseVideoMode() && style.fgColor == Terminal::defaultFgColor) {
         qtColor = Terminal::defaultBgColor;
     } else {
         qtColor = style.fgColor;
@@ -624,11 +637,6 @@ void TextRender::timerEvent(QTimerEvent *)
 void TextRender::setUtil(Util *util)
 {
     sUtil = util;
-}
-
-void TextRender::setTerminal(Terminal *terminal)
-{
-    sTerm = terminal;
 }
 
 bool TextRender::childMouseEventFilter(QQuickItem *item, QEvent *event)
@@ -718,7 +726,7 @@ void TextRender::mouseReleaseEvent(QMouseEvent *event)
 
 void TextRender::keyPressEvent(QKeyEvent *event)
 {
-    sTerm->keyPress(event->key(), event->modifiers(), event->text());
+    m_terminal.keyPress(event->key(), event->modifiers(), event->text());
 }
 
 void TextRender::wheelEvent(QWheelEvent *event)
@@ -741,7 +749,7 @@ void TextRender::selectionHelper(QPointF scenePos, bool selectionOngoing)
                qRound((scenePos.y()+yCorr) / fontHeight()));
 
     if (start != end) {
-        sTerm->setSelection(start, end, selectionOngoing);
+        m_terminal.setSelection(start, end, selectionOngoing);
         newSelection = false;
     }
 }
@@ -751,14 +759,14 @@ void TextRender::handleScrollBack(bool reset)
     if (reset) {
         setShowBufferScrollIndicator(false);
     } else {
-        setShowBufferScrollIndicator(sTerm->backBufferScrollPos() != 0);
+        setShowBufferScrollIndicator(m_terminal.backBufferScrollPos() != 0);
     }
     redraw();
 }
 
 QPointF TextRender::cursorPixelPos()
 {
-    return charsToPixels(sTerm->cursorPos());
+    return charsToPixels(m_terminal.cursorPos());
 }
 
 QPointF TextRender::charsToPixels(QPoint pos)
@@ -872,23 +880,23 @@ void TextRender::setSelectionDelegate(QQmlComponent *component)
 
 int TextRender::contentHeight() const
 {
-    if (sTerm->useAltScreenBuffer())
-        return sTerm->buffer().size();
+    if (m_terminal.useAltScreenBuffer())
+        return m_terminal.buffer().size();
     else
-        return sTerm->buffer().size() + sTerm->backBuffer().size();
+        return m_terminal.buffer().size() + m_terminal.backBuffer().size();
 }
 
 int TextRender::visibleHeight() const
 {
-    return sTerm->buffer().size();
+    return m_terminal.buffer().size();
 }
 
 int TextRender::contentY() const
 {
-    if (sTerm->useAltScreenBuffer())
+    if (m_terminal.useAltScreenBuffer())
         return 0;
 
-    int scrollPos = sTerm->backBuffer().size() - sTerm->backBufferScrollPos();
+    int scrollPos = m_terminal.backBuffer().size() - m_terminal.backBufferScrollPos();
     return scrollPos;
 }
 
@@ -901,10 +909,10 @@ QPointF TextRender::scrollBackBuffer(QPointF now, QPointF last)
     int lines = ydist / fontSize;
 
     if(lines > 0 && now.y() < last.y() && xdist < ydist*2) {
-        sTerm->scrollBackBufferFwd(lines);
+        m_terminal.scrollBackBufferFwd(lines);
         last = QPointF(now.x(), last.y() - lines * fontSize);
     } else if(lines > 0 && now.y() > last.y() && xdist < ydist*2) {
-        sTerm->scrollBackBufferBack(lines);
+        m_terminal.scrollBackBufferBack(lines);
         last = QPointF(now.x(), last.y() + lines * fontSize);
     }
 
@@ -915,18 +923,18 @@ void TextRender::doGesture(PanGesture gesture)
 {
     if( gesture==PanLeft ) {
         sUtil->notifyText(sUtil->settingsValue("gestures/panLeftTitle", "Alt-Right").toString());
-        sTerm->putString(sUtil->settingsValue("gestures/panLeftCommand", "\\e\\e[C").toString());
+        m_terminal.putString(sUtil->settingsValue("gestures/panLeftCommand", "\\e\\e[C").toString());
     }
     else if( gesture==PanRight ) {
         sUtil->notifyText(sUtil->settingsValue("gestures/panRightTitle", "Alt-Left").toString());
-        sTerm->putString(sUtil->settingsValue("gestures/panRightCommand", "\\e\\e[D").toString());
+        m_terminal.putString(sUtil->settingsValue("gestures/panRightCommand", "\\e\\e[D").toString());
     }
     else if( gesture==PanDown ) {
         sUtil->notifyText(sUtil->settingsValue("gestures/panDownTitle", "Page Up").toString());
-        sTerm->putString(sUtil->settingsValue("gestures/panDownCommand", "\\e[5~").toString());
+        m_terminal.putString(sUtil->settingsValue("gestures/panDownCommand", "\\e[5~").toString());
     }
     else if( gesture==PanUp ) {
         sUtil->notifyText(sUtil->settingsValue("gestures/panUpTitle", "Page Down").toString());
-        sTerm->putString(sUtil->settingsValue("gestures/panUpCommand", "\\e[6~").toString());
+        m_terminal.putString(sUtil->settingsValue("gestures/panUpCommand", "\\e[6~").toString());
     }
 }

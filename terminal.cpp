@@ -49,7 +49,6 @@ QRgb Terminal::defaultBgColor;
 
 Terminal::Terminal(QObject *parent)
     : QObject(parent)
-    , iWindow(0)
     , iTermSize(0,0)
     , iEmitCursorChangeSignal(true)
     , iShowCursor(true)
@@ -180,6 +179,14 @@ bool Terminal::showCursor()
         return false;
 
     return iShowCursor;
+}
+
+const TerminalBuffer &Terminal::buffer() const
+{
+    if(iUseAltScreenBuffer)
+        return iAltBuffer;
+
+    return iBuffer;
 }
 
 TerminalBuffer &Terminal::buffer()
@@ -1591,7 +1598,7 @@ void Terminal::resetBackBufferScrollPos()
 }
 
 // ### should be const really
-QString Terminal::selectedText()
+QString Terminal::selectedText() const
 {
     if (selection().isNull())
         return QString();
@@ -1715,17 +1722,17 @@ void Terminal::clearSelection()
     emit selectionChanged();
 }
 
-int Terminal::rows()
+int Terminal::rows() const
 {
     return iTermSize.height();
 }
 
-int Terminal::columns()
+int Terminal::columns() const
 {
     return iTermSize.width();
 }
 
-QRect Terminal::selection()
+QRect Terminal::selection() const
 {
     return iSelection;
 }

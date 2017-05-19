@@ -82,42 +82,40 @@ public:
 
     void init();
 
-    void setWindow(QQuickView* win) { iWindow=win; }
-
     QPoint cursorPos();
     void setCursorPos(QPoint pos);
     bool showCursor();
 
-    QSize termSize() { return iTermSize; }
+    QSize termSize() const { return iTermSize; }
     void setTermSize(QSize size);
 
     TerminalBuffer &buffer();
+    const TerminalBuffer &buffer() const;
     TerminalBuffer &backBuffer() { return iBackBuffer; }
+    const TerminalBuffer &backBuffer() const { return iBackBuffer; }
 
     TerminalLine &currentLine();
 
     bool inverseVideoMode() const { return m_inverseVideoMode; }
 
     void keyPress(int key, int modifiers, const QString& text="");
-    Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
-    Q_INVOKABLE void putString(QString str);
-
+    const QStringList printableLinesFromCursor(int lines);
+    void putString(QString str);
     void paste(const QString &text);
-    Q_INVOKABLE const QStringList grabURLsFromBuffer();
+    const QStringList grabURLsFromBuffer();
 
     void scrollBackBufferFwd(int lines);
     void scrollBackBufferBack(int lines);
-    int backBufferScrollPos() { return iBackBufferScrollPos; }
+    int backBufferScrollPos() const { return iBackBufferScrollPos; }
     void resetBackBufferScrollPos();
 
-    QString selectedText();
+    QString selectedText() const;
     void setSelection(QPoint start, QPoint end, bool selectionOngoing);
-    QRect selection();
-    Q_INVOKABLE void clearSelection();
-    bool hasSelection();
+    QRect selection() const;
+    void clearSelection();
 
-    int rows();
-    int columns();
+    int rows() const;
+    int columns() const;
 
     bool useAltScreenBuffer() const { return iUseAltScreenBuffer; }
 

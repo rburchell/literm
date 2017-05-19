@@ -406,7 +406,7 @@ Item {
 
             function displayBufferChanged()
             {
-                lineView.lines = term.printableLinesFromCursor(util.extraLinesFromCursor);
+                lineView.lines = textrender.printableLinesFromCursor(util.extraLinesFromCursor);
                 lineView.cursorX = textrender.cursorPixelPos().x;
                 lineView.cursorWidth = textrender.cursorPixelSize().width;
                 lineView.cursorHeight = textrender.cursorPixelSize().height;

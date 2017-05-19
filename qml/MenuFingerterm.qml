@@ -78,7 +78,7 @@ Item {
                 enabled: disableOn.length === 0 || util.windowTitle.search(disableOn) === -1
                 onClicked: {
                     menuWin.showing = false;
-                    term.putString(command);
+                    textrender.putString(command);
                 }
             }
         }
@@ -148,7 +148,7 @@ Item {
                             height: window.buttonHeightLarge
                             onClicked: {
                                 menuWin.showing = false;
-                                urlWindow.urls = term.grabURLsFromBuffer();
+                                urlWindow.urls = textrender.grabURLsFromBuffer();
                                 urlWindow.show = true
                             }
                         }

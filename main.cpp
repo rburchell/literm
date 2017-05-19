@@ -25,7 +25,6 @@
 #include <QDir>
 #include <QString>
 
-#include "terminal.h"
 #include "textrender.h"
 #include "utilities.h"
 #include "version.h"
@@ -79,10 +78,8 @@ int main(int argc, char *argv[])
     QString settingsFile = settings_path + "/settings.ini";
 
 
-    Terminal term;
     Util util(settingsFile);
     TextRender::setUtil(&util);
-    TextRender::setTerminal(&term);
 
     QString startupErrorMsg;
 
@@ -107,12 +104,10 @@ int main(int argc, char *argv[])
     }
 
     QQmlContext *context = view.rootContext();
-    context->setContextProperty( "term", &term );
     context->setContextProperty( "util", &util );
     context->setContextProperty( "keyLoader", &keyLoader );
     context->setContextProperty( "startupErrorMessage", startupErrorMsg);
 
-    term.setWindow(&view);
     util.setWindow(&view);
 
     QObject::connect(view.engine(),SIGNAL(quit()),&app,SLOT(quit()));
