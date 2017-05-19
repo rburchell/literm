@@ -137,6 +137,7 @@ signals:
     void charsetChanged();
     void terminalCommandChanged();
     void terminalEnvironmentChanged();
+    void displayBufferChanged();
 
 public slots:
     void redraw();

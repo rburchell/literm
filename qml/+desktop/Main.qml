@@ -69,6 +69,10 @@ Rectangle {
         id: textrender
         focus: true
 
+        onDisplayBufferChanged: {
+            textrender.cutAfter = textrender.height;
+            textrender.y = 0;
+        }
         charset: util.charset
         terminalCommand: util.terminalCommand
         terminalEnvironment: util.terminalEmulator
@@ -290,14 +294,6 @@ Rectangle {
 
     LayoutWindow {
         id: layoutWindow
-    }
-
-    Connections {
-        target: term
-        onDisplayBufferChanged: {
-            textrender.cutAfter = textrender.height;
-            textrender.y = 0;
-        }
     }
 
     Component.onCompleted: {

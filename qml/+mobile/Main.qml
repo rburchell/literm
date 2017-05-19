@@ -89,6 +89,7 @@ Item {
                 id: textrender
                 focus: true
 
+                onDisplayBufferChanged: window.displayBufferChanged()
                 charset: util.charset
                 terminalCommand: util.terminalCommand
                 terminalEnvironment: util.terminalEmulator
@@ -340,11 +341,6 @@ Item {
 
             LayoutWindow {
                 id: layoutWindow
-            }
-
-            Connections {
-                target: term
-                onDisplayBufferChanged: window.displayBufferChanged()
             }
 
             function vkbKeypress(key,modifiers) {

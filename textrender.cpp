@@ -90,6 +90,7 @@ TextRender::TextRender(QQuickItem *parent)
     connect(&m_terminal, SIGNAL(windowTitleChanged(const QString&)), this, SLOT(handleTitleChanged(const QString&)));
     connect(&m_terminal, SIGNAL(visualBell()), this, SIGNAL(visualBell()));
     connect(&m_terminal, SIGNAL(displayBufferChanged()), this, SLOT(redraw()));
+    connect(&m_terminal, SIGNAL(displayBufferChanged()), this, SIGNAL(displayBufferChanged()));
     connect(&m_terminal, SIGNAL(cursorPosChanged(QPoint)), this, SLOT(redraw()));
     connect(&m_terminal, SIGNAL(termSizeChanged(int,int)), this, SLOT(redraw()));
     connect(&m_terminal, SIGNAL(termSizeChanged(int,int)), this, SIGNAL(terminalSizeChanged()));
