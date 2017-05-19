@@ -115,7 +115,6 @@ int main(int argc, char *argv[])
 
     term.setWindow(&view);
     util.setWindow(&view);
-    util.setTerm(&term);
 
     QObject::connect(view.engine(),SIGNAL(quit()),&app,SLOT(quit()));
 

@@ -38,7 +38,6 @@ Util::Util(const QString &settingsFile, QObject *parent)
     : QObject(parent)
     , m_settings(settingsFile, QSettings::IniFormat)
     , iWindow(0)
-    , iTerm(0)
 {
 }
 
@@ -86,14 +85,6 @@ int Util::windowOrientation()
 void Util::setWindowOrientation(int orientation)
 {
     iWindow->reportContentOrientationChange(static_cast<Qt::ScreenOrientation>(orientation));
-}
-
-void Util::setTerm(Terminal *term)
-{
-    if (iTerm) {
-        qFatal("Should set terminal only once");
-    }
-    iTerm = term;
 }
 
 void Util::openNewWindow()

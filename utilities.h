@@ -76,7 +76,6 @@ public:
     QString windowTitle();
     int windowOrientation();
     void setWindowOrientation(int orientation);
-    void setTerm(Terminal* term);
 
     Q_INVOKABLE void openNewWindow();
     Q_INVOKABLE QString getUserMenuXml();
@@ -141,7 +140,6 @@ private:
 
     QSettings m_settings;
     QQuickView* iWindow;
-    Terminal* iTerm;
 };
 
 #endif // UTIL_H
