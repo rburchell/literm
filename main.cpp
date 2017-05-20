@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
 
 
     Util util(settingsFile);
-    TextRender::setUtil(&util);
 
     QString startupErrorMsg;
 
