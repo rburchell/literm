@@ -27,9 +27,6 @@
 
 #include "ptyiface.h"
 
-class Util;
-class QQuickView;
-
 struct TermChar {
     enum TextAttributes {
         NoAttributes = 0x00,
@@ -191,10 +188,8 @@ private:
     void backwardTab();
     void insertInBuffer(const QString& chars);
 
-    // ### this should not be a pointer once we remove the util dep?
+    // ### consider making this not a pointer
     PtyIFace *m_pty;
-    QQuickView* iWindow;
-    Util* iUtil;
 
     TerminalBuffer iBuffer;
     TerminalBuffer iAltBuffer;
