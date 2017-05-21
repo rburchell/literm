@@ -32,6 +32,20 @@
 # define MyControlModifier Qt::ControlModifier
 #endif
 
+/*!
+    \class TerminalLine
+    \internal
+
+    A TerminalLine represents a single line of contents in the terminal's buffer.
+*/
+
+/*!
+    \class TerminalBuffer
+    \internal
+
+    A TerminalBuffer is a collection of TerminalLine instances.
+*/
+
 static bool charIsHexDigit(QChar ch)
 {
     if (ch.isDigit()) // 0-9
@@ -1349,8 +1363,9 @@ const QStringList Terminal::printableLinesFromCursor(int lines)
 
 void Terminal::trimBackBuffer()
 {
+    // ### this could be done better (removeN)
     while(backBuffer().size() > maxScrollBackLines) {
-        backBuffer().removeFirst();
+        backBuffer().removeAt(0);
     }
 }
 
@@ -1371,7 +1386,7 @@ void Terminal::scrollBack(int lines, int insertAt)
     while(lines>0) {
         if(!iUseAltScreenBuffer) {
             if(iBackBuffer.size()>0 && useBackbuffer)
-                buffer().insert(insertAt, iBackBuffer.takeLast());
+                buffer().insert(insertAt, iBackBuffer.takeAt(iBackBuffer.size() - 1));
             else
                 buffer().insert(insertAt, TerminalLine());
         } else {

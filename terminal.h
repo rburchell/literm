@@ -66,8 +66,38 @@ struct TermAttribs {
     TermChar::TextAttributes currentAttrib;
 };
 
-typedef QVector<TermChar> TerminalLine;
-typedef QVector<TerminalLine> TerminalBuffer;
+class TerminalLine
+{
+public:
+    int size() const { return m_contents.size(); }
+    void append(const TermChar &tc) { m_contents.append(tc); }
+    void insert(int pos, const TermChar &tc) { m_contents.insert(pos, tc); }
+    void removeAt(int pos) { m_contents.removeAt(pos); }
+    void clear() { m_contents.clear(); }
+    TermChar &operator[](int pos) { return m_contents[pos]; }
+    const TermChar &operator[](int pos) const { return m_contents[pos]; }
+    const TermChar &at(int pos) const { return m_contents.at(pos); }
+
+private:
+    QVector<TermChar> m_contents;
+};
+
+class TerminalBuffer
+{
+public:
+    int size() const { return m_buffer.size(); }
+    void append(const TerminalLine &l) { m_buffer.append(l); }
+    void insert(int pos, const TerminalLine &l) { m_buffer.insert(pos, l); }
+    void removeAt(int pos) { m_buffer.removeAt(pos); }
+    TerminalLine takeAt(int pos) { return m_buffer.takeAt(pos); }
+    void clear() { m_buffer.clear(); }
+    TerminalLine &operator[](int pos) { return m_buffer[pos]; }
+    const TerminalLine &operator[](int pos) const { return m_buffer[pos]; }
+    const TerminalLine &at(int pos) const { return m_buffer.at(pos); }
+
+private:
+    QVector<TerminalLine> m_buffer;
+};
 
 class Terminal : public QObject
 {
