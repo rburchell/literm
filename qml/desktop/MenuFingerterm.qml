@@ -25,6 +25,7 @@ Item {
     id: menuWin
 
     property bool showing
+    property Item activeTerminal
 
     visible: rect.x < menuWin.width
 
@@ -78,7 +79,7 @@ Item {
                 enabled: disableOn.length === 0 || util.windowTitle.search(disableOn) === -1
                 onClicked: {
                     menuWin.showing = false;
-                    textrender.putString(command);
+                    activeTerminal.putString(command);
                 }
             }
         }
@@ -125,21 +126,21 @@ Item {
                                 text: "Copy"
                                 onClicked: {
                                     menuWin.showing = false;
-                                    textrender.copy();
+                                    activeTerminal.copy();
                                 }
                                 width: window.buttonWidthHalf
                                 height: window.buttonHeightLarge
-                                enabled: textrender.selectedText.length
+                                enabled: activeTerminal ?  activeTerminal.selectedText.length : false
                             }
                             Button {
                                 text: "Paste"
                                 onClicked: {
                                     menuWin.showing = false;
-                                    textrender.paste();
+                                    activeTerminal.paste();
                                 }
                                 width: window.buttonWidthHalf
                                 height: window.buttonHeightLarge
-                                enabled: textrender.canPaste
+                                enabled: activeTerminal ?  activeTerminal.canPaste : false
                             }
                         }
                         Button {
@@ -148,7 +149,7 @@ Item {
                             height: window.buttonHeightLarge
                             onClicked: {
                                 menuWin.showing = false;
-                                urlWindow.urls = textrender.grabURLsFromBuffer();
+                                urlWindow.urls = activeTerminal.grabURLsFromBuffer();
                                 urlWindow.show = true
                             }
                         }
@@ -174,7 +175,7 @@ Item {
                                         text: "<font size=\"+3\">+</font>"
                                         onClicked: {
                                             util.fontSize = util.fontSize + window.pixelRatio
-                                            util.notifyText(textrender.terminalSize.width + "×" + textrender.terminalSize.height);
+                                            util.notifyText(activeTerminal.terminalSize.width + "×" + activeTerminal.terminalSize.height);
                                         }
                                         width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
@@ -183,7 +184,7 @@ Item {
                                         text: "<font size=\"+3\">-</font>"
                                         onClicked: {
                                             util.fontSize = util.fontSize - window.pixelRatio
-                                            util.notifyText(textrender.terminalSize.width + "×" + textrender.terminalSize.height);
+                                            util.notifyText(activeTerminal.terminalSize.width + "×" + activeTerminal.terminalSize.height);
                                         }
                                         width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
@@ -256,7 +257,7 @@ Item {
                                         highlighted: util.dragMode == Util.DragGestures
                                         onClicked: {
                                             util.dragMode = Util.DragGestures
-                                            textrender.deselect();
+                                            activeTerminal.deselect();
                                             menuWin.showing = false;
                                         }
                                         width: window.buttonWidthSmall
@@ -267,7 +268,7 @@ Item {
                                         highlighted: util.dragMode == Util.DragScroll
                                         onClicked: {
                                             util.dragMode = Util.DragScroll
-                                            textrender.deselect();
+                                            activeTerminal.deselect();
                                             menuWin.showing = false;
                                         }
                                         width: window.buttonWidthSmall

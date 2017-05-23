@@ -18,7 +18,7 @@
  * along with FingerTerm.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.0
+import QtQuick 2.6
 import FingerTerm 1.0
 import QtQuick.Window 2.3
 
@@ -65,143 +65,280 @@ Rectangle {
 
     property int scrollBarWidth: 6*window.pixelRatio
 
-    TextRender {
-        id: textrender
-        focus: true
+    TabView {
+        id: tabView
+        anchors.fill: parent
 
-        onPanLeft: {
-            util.notifyText(util.panLeftTitle)
-            textrender.putString(util.panLeftCommand)
-        }
-        onPanRight: {
-            util.notifyText(util.panRightTitle)
-            textrender.putString(util.panRightCommand)
-        }
-        onPanUp: {
-            util.notifyText(util.panUpTitle)
-            textrender.putString(util.panUpCommand)
-        }
-        onPanDown: {
-            util.notifyText(util.panDownTitle)
-            textrender.putString(util.panDownCommand)
+        Component.onCompleted: {
+            createTab();
         }
 
-        onDisplayBufferChanged: {
-            textrender.cutAfter = textrender.height;
-            textrender.y = 0;
-        }
-        charset: util.charset
-        terminalCommand: util.terminalCommand
-        terminalEnvironment: util.terminalEmulator
-        onTitleChanged: {
-            util.windowTitle = title
-        }
-        dragMode: util.dragMode
-        onVisualBell: {
-            if (util.visualBellEnabled)
-                bellTimer.start()
-        }
-        contentItem: Item {
-            anchors.fill: parent
-            Behavior on opacity {
-                NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+        Component {
+            id: terminalScreenComponent
+            TextRender {
+                id: textrender
+                focus: true
+
+                onPanLeft: {
+                    util.notifyText(util.panLeftTitle)
+                    textrender.putString(util.panLeftCommand)
+                }
+                onPanRight: {
+                    util.notifyText(util.panRightTitle)
+                    textrender.putString(util.panRightCommand)
+                }
+                onPanUp: {
+                    util.notifyText(util.panUpTitle)
+                    textrender.putString(util.panUpCommand)
+                }
+                onPanDown: {
+                    util.notifyText(util.panDownTitle)
+                    textrender.putString(util.panDownCommand)
+                }
+
+                onDisplayBufferChanged: {
+                    textrender.cutAfter = textrender.height;
+                    textrender.y = 0;
+                }
+                charset: util.charset
+                terminalCommand: util.terminalCommand
+                terminalEnvironment: util.terminalEmulator
+                onTitleChanged: {
+                    util.windowTitle = title
+                }
+                dragMode: util.dragMode
+                onVisualBell: {
+                    if (util.visualBellEnabled)
+                        bellTimer.start()
+                }
+                contentItem: Item {
+                    anchors.fill: parent
+                    Behavior on opacity {
+                        NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                    }
+                    Behavior on y {
+                        NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                    }
+                }
+
+                ScrollDecorator {
+                    color: "#DFDFDF"
+                    anchors.right: parent.right
+                    anchors.rightMargin: window.paddingMedium
+                    y: ((parent.contentY + (parent.visibleHeight/2)) / parent.contentHeight) * (parent.height - height)
+                    height: (parent.visibleHeight / parent.contentHeight) * parent.height
+                    visible: parent.contentHeight > parent.visibleHeight
+                }
+
+                cellDelegate: Rectangle {
+                }
+                cellContentsDelegate: Text {
+                    id: text
+                    property bool blinking: false
+
+                    textFormat: Text.PlainText
+                    opacity: blinking ? 0.5 : 1.0
+                    SequentialAnimation {
+                        running: blinking
+                        loops: Animation.Infinite
+                        NumberAnimation {
+                            target: text
+                            property: "opacity"
+                            to: 0.8
+                            duration: 200
+                        }
+                        PauseAnimation {
+                            duration: 400
+                        }
+                        NumberAnimation {
+                            target: text
+                            property: "opacity"
+                            to: 0.5
+                            duration: 200
+                        }
+                    }
+                }
+                cursorDelegate: Rectangle {
+                    id: cursor
+                    opacity: 0.5
+                    SequentialAnimation {
+                        running: true
+                        loops: Animation.Infinite
+                        NumberAnimation {
+                            target: cursor
+                            property: "opacity"
+                            to: 0.8
+                            duration: 200
+                        }
+                        PauseAnimation {
+                            duration: 400
+                        }
+                        NumberAnimation {
+                            target: cursor
+                            property: "opacity"
+                            to: 0.5
+                            duration: 200
+                        }
+                    }
+                }
+                selectionDelegate: Rectangle {
+                    color: "blue"
+                    opacity: 0.5
+                }
+
+                Rectangle {
+                    id: bellTimerRect
+                    visible: opacity > 0
+                    opacity: bellTimer.running ? 0.5 : 0.0
+                    anchors.fill: parent
+                    color: "#ffffff"
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 200
+                        }
+                    }
+                }
+
+                property int duration
+                property int cutAfter: height
+
+                anchors.fill: parent
+                font.family: util.fontFamily
+                font.pointSize: util.fontSize
+                allowGestures: !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
+
+                onCutAfterChanged: {
+                    // this property is used in the paint function, so make sure that the element gets
+                    // painted with the updated value (might not otherwise happen because of caching)
+                    textrender.redraw();
+                }
             }
-            Behavior on y {
-                NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+        }
+
+        function createTab() {
+            var tab = tabView.addTab("", terminalScreenComponent);
+            tab.item.hangupReceived.connect(function() {
+                closeTab(tab.item)
+            });
+            tabView.currentIndex = tabView.count - 1;
+        }
+
+        function closeTab(screenItem) {
+            if (tabView.count == 1) {
+                Qt.quit();
+                return;
             }
-        }
-
-        ScrollDecorator {
-            color: "#DFDFDF"
-            anchors.right: parent.right
-            anchors.rightMargin: window.paddingMedium
-            y: ((parent.contentY + (parent.visibleHeight/2)) / parent.contentHeight) * (parent.height - height)
-            height: (parent.visibleHeight / parent.contentHeight) * parent.height
-            visible: parent.contentHeight > parent.visibleHeight
-        }
-
-        cellDelegate: Rectangle {
-        }
-        cellContentsDelegate: Text {
-            id: text
-            property bool blinking: false
-
-            textFormat: Text.PlainText
-            opacity: blinking ? 0.5 : 1.0
-            SequentialAnimation {
-                running: blinking
-                loops: Animation.Infinite
-                NumberAnimation {
-                    target: text
-                    property: "opacity"
-                    to: 0.8
-                    duration: 200
-                }
-                PauseAnimation {
-                    duration: 400
-                }
-                NumberAnimation {
-                    target: text
-                    property: "opacity"
-                    to: 0.5
-                    duration: 200
-                }
-            }
-        }
-        cursorDelegate: Rectangle {
-            id: cursor
-            opacity: 0.5
-            SequentialAnimation {
-                running: true
-                loops: Animation.Infinite
-                NumberAnimation {
-                    target: cursor
-                    property: "opacity"
-                    to: 0.8
-                    duration: 200
-                }
-                PauseAnimation {
-                    duration: 400
-                }
-                NumberAnimation {
-                    target: cursor
-                    property: "opacity"
-                    to: 0.5
-                    duration: 200
-                }
-            }
-        }
-        selectionDelegate: Rectangle {
-            color: "blue"
-            opacity: 0.5
-        }
-
-        Rectangle {
-            id: bellTimerRect
-            visible: opacity > 0
-            opacity: bellTimer.running ? 0.5 : 0.0
-            anchors.fill: parent
-            color: "#ffffff"
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 200
+            for (var i = 0; i < tabView.count; i++) {
+                if (tabView.getTab(i).item === screenItem) {
+                    tabView.getTab(i).item.parent = null;
+                    tabView.removeTab(i);
+                    break;
                 }
             }
         }
 
-        property int duration
-        property int cutAfter: height
+        onCurrentIndexChanged: {
+            tabView.getTab(tabView.currentIndex).item.forceActiveFocus();
+        }
 
-        height: parent.height
-        width: parent.width
-        font.family: util.fontFamily
-        font.pointSize: util.fontSize
-        allowGestures: !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
-
-        onCutAfterChanged: {
-            // this property is used in the paint function, so make sure that the element gets
-            // painted with the updated value (might not otherwise happen because of caching)
-            textrender.redraw();
+        // hurgh, this is a bit ugly
+        Shortcut {
+            sequence: "Ctrl+1"
+            onActivated: {
+                if (tabView.count >= 2)
+                    tabView.currentIndex = 0 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+2"
+            onActivated: {
+                if (tabView.count >= 2)
+                    tabView.currentIndex = 1 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+3"
+            onActivated: {
+                if (tabView.count >= 3)
+                    tabView.currentIndex = 2 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+4"
+            onActivated: {
+                if (tabView.count >= 4)
+                    tabView.currentIndex = 3 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+5"
+            onActivated: {
+                if (tabView.count >= 5)
+                    tabView.currentIndex = 4 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+6"
+            onActivated: {
+                if (tabView.count >= 6)
+                    tabView.currentIndex = 5 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+7"
+            onActivated: {
+                if (tabView.count >= 7)
+                    tabView.currentIndex = 6 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+8"
+            onActivated: {
+                if (tabView.count >= 8)
+                    tabView.currentIndex = 7 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+9"
+            onActivated: {
+                if (tabView.count >= 9)
+                    tabView.currentIndex = 8 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+0"
+            onActivated: {
+                if (tabView.count >= 10)
+                    tabView.currentIndex = 9 // yes, this is right. 0 indexed.
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+T"
+            onActivated: {
+                tabView.createTab();
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+W"
+            onActivated: {
+                tabView.closeTab(tabView.getTab(tabView.currentIndex).item)
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+Shift+]"
+            onActivated: {
+                tabView.currentIndex = (tabView.currentIndex + 1) % tabView.count;
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+Shift+["
+            onActivated: {
+                if (tabView.currentIndex > 0) {
+                    tabView.currentIndex--;
+                } else {
+                    tabView.currentIndex = tabView.count -1;
+                }
+            }
         }
     }
 
@@ -242,6 +379,7 @@ Rectangle {
     MenuFingerterm {
         id: menu
         anchors.fill: parent
+        activeTerminal: tabView.getTab(tabView.currentIndex) ?  tabView.getTab(tabView.currentIndex).item : null
     }
 
     Text {
@@ -288,13 +426,6 @@ Rectangle {
                     "Config files for adjusting settings are at:<br>\n" +
                     util.configPath() + "/<br><br>\n" +
                     "Source code:<br>\n<a href=\"https://git.merproject.org/mer-core/fingerterm/\">https://git.merproject.org/mer-core/fingerterm/</a>"
-            if (textrender.terminalSize.width != 0 && textrender.terminalSize.height != 0) {
-                str += "<br><br>Current window title: <font color=\"gray\">" + util.windowTitle.substring(0,40) + "</font>"; //cut long window title
-                if(util.windowTitle.length>40)
-                    str += "...";
-                str += "<br>Current terminal size: <font color=\"gray\">" + textrender.terminalSize.width + "×" + textrender.terminalSize.height+ "</font>";
-                str += "<br>Charset: <font color=\"gray\">" + util.charset + "</font>";
-            }
             str += "</font>";
             return str;
         }

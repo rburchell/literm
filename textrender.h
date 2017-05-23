@@ -138,6 +138,7 @@ signals:
     void panRight();
     void panUp();
     void panDown();
+    void hangupReceived();
 
 public slots:
     void redraw();

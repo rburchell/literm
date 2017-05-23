@@ -1,4 +1,5 @@
 /*
+    Copyright (C) 2017 Robin Burchell <robin+git@viroteck.net>
     Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
 
     This file is part of FingerTerm.
@@ -19,6 +20,7 @@
 
 #include <QCoreApplication>
 #include <QDebug>
+#include <QTimer>
 
 extern "C" {
 #include <stdio.h>
@@ -43,29 +45,46 @@ extern "C" {
 #include "terminal.h"
 #include "ptyiface.h"
 
-static bool childProcessQuit = false;
-static int childProcessPid = 0;
+QVector<PtyIFace*> PtyIFace::m_ifaces;
+bool PtyIFace::m_initializedSignalHandler = false;
 
-void sighandler(int sig)
+void PtyIFace::sighandler(int sig)
 {
     if(sig==SIGCHLD) {
         int pid = wait(NULL);
 
-        if(pid > 0 && childProcessPid > 0 &&  pid==childProcessPid) {
-            childProcessQuit = true;
-            childProcessPid = 0;
-            qApp->quit();
+        if(pid > 0) {
+            foreach (PtyIFace *iface, m_ifaces) {
+                if (iface->m_childProcessPid > 0 && pid == iface->m_childProcessPid) {
+                    int status=0;
+                    waitpid(iface->m_childProcessPid, &status, WNOHANG);
+                    iface->m_childProcessQuit = true;
+                    iface->m_childProcessPid = 0;
+
+                    // not a good idea to emit inside a signal handler.
+                    QTimer::singleShot(0, iface, &PtyIFace::doHup);
+                    break;
+                }
+            }
         }
     }
+}
+
+void PtyIFace::doHup()
+{
+    emit hangupReceived();
 }
 
 PtyIFace::PtyIFace(Terminal *term, const QString &charset, const QByteArray &termEnv, const QString &commandOverride, QObject *parent)
     : QObject(parent)
     , iTerm(term)
     , iFailed(false)
+    , m_childProcessQuit(false)
+    , m_childProcessPid(0)
     , iReadNotifier(0)
     , iTextCodec(0)
 {
+    m_ifaces.push_back(this);
 
     // fork the child process before creating QGuiApplication
     int socketM;
@@ -116,12 +135,9 @@ PtyIFace::PtyIFace(Terminal *term, const QString &charset, const QByteArray &ter
     iPid = pid;
     iMasterFd = socketM;
 
+    m_childProcessPid = iPid;
 
-
-
-    childProcessPid = iPid;
-
-    if(!iTerm || childProcessQuit) {
+    if(!iTerm || m_childProcessQuit) {
         iFailed = true;
         qFatal("PtyIFace: null Terminal pointer");
     }
@@ -132,7 +148,11 @@ PtyIFace::PtyIFace(Terminal *term, const QString &charset, const QByteArray &ter
     iReadNotifier = new QSocketNotifier(iMasterFd, QSocketNotifier::Read, this);
     connect(iReadNotifier,SIGNAL(activated(int)),this,SLOT(readActivated()));
 
-    signal(SIGCHLD,&sighandler);
+    if (!m_initializedSignalHandler) {
+        signal(SIGCHLD, &PtyIFace::sighandler);
+        m_initializedSignalHandler = true;
+    }
+
     fcntl(iMasterFd, F_SETFL, O_NONBLOCK); // reads from the descriptor should be non-blocking
 
     if (!charset.isEmpty())
@@ -145,18 +165,18 @@ PtyIFace::PtyIFace(Terminal *term, const QString &charset, const QByteArray &ter
 
 PtyIFace::~PtyIFace()
 {
-    if(!childProcessQuit) {
+    if (!m_childProcessQuit) {
         // make the process quit
         kill(iPid, SIGHUP);
         kill(iPid, SIGTERM);
-        int status=0;
-        waitpid(-1,&status,0);
     }
+
+    m_ifaces.removeAt(m_ifaces.indexOf(this));
 }
 
 void PtyIFace::readActivated()
 {
-    if(childProcessQuit)
+    if(m_childProcessQuit)
         return;
 
     int ret = 0;
@@ -170,7 +190,7 @@ void PtyIFace::readActivated()
 
 void PtyIFace::resize(int rows, int columns)
 {
-    if(childProcessQuit)
+    if(m_childProcessQuit)
         return;
 
     winsize winp;
@@ -187,7 +207,7 @@ void PtyIFace::writeTerm(const QString &chars)
 
 void PtyIFace::writeTerm(const QByteArray &chars)
 {
-    if(childProcessQuit)
+    if(m_childProcessQuit)
         return;
 
     int ret = write(iMasterFd, chars, chars.size());

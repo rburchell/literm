@@ -1,4 +1,5 @@
 /*
+    Copyright (C) 2017 Robin Burchell <robin+git@viroteck.net>
     Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
 
     This file is part of FingerTerm.
@@ -46,6 +47,10 @@ private slots:
 
 signals:
     void dataAvailable();
+    void hangupReceived();
+
+private slots:
+    void doHup();
 
 private:
     Q_DISABLE_COPY(PtyIFace)
@@ -56,12 +61,18 @@ private:
     int iPid;
     int iMasterFd;
     bool iFailed;
+    bool m_childProcessQuit;
+    int m_childProcessPid;
 
     QSocketNotifier *iReadNotifier;
 
     QTextCodec *iTextCodec;
 
     QString m_pendingData;
+
+    static void sighandler(int sig);
+    static QVector<PtyIFace*> m_ifaces;
+    static bool m_initializedSignalHandler;
 };
 
 #endif // PTYIFACE_H

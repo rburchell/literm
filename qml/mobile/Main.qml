@@ -89,6 +89,9 @@ Item {
                 id: textrender
                 focus: true
 
+                onHangupReceived: {
+                    Qt.quit()
+                }
                 onPanLeft: {
                     util.notifyText(util.panLeftTitle)
                     textrender.putString(util.panLeftCommand)

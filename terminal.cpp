@@ -139,6 +139,7 @@ void Terminal::init()
     if (m_pty->failed())
         qFatal("pty failure");
     connect(m_pty, SIGNAL(dataAvailable()), this, SLOT(onDataAvailable()));
+    connect(m_pty, SIGNAL(hangupReceived()), this, SIGNAL(hangupReceived()));
 }
 
 void Terminal::onDataAvailable()

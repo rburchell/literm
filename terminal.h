@@ -157,6 +157,7 @@ signals:
     void selectionFinished();
     void visualBell();
     void windowTitleChanged(const QString &windowTitle);
+    void hangupReceived();
 
 protected:
     void timerEvent(QTimerEvent *) override;
