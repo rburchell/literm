@@ -47,16 +47,27 @@ SOURCES += \
     keyloader.cpp
 
 OTHER_FILES += \
-    qml/Main.qml \
-    qml/Keyboard.qml \
-    qml/Key.qml \
-    qml/Lineview.qml \
-    qml/Button.qml \
-    qml/MenuFingerterm.qml \
-    qml/NotifyWin.qml \
-    qml/UrlWindow.qml \
-    qml/LayoutWindow.qml \
-    qml/PopupWindow.qml
+    qml/mobile/Main.qml \
+    qml/mobile/Keyboard.qml \
+    qml/mobile/Key.qml \
+    qml/mobile/Lineview.qml \
+    qml/mobile/Button.qml \
+    qml/mobile/MenuFingerterm.qml \
+    qml/mobile/NotifyWin.qml \
+    qml/mobile/UrlWindow.qml \
+    qml/mobile/LayoutWindow.qml \
+    qml/mobile/PopupWindow.qml
+
+OTHER_FILES += \
+    qml/desktop/Main.qml \
+    qml/desktop/Keyboard.qml \
+    qml/desktop/Key.qml \
+    qml/desktop/Button.qml \
+    qml/desktop/MenuFingerterm.qml \
+    qml/desktop/NotifyWin.qml \
+    qml/desktop/UrlWindow.qml \
+    qml/desktop/LayoutWindow.qml \
+    qml/desktop/PopupWindow.qml
 
 RESOURCES += \
     resources.qrc

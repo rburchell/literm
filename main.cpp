@@ -111,28 +111,23 @@ int main(int argc, char *argv[])
 
     QObject::connect(view.engine(),SIGNAL(quit()),&app,SLOT(quit()));
 
-    QQmlFileSelector *selector = new QQmlFileSelector(view.engine());
-
-    QStringList selectors;
-
     // Allow overriding the UX choice
-    bool mobile = app.arguments().contains("-mobile");
-    bool desktop = app.arguments().contains("-desktop");
-    if (mobile)
-        selectors << "mobile";
-    if (desktop)
-        selectors << "desktop";
+    QString uxChoice;
+    if (app.arguments().contains("-mobile"))
+        uxChoice = "mobile";
+    else if (app.arguments().contains("-desktop"))
+        uxChoice = "desktop";
 
+    if (uxChoice.isEmpty()) {
 #if defined(MOBILE_BUILD)
-    selectors << "mobile";
+        uxChoice = "mobile";
 #else
-    selectors << "desktop";
+        uxChoice =  "desktop";
 #endif
-
-    selector->setExtraSelectors(selectors);
+    }
 
     view.setResizeMode(QQuickView::SizeRootObjectToView);
-    view.setSource(QUrl("qrc:/qml/Main.qml"));
+    view.setSource(QUrl("qrc:/qml/" + uxChoice + "/Main.qml"));
 
     QObject *root = view.rootObject();
     if(!root)

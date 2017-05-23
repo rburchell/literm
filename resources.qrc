@@ -1,15 +1,28 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/+desktop/Main.qml</file>
-        <file>qml/+mobile/Main.qml</file>
-        <file>qml/Key.qml</file>
-        <file>qml/Keyboard.qml</file>
-        <file>qml/Lineview.qml</file>
-        <file>qml/Button.qml</file>
-        <file>qml/ScrollDecorator.qml</file>
-        <file>qml/MenuFingerterm.qml</file>
-        <file>qml/NotifyWin.qml</file>
-        <file>qml/PopupWindow.qml</file>
+        <file>qml/desktop/Main.qml</file>
+        <file>qml/desktop/Key.qml</file>
+        <file>qml/desktop/Keyboard.qml</file>
+        <file>qml/desktop/Button.qml</file>
+        <file>qml/desktop/ScrollDecorator.qml</file>
+        <file>qml/desktop/MenuFingerterm.qml</file>
+        <file>qml/desktop/NotifyWin.qml</file>
+        <file>qml/desktop/PopupWindow.qml</file>
+        <file>qml/desktop/UrlWindow.qml</file>
+        <file>qml/desktop/LayoutWindow.qml</file>
+
+        <file>qml/mobile/Main.qml</file>
+        <file>qml/mobile/Key.qml</file>
+        <file>qml/mobile/Keyboard.qml</file>
+        <file>qml/mobile/Lineview.qml</file>
+        <file>qml/mobile/Button.qml</file>
+        <file>qml/mobile/ScrollDecorator.qml</file>
+        <file>qml/mobile/MenuFingerterm.qml</file>
+        <file>qml/mobile/NotifyWin.qml</file>
+        <file>qml/mobile/PopupWindow.qml</file>
+        <file>qml/mobile/UrlWindow.qml</file>
+        <file>qml/mobile/LayoutWindow.qml</file>
+
         <file>icons/backspace.png</file>
         <file>icons/down.png</file>
         <file>icons/enter.png</file>
@@ -19,7 +32,6 @@
         <file>icons/shift.png</file>
         <file>icons/tab.png</file>
         <file>icons/up.png</file>
-        <file>qml/UrlWindow.qml</file>
         <file>data/menu.xml</file>
         <file>icons/scroll-indicator.png</file>
         <file>data/english.layout</file>
@@ -27,6 +39,5 @@
         <file>data/french.layout</file>
         <file>data/german.layout</file>
         <file>data/qwertz.layout</file>
-        <file>qml/LayoutWindow.qml</file>
     </qresource>
 </RCC>
