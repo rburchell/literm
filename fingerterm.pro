@@ -67,7 +67,9 @@ OTHER_FILES += \
     qml/desktop/NotifyWin.qml \
     qml/desktop/UrlWindow.qml \
     qml/desktop/LayoutWindow.qml \
-    qml/desktop/PopupWindow.qml
+    qml/desktop/PopupWindow.qml \
+    qml/desktop/TabView.qml \
+    qml/desktop/TabBar.qml
 
 RESOURCES += \
     resources.qrc

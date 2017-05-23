@@ -10,6 +10,8 @@
         <file>qml/desktop/PopupWindow.qml</file>
         <file>qml/desktop/UrlWindow.qml</file>
         <file>qml/desktop/LayoutWindow.qml</file>
+        <file>qml/desktop/TabView.qml</file>
+        <file>qml/desktop/TabBar.qml</file>
 
         <file>qml/mobile/Main.qml</file>
         <file>qml/mobile/Key.qml</file>
