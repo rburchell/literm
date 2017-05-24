@@ -1,0 +1,24 @@
+sudo: require
+dist: trusty
+
+language: cpp
+
+compiler:
+- gcc
+- clang
+
+cache:
+  directories:
+  - /var/cache/apt/archives/*.deb
+
+before_install:
+- ./.travis/before_install.sh
+
+install:
+- ./.travis/install.sh
+
+script:
+- source /opt/qt58/bin/qt58-env.sh
+- qmake
+- make -j$(nproc)
+- xvfb-run -a -s "-screen 0 800x600x24" make check
