@@ -121,28 +121,6 @@ Item {
                     Column {
                         spacing: 12*window.pixelRatio
 
-                        Row {
-                            Button {
-                                text: "Copy"
-                                onClicked: {
-                                    menuWin.showing = false;
-                                    activeTerminal.copy();
-                                }
-                                width: window.buttonWidthHalf
-                                height: window.buttonHeightLarge
-                                enabled: activeTerminal ?  activeTerminal.selectedText.length : false
-                            }
-                            Button {
-                                text: "Paste"
-                                onClicked: {
-                                    menuWin.showing = false;
-                                    activeTerminal.paste();
-                                }
-                                width: window.buttonWidthHalf
-                                height: window.buttonHeightLarge
-                                enabled: activeTerminal ?  activeTerminal.canPaste : false
-                            }
-                        }
                         Button {
                             text: "URL grabber"
                             width: window.buttonWidthLarge
@@ -206,48 +184,6 @@ Item {
                                     height: window.headerHeight
                                     color: "#ffffff"
                                     font.pointSize: window.uiFontSize-1
-                                    text: "UI Orientation"
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-                                Row {
-                                    Button {
-                                        text: "<font size=\"-1\">Auto</font>"
-                                        highlighted: util.orientationMode == Util.OrientationAuto
-                                        onClicked: util.orientationMode = Util.OrientationAuto
-                                        width: window.buttonWidthSmall
-                                        height: window.buttonHeightSmall
-                                    }
-                                    Button {
-                                        text: "<font size=\"-1\">L<font>"
-                                        highlighted: util.orientationMode == Util.OrientationLandscape
-                                        onClicked: util.orientationMode = Util.OrientationLandscape
-                                        width: window.buttonWidthSmall
-                                        height: window.buttonHeightSmall
-                                    }
-                                    Button {
-                                        text: "<font size=\"-1\">P</font>"
-                                        highlighted: util.orientationMode == Util.OrientationPortrait
-                                        onClicked: util.orientationMode = Util.OrientationPortrait
-                                        width: window.buttonWidthSmall
-                                        height: window.buttonHeightSmall
-                                    }
-                                }
-                            }
-                        }
-                        Rectangle {
-                            width: window.buttonWidthLarge
-                            height: window.buttonHeightLarge
-                            radius: window.radiusSmall
-                            color: "#606060"
-                            border.color: "#000000"
-                            border.width: 1
-
-                            Column {
-                                Text {
-                                    width: window.buttonWidthLarge
-                                    height: window.headerHeight
-                                    color: "#ffffff"
-                                    font.pointSize: window.uiFontSize-1
                                     text: "Drag mode"
                                     horizontalAlignment: Text.AlignHCenter
                                 }
@@ -287,75 +223,6 @@ Item {
                                 }
                             }
                         }
-                        Rectangle {
-                            width: window.buttonWidthLarge
-                            height: window.buttonHeightLarge
-                            radius: window.radiusSmall
-                            color: "#606060"
-                            border.color: "#000000"
-                            border.width: 1
-
-                            Column {
-                                Text {
-                                    width: window.buttonWidthLarge
-                                    height: window.headerHeight
-                                    color: "#ffffff"
-                                    font.pointSize: window.uiFontSize-1
-                                    text: "VKB behavior"
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-                                Row {
-                                    Button {
-                                        text: "Off"
-                                        highlighted: util.keyboardMode == Util.KeyboardOff
-                                        onClicked: {
-                                            util.keyboardMode = Util.KeyboardOff
-                                            window.setTextRenderAttributes();
-                                            menuWin.showing = false;
-                                        }
-                                        width: window.buttonWidthSmall
-                                        height: window.buttonHeightSmall
-                                    }
-                                    Button {
-                                        text: "Fade"
-                                        highlighted: util.keyboardMode == Util.KeyboardFade
-                                        onClicked: {
-                                            util.keyboardMode = Util.KeyboardFade
-                                            window.setTextRenderAttributes();
-                                            menuWin.showing = false;
-                                        }
-                                        width: window.buttonWidthSmall
-                                        height: window.buttonHeightSmall
-                                    }
-                                    Button {
-                                        text: "Move"
-                                        highlighted: util.keyboardMode == Util.KeyboardMove
-                                        onClicked: {
-                                            util.keyboardMode = Util.KeyboardMove
-                                            window.setTextRenderAttributes();
-                                            menuWin.showing = false;
-                                        }
-                                        width: window.buttonWidthSmall
-                                        height: window.buttonHeightSmall
-                                    }
-                                }
-                            }
-                        }
-                        Button {
-                            text: "New window"
-                            onClicked: {
-                                menuWin.showing = false;
-                                util.openNewWindow();
-                            }
-                        }
-                        Button {
-                            text: "VKB layout..."
-                            onClicked: {
-                                menuWin.showing = false;
-                                layoutWindow.layouts = keyLoader.availableLayouts();
-                                layoutWindow.show = true
-                            }
-                        }
                         Button {
                             text: "About"
                             onClicked: {
@@ -368,67 +235,6 @@ Item {
                             onClicked: {
                                 menuWin.showing = false;
                                 Qt.quit();
-                            }
-                        }
-                    }
-                }
-                // VKB delay slider
-                Rectangle {
-                    id: vkbDelaySliderArea
-
-                    width: menuBlocksRow.width
-                    height: window.buttonHeightLarge
-                    radius: window.radiusSmall
-                    color: "#606060"
-                    border.color: "#000000"
-                    border.width: 1
-
-                    Text {
-                        width: parent.width
-                        height: window.headerHeight
-                        color: "#ffffff"
-                        font.pointSize: window.uiFontSize-1
-                        text: "VKB delay: " + vkbDelaySlider.keyboardFadeOutDelay + " ms"
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-                    Rectangle {
-                        x: window.paddingSmall
-                        y: vkbDelaySlider.y + vkbDelaySlider.height/2 - height/2
-                        width: menuBlocksRow.width - window.paddingMedium
-                        height: window.paddingMedium
-                        radius: window.radiusSmall
-                        color: "#909090"
-                    }
-                    Rectangle {
-                        id: vkbDelaySlider
-
-                        property int keyboardFadeOutDelay: util.keyboardFadeOutDelay
-
-                        y: window.headerHeight
-                        width: window.buttonWidthSmall
-                        radius: window.radiusLarge
-                        height: parent.height-window.headerHeight
-                        color: "#202020"
-                        onXChanged: {
-                            if (vkbDelaySliderMA.drag.active)
-                                vkbDelaySlider.keyboardFadeOutDelay =
-                                        Math.floor((1000+vkbDelaySlider.x/vkbDelaySliderMA.drag.maximumX*9000)/250)*250;
-                        }
-                        Component.onCompleted: {
-                            x = (keyboardFadeOutDelay-1000)/9000 * (vkbDelaySliderArea.width - vkbDelaySlider.width)
-                        }
-
-                        MouseArea {
-                            id: vkbDelaySliderMA
-                            anchors.fill: parent
-                            drag.target: vkbDelaySlider
-                            drag.axis: Drag.XAxis
-                            drag.minimumX: 0
-                            drag.maximumX: vkbDelaySliderArea.width - vkbDelaySlider.width
-                            drag.onActiveChanged: {
-                                if (!drag.active) {
-                                    util.keyboardFadeOutDelay = vkbDelaySlider.keyboardFadeOutDelay
-                                }
                             }
                         }
                     }
