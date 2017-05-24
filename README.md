@@ -7,6 +7,8 @@ providing a reasonable amount of features.
 If you'd like to talk to people using literm, feel free to pop onto #literm on
 freenode.
 
+![Travis CI status](https://travis-ci.org/rburchell/literm.svg?branch=master)
+
 # status
 
 This probably won't eat your homework, but I'd treat it with a dose of caution
