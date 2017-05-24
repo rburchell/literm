@@ -19,6 +19,7 @@ install:
 
 script:
 - source /opt/qt58/bin/qt58-env.sh
-- qmake
+- if [ "$CC" = "gcc" ]; then qmake -spec linux-g++; fi
+- if [ "$CC" = "clang" ]; then qmake -spec linux-clang; fi
 - make -j$(nproc)
 - xvfb-run -a -s "-screen 0 800x600x24" make check
