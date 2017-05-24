@@ -296,9 +296,6 @@ void TextRender::ensureRowPopulated(QVector<QQuickItem*> &row, QVector<QQuickIte
 
 void TextRender::updatePolish()
 {
-    if (!m_contentItem)
-        return;
-
     // ### these should be handled more carefully
     emit contentYChanged();
     emit visibleHeightChanged();
@@ -307,6 +304,9 @@ void TextRender::updatePolish()
     // Make sure the terminal's size is right
     QSize size((width() - 4) / iFontWidth, (height() - 4) / iFontHeight);
     m_terminal.setTermSize(size);
+
+    if (!m_contentItem || m_terminal.rows() == 0 || m_terminal.columns() == 0)
+        return;
 
     m_contentItem->setWidth(width());
     m_contentItem->setHeight(height());

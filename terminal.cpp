@@ -421,10 +421,8 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
 
 void Terminal::insertInBuffer(const QString& chars)
 {
-    if(iTermSize.isNull()) {
-        qDebug() << "null size terminal";
+    if (iTermSize.isNull())
         return;
-    }
 
     iEmitCursorChangeSignal = false;
 
