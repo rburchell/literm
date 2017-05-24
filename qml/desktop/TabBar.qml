@@ -27,7 +27,7 @@ Rectangle {
     id: tabBar
     color: "black"
     width: parent.width
-    height: model.count > 1 ? _tabHeight : 0
+    height: tabCount > 1 ? _tabHeight : 0
     visible: height > 0
 
     // "Public" API
@@ -36,7 +36,8 @@ Rectangle {
 
     // Our data store. This is owned by TabView (and should only be modified
     // there).
-    property alias model: tabListView.model
+    property var tabArray
+    property int tabCount
 
     // Ask the view to remove this index
     signal removeIndex(int index)
@@ -57,7 +58,7 @@ Rectangle {
 
     // Current size all tabs should be (evaluated here, so it's only calculated
     // once).
-    property real _currentTabWidth: Math.max(tabBar._minTabWidth, Math.min(tabBar._maxTabWidth, tabBar.width / tabBar.model.count))
+    property real _currentTabWidth: Math.max(tabBar._minTabWidth, Math.min(tabBar._maxTabWidth, tabBar.width / tabBar.tabCount))
     Behavior on _currentTabWidth {
         NumberAnimation {
             duration: tabBar._animationDuration
@@ -69,6 +70,7 @@ Rectangle {
         orientation: Qt.Horizontal
         interactive: false
         anchors.fill: parent
+        model: tabBar.tabCount
         delegate: Rectangle {
             id: delegateItem
             color: tabBar.currentIndex == index ? "#eeeeee" : "#999999"
@@ -133,7 +135,7 @@ Rectangle {
 
             Text {
                 id: tabTitle
-                text: model.title
+                text: tabBar.tabArray[index]
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: closeIcon.right
                 anchors.right: parent.right
@@ -156,7 +158,7 @@ Rectangle {
         height: parent.height
         width: 20
         color: "red"
-        visible: tabBar.model.count > tabBar._maxVisibleTabs
+        visible: tabBar.tabCount > tabBar._maxVisibleTabs
 
         MouseArea {
             anchors.fill: parent
@@ -176,7 +178,7 @@ Rectangle {
 
             Column {
                 Repeater {
-                    model: tabBar.model
+                    model: tabBar.tabCount
                     delegate: Rectangle {
                         width: 250
                         height: 25
@@ -198,7 +200,7 @@ Rectangle {
                             width: parent.width - 20
                             x: 10
                             elide: Text.ElideRight
-                            text: model.title
+                            text: tabBar.tabArray[index]
                         }
                         Rectangle {
                             color: "black"

@@ -26,13 +26,13 @@ import QtQuick 2.6
 Column {
     id: root
     property alias currentIndex: tabBar.currentIndex
-    property alias count: _tabModel.count
+    property int count: tabContainer.children.length
+    property Item activeTabItem
     TabBar {
         id: tabBar
         z: 1
-        model: ListModel {
-            id: _tabModel
-        }
+        tabArray: tabContainer.tabTitles
+        tabCount: 0
 
         onRemoveIndex: {
             root.removeTab(index)
@@ -42,6 +42,7 @@ Column {
         id: tabContainer
         height: parent.height - tabBar.height
         width: parent.width
+        property var tabTitles: []
     }
 
     onCurrentIndexChanged: {
@@ -49,11 +50,19 @@ Column {
     }
 
     function fixupVisibility() {
+        var set = false
         for (var i = 0; i < tabContainer.children.length; ++i) {
             var child = tabContainer.children[i]
             child.visible = i == currentIndex
-            if (child.visible)
+            if (child.visible) {
                 child.forceActiveFocus();
+                activeTabItem = child
+                set = true
+            }
+        }
+
+        if (!set) {
+            activeTabItem = null
         }
     }
 
@@ -61,10 +70,14 @@ Column {
         // NOTE NOTE NOTE! We are called bound, meaning 'this' refers to the tab
         // item delegate, not the TabView!
         for (var i = 0; i < tabContainer.children.length; ++i) {
-            var obj = getTab(i)
-            if (obj.item == this) {
-                obj.title = this.title
-                _tabModel.set(i, obj)
+            var obj = tabContainer.children[i]
+            if (obj == this) {
+                tabContainer.tabTitles[i] = this.title
+
+                // Force binding updates for TabView. Bit yuck, but that's what
+                // we get for using a JS array sadly.
+                tabBar.tabCount = 0
+                tabBar.tabCount = tabContainer.tabTitles.length
                 return
             }
         }
@@ -76,17 +89,19 @@ Column {
             return
         }
         var tabInstance = comp.createObject(tabContainer)
-        var title = tabInstance.title ? tabInstance.title : "Shell " + _tabModel.count
+        var title = tabInstance.title ? tabInstance.title : "Shell " + tabContainer.children.length
         tabInstance.titleChanged.connect(_updateTabTitle.bind(tabInstance))
-        _tabModel.append({ title: title, item: tabInstance })
-        return _tabModel.get(_tabModel.count - 1)
+        tabContainer.tabTitles.push(title);
+        tabBar.tabCount = tabContainer.tabTitles.length
+        return tabInstance
     }
 
     function removeTab(tabIndex) {
-        var obj = _tabModel.get(tabIndex)
-        if (obj.item && obj.item.parent)
-            obj.item.destroy()
-        _tabModel.remove(tabIndex)
+        var tab = tabContainer.children[tabIndex]
+        tab.parent = null
+        tab.destroy()
+        tabContainer.tabTitles.splice(tabIndex, 1)
+        tabBar.tabCount = tabContainer.tabTitles.length
         var ci = currentIndex
         if (tabIndex >= ci)
             ci--
@@ -101,6 +116,6 @@ Column {
     }
 
     function getTab(tabIndex) {
-        return _tabModel.get(tabIndex)
+        return tabContainer.children[tabIndex]
     }
 }

@@ -217,8 +217,8 @@ Rectangle {
 
         function createTab() {
             var tab = tabView.addTab("", terminalScreenComponent);
-            tab.item.hangupReceived.connect(function() {
-                closeTab(tab.item)
+            tab.hangupReceived.connect(function() {
+                closeTab(tab)
             });
             tabView.currentIndex = tabView.count - 1;
         }
@@ -229,8 +229,7 @@ Rectangle {
                 return;
             }
             for (var i = 0; i < tabView.count; i++) {
-                if (tabView.getTab(i).item === screenItem) {
-                    tabView.getTab(i).item.parent = null;
+                if (tabView.getTab(i) === screenItem) {
                     tabView.removeTab(i);
                     break;
                 }
@@ -317,7 +316,7 @@ Rectangle {
         Shortcut {
             sequence: "Ctrl+W"
             onActivated: {
-                tabView.closeTab(tabView.getTab(tabView.currentIndex).item)
+                tabView.closeTab(tabView.activeTabItem)
             }
         }
         Shortcut {
@@ -375,7 +374,7 @@ Rectangle {
     MenuFingerterm {
         id: menu
         anchors.fill: parent
-        activeTerminal: tabView.getTab(tabView.currentIndex) ?  tabView.getTab(tabView.currentIndex).item : null
+        activeTerminal: tabView.activeTabItem
     }
 
     Text {
