@@ -50,7 +50,10 @@ Column {
 
     function fixupVisibility() {
         for (var i = 0; i < tabContainer.children.length; ++i) {
-            tabContainer.children[i].visible = i == currentIndex
+            var child = tabContainer.children[i]
+            child.visible = i == currentIndex
+            if (child.visible)
+                child.forceActiveFocus();
         }
     }
 

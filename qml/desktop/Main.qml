@@ -237,10 +237,6 @@ Rectangle {
             }
         }
 
-        onCurrentIndexChanged: {
-            tabView.getTab(tabView.currentIndex).item.forceActiveFocus();
-        }
-
         // hurgh, this is a bit ugly
         Shortcut {
             sequence: "Ctrl+1"
