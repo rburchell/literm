@@ -236,6 +236,28 @@ Rectangle {
             }
         }
 
+        Shortcut {
+            sequence: "Ctrl+C"
+            onActivated: {
+                tabView.activeTabItem.copy();
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+V"
+            onActivated: {
+                if (tabView.activeTabItem.canPaste)
+                    tabView.activeTabItem.paste();
+            }
+        }
+        Shortcut {
+            sequence: "Ctrl+1"
+            onActivated: {
+                if (tabView.count >= 2)
+                    tabView.currentIndex = 0 // yes, this is right. 0 indexed.
+            }
+        }
+
+
         // hurgh, this is a bit ugly
         Shortcut {
             sequence: "Ctrl+1"

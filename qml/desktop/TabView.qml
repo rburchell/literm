@@ -93,6 +93,10 @@ Column {
         tabInstance.titleChanged.connect(_updateTabTitle.bind(tabInstance))
         tabContainer.tabTitles.push(title);
         tabBar.tabCount = tabContainer.tabTitles.length
+
+        // Force focus if need be.
+        fixupVisibility();
+
         return tabInstance
     }
 
