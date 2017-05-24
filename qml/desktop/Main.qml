@@ -20,7 +20,7 @@
 
 import QtQuick 2.6
 import FingerTerm 1.0
-import QtQuick.Window 2.3
+import QtQuick.Window 2.2
 
 Rectangle {
     id: window
