@@ -1566,11 +1566,12 @@ void Terminal::scrollBackBufferFwd(int lines)
         fmt = QString("%2%1B").arg(cursorModif);
         m_pty->writeTerm(fmt.arg('\e'));
     } else {
-        clearSelection();
-
         iBackBufferScrollPos -= lines;
-        if(iBackBufferScrollPos < 0)
+        if(iBackBufferScrollPos < 0) {
             iBackBufferScrollPos = 0;
+        } else {
+            adjustSelectionPosition(-lines);
+        }
 
         emit scrollBackBufferAdjusted(false);
     }
@@ -1590,11 +1591,12 @@ void Terminal::scrollBackBufferBack(int lines)
         fmt = QString("%2%1A").arg(cursorModif);
         m_pty->writeTerm(fmt.arg('\e'));
     } else {
-        clearSelection();
-
         iBackBufferScrollPos += lines;
-        if (iBackBufferScrollPos > iBackBuffer.size())
+        if (iBackBufferScrollPos > iBackBuffer.size()) {
             iBackBufferScrollPos = iBackBuffer.size();
+        } else {
+            adjustSelectionPosition(lines);
+        }
 
         emit scrollBackBufferAdjusted(false);
     }
