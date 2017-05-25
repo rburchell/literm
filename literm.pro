@@ -24,7 +24,7 @@ isEmpty(DEFAULT_FONT) {
 DEFINES += DEFAULT_FONTFAMILY=\\\"$$DEFAULT_FONT\\\"
 
 TEMPLATE = app
-TARGET = fingerterm
+TARGET = literm
 DEPENDPATH += .
 INCLUDEPATH += .
 LIBS += -lutil

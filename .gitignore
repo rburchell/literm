@@ -2,5 +2,5 @@ Makefile
 *.pro.user*
 *.o
 moc_*
-./fingerterm
+./literm
 qrc_resources.cpp

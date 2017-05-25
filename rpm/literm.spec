@@ -1,11 +1,11 @@
-Name: fingerterm
+Name: literm
 Version: 1.3.2
 Release: 1
 Summary: A terminal emulator with a custom virtual keyboard
 Group: System/Base
 License: GPLv2
 Source0: %{name}-%{version}.tar.gz
-URL: https://git.merproject.org/mer-core/fingerterm
+URL: https://github.com/rburchell/literm
 BuildRequires: pkgconfig(Qt5Core)
 BuildRequires: pkgconfig(Qt5Gui)
 BuildRequires: pkgconfig(Qt5Qml)
@@ -31,7 +31,7 @@ Provides: meego-terminal > 0.2.2
 
 
 %build
-sed -i 's,/opt/fingerterm/,/usr/,' fingerterm.pro
+sed -i 's,/opt/literm/,/usr/,' literm.pro
 qmake -qt=5 MEEGO_EDITION=nemo CONFIG+=enable-feedback CONFIG+=enable-nemonotifications
 # Inject version number from RPM into source
 sed -i -e 's/PROGRAM_VERSION="[^"]*"/PROGRAM_VERSION="%{version}"/g' version.h

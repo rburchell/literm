@@ -1,20 +1,18 @@
 /*
     Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
 
-    This file is part of FingerTerm.
-
-    FingerTerm is free software: you can redistribute it and/or modify
+    This work is free software. you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 2 of the License, or
     (at your option) any later version.
 
-    FingerTerm is distributed in the hope that it will be useful,
+    This work is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with FingerTerm.  If not, see <http://www.gnu.org/licenses/>.
+    along with this work.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import QtQuick 2.0
@@ -332,12 +330,11 @@ Item {
                 id: aboutDialog
 
                 text: {
-                    var str = "<font size=\"+3\">FingerTerm " + util.versionString() + "</font><br>\n" +
+                    var str = "<font size=\"+3\">literm " + util.versionString() + "</font><br>\n" +
                             "<font size=\"+1\">" +
-                            "by Heikki Holstila &lt;<a href=\"mailto:heikki.holstila@gmail.com?subject=FingerTerm\">heikki.holstila@gmail.com</a>&gt;<br><br>\n\n" +
+                            "Source code:<br>\n<a href=\"https://github.com/rburchell/literm/\">https://github.com/rburchell/literm/</a>\n\n"
                             "Config files for adjusting settings are at:<br>\n" +
-                            util.configPath() + "/<br><br>\n" +
-                            "Source code:<br>\n<a href=\"https://git.merproject.org/mer-core/fingerterm/\">https://git.merproject.org/mer-core/fingerterm/</a>"
+                            util.configPath() + "/<br><br>\n"
                     if (textrender.terminalSize.width != 0 && textrender.terminalSize.height != 0) {
                         str += "<br><br>Current window title: <font color=\"gray\">" + util.windowTitle.substring(0,40) + "</font>"; //cut long window title
                         if(util.windowTitle.length>40)

@@ -32,7 +32,7 @@ to allow reuse in other applications or contexts.
 .. should get you most of the way there, assuming you have qmake & Qt easily
 available. After that, run:
 
-    ./fingerterm
+    ./literm
 
 # history
 
