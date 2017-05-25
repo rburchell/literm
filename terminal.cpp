@@ -126,6 +126,7 @@ Terminal::Terminal(QObject *parent)
     iMarginTop = 0;
 
     resetBackBufferScrollPos();
+    clearSelection();
 
     iTermAttribs_saved = iTermAttribs;
     iTermAttribs_saved_alt = iTermAttribs;
@@ -613,6 +614,7 @@ void Terminal::clearAll(bool wholeBuffer)
     if(wholeBuffer) {
         backBuffer().clear();
         resetBackBufferScrollPos();
+        clearSelection();
     }
     buffer().clear();
     setCursorPos(QPoint(1,1));
@@ -1061,7 +1063,7 @@ void Terminal::handleMode(int mode, bool set, const QString &extra)
                 iMarginTop = 1;
                 iMarginBottom = iTermSize.height();
                 resetBackBufferScrollPos();
-
+                clearSelection();
                 clearAll();
             } else {
                 iUseAltScreenBuffer = false;
@@ -1069,6 +1071,7 @@ void Terminal::handleMode(int mode, bool set, const QString &extra)
                 iMarginBottom = iTermSize.height();
                 iMarginTop = 1;
                 resetBackBufferScrollPos();
+                clearSelection();
             }
             resetTabs();
             emit displayBufferChanged();
@@ -1458,6 +1461,7 @@ void Terminal::resetTerminal()
     m_bracketedPasteMode = false;
 
     resetBackBufferScrollPos();
+    clearSelection();
 
     resetTabs();
     clearSelection();
@@ -1480,6 +1484,7 @@ void Terminal::paste(const QString &text)
 {
     if(!text.isEmpty()) {
         resetBackBufferScrollPos();
+        clearSelection();
 
         if (m_bracketedPasteMode) {
             m_pty->writeTerm(QString::fromLatin1("\e[200~"));
@@ -1607,10 +1612,12 @@ void Terminal::resetBackBufferScrollPos()
     if(iBackBufferScrollPos==0 && iSelection.isNull())
         return;
 
-    iBackBufferScrollPos = 0;
-    clearSelection();
-
-    emit scrollBackBufferAdjusted(true);
+    if (!iUseAltScreenBuffer) {
+        scrollBackBufferFwd(iBackBufferScrollPos);
+    } else {
+        iBackBufferScrollPos = 0;
+        emit scrollBackBufferAdjusted(true);
+    }
 }
 
 // ### should be const really
