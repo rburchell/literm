@@ -1268,7 +1268,7 @@ void Terminal::oscSequence(const QString& seq)
 
     if (seq.length() >= 4) {
         if (seq.at(0) == ']') {
-            if (seq.at(1) == '1' && seq.at(2) == '3' && seq.at(3) == '3') {
+            if (seq.at(1) == '1' && seq.at(2) == '3' && seq.at(3) == '3' && seq.at(4) == ';') {
                 // iTerm2 proprietary(?)
                 // Prompt state stuff, related to shell integration
                 // Ignore for the time being...
@@ -1279,7 +1279,7 @@ void Terminal::oscSequence(const QString& seq)
 
     if (seq.length() >= 5) {
         if (seq.at(0) == ']') {
-            if (seq.at(1) == '1' && seq.at(2) == '3' && seq.at(3) == '3' && seq.at(4) == '7') {
+            if (seq.at(1) == '1' && seq.at(2) == '3' && seq.at(3) == '3' && seq.at(4) == '7' && seq.at(5) == ';') {
                 // iTerm2 proprietary, various stuff, shell integration and more.
                 // Ignore for the time being...
                 return;
