@@ -12,6 +12,9 @@
         <file>qml/desktop/LayoutWindow.qml</file>
         <file>qml/desktop/TabView.qml</file>
         <file>qml/desktop/TabBar.qml</file>
+        <file>qml/desktop/SplitView.qml</file>
+        <file>qml/desktop/TerminalPane.qml</file>
+        <file>qml/desktop/TerminalPaneSplitter.qml</file>
 
         <file>qml/mobile/Main.qml</file>
         <file>qml/mobile/Key.qml</file>

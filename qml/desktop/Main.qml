@@ -17,7 +17,6 @@
  */
 
 import QtQuick 2.6
-import literm 1.0
 import QtQuick.Window 2.2
 
 Rectangle {
@@ -72,152 +71,15 @@ Rectangle {
         }
 
         Component {
-            id: terminalScreenComponent
-            TextRender {
-                id: textrender
-                focus: true
-
-                onPanLeft: {
-                    util.notifyText(util.panLeftTitle)
-                    textrender.putString(util.panLeftCommand)
-                }
-                onPanRight: {
-                    util.notifyText(util.panRightTitle)
-                    textrender.putString(util.panRightCommand)
-                }
-                onPanUp: {
-                    util.notifyText(util.panUpTitle)
-                    textrender.putString(util.panUpCommand)
-                }
-                onPanDown: {
-                    util.notifyText(util.panDownTitle)
-                    textrender.putString(util.panDownCommand)
-                }
-
-                onDisplayBufferChanged: {
-                    textrender.cutAfter = textrender.height;
-                    textrender.y = 0;
-                }
-                charset: util.charset
-                terminalCommand: util.terminalCommand
-                terminalEnvironment: util.terminalEmulator
-                onTitleChanged: {
-                    util.windowTitle = title
-                }
-                dragMode: util.dragMode
-                onVisualBell: {
-                    if (util.visualBellEnabled)
-                        bellTimer.start()
-                }
-                contentItem: Item {
-                    anchors.fill: parent
-                    Behavior on opacity {
-                        NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
-                    }
-                    Behavior on y {
-                        NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
-                    }
-                }
-
-                ScrollDecorator {
-                    color: "#DFDFDF"
-                    anchors.right: parent.right
-                    anchors.rightMargin: window.paddingMedium
-                    y: ((parent.contentY + (parent.visibleHeight/2)) / parent.contentHeight) * (parent.height - height)
-                    height: (parent.visibleHeight / parent.contentHeight) * parent.height
-                    visible: parent.contentHeight > parent.visibleHeight
-                }
-
-                cellDelegate: Rectangle {
-                }
-                cellContentsDelegate: Text {
-                    id: text
-                    property bool blinking: false
-
-                    textFormat: Text.PlainText
-                    opacity: blinking ? 0.5 : 1.0
-                    SequentialAnimation {
-                        running: blinking
-                        loops: Animation.Infinite
-                        NumberAnimation {
-                            target: text
-                            property: "opacity"
-                            to: 0.8
-                            duration: 200
-                        }
-                        PauseAnimation {
-                            duration: 400
-                        }
-                        NumberAnimation {
-                            target: text
-                            property: "opacity"
-                            to: 0.5
-                            duration: 200
-                        }
-                    }
-                }
-                cursorDelegate: Rectangle {
-                    id: cursor
-                    opacity: 0.5
-                    SequentialAnimation {
-                        running: Qt.application.state == Qt.ApplicationActive
-                        loops: Animation.Infinite
-                        NumberAnimation {
-                            target: cursor
-                            property: "opacity"
-                            to: 0.8
-                            duration: 200
-                        }
-                        PauseAnimation {
-                            duration: 400
-                        }
-                        NumberAnimation {
-                            target: cursor
-                            property: "opacity"
-                            to: 0.5
-                            duration: 200
-                        }
-                    }
-                }
-                selectionDelegate: Rectangle {
-                    color: "blue"
-                    opacity: 0.5
-                }
-
-                Rectangle {
-                    id: bellTimerRect
-                    visible: opacity > 0
-                    opacity: bellTimer.running ? 0.5 : 0.0
-                    anchors.fill: parent
-                    color: "#ffffff"
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 200
-                        }
-                    }
-                }
-
-                property int duration
-                property int cutAfter: height
-
+            id: terminalPaneComponent
+            SplitView {
                 anchors.fill: parent
-                font.family: util.fontFamily
-                font.pointSize: util.fontSize
-                allowGestures: !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
-
-                onCutAfterChanged: {
-                    // this property is used in the paint function, so make sure that the element gets
-                    // painted with the updated value (might not otherwise happen because of caching)
-                    textrender.redraw();
-                }
             }
         }
 
         function createTab() {
-            var tab = tabView.addTab("", terminalScreenComponent);
-            tab.hangupReceived.connect(function() {
-                closeTab(tab)
-            });
+            var tab = tabView.addTab("", terminalPaneComponent);
+            // ### when last pane closed, close tab
             tabView.currentIndex = tabView.count - 1;
         }
 
@@ -325,12 +187,14 @@ Rectangle {
                 tabView.createTab();
             }
         }
+        /*
+        TODO
         Shortcut {
             sequence: Qt.platform.os == "osx" ? "Ctrl+W" : "Ctrl+Shift+W"
             onActivated: {
                 tabView.closeTab(tabView.activeTabItem)
             }
-        }
+        }*/
         Shortcut {
             sequence: "Ctrl+Shift+]"
             onActivated: {

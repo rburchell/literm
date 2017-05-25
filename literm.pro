@@ -65,7 +65,10 @@ OTHER_FILES += \
     qml/desktop/LayoutWindow.qml \
     qml/desktop/PopupWindow.qml \
     qml/desktop/TabView.qml \
-    qml/desktop/TabBar.qml
+    qml/desktop/TabBar.qml \
+    qml/desktop/SplitView.qml \
+    qml/desktop/TerminalPane.qml \
+    qml/desktop/TerminalPaneSplitter.qml
 
 RESOURCES += \
     resources.qrc
