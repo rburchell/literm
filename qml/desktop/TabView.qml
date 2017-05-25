@@ -85,7 +85,7 @@ Column {
 
     function addTab(titleText, comp) {
         if (comp.status != Component.Ready) {
-            console.warn("Component not ready! " + component.errorString)
+            console.warn("Component not ready! " + comp.errorString)
             return
         }
         var tabInstance = comp.createObject(tabContainer)
