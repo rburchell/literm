@@ -1,4 +1,5 @@
 /*
+    Copyright (C) 2017 Robin Burchell <robin+git@viroteck.net>
     Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
 
     This file is part of FingerTerm.
@@ -1250,13 +1251,40 @@ void Terminal::oscSequence(const QString& seq)
     if(seq.length() <= 1 || seq.at(0)!=']')
         return;
 
-    // set window title
-    if( seq.length() >= 3 && seq.at(0)==']' &&
-        (seq.at(1)=='0' || seq.at(1)=='2') &&
-        seq.at(2)==';' )
-    {
-        emit windowTitleChanged(seq.mid(3));
-        return;
+    if (seq.length() >= 3) {
+        if (seq.at(0) == ']') {
+            if ((seq.at(1) == '0' || seq.at(1) == '2') && seq.at(2) == ';') {
+                // set window title
+                emit windowTitleChanged(seq.mid(3));
+                return;
+            } else if (seq.at(1) == '6' && seq.at(2) == ';') {
+                // iTerm2 proprietary:
+                // Set window title and tab chrome background color
+                // Ignore for the time being...
+                return;
+            }
+        }
+    }
+
+    if (seq.length() >= 4) {
+        if (seq.at(0) == ']') {
+            if (seq.at(1) == '1' && seq.at(2) == '3' && seq.at(3) == '3') {
+                // iTerm2 proprietary(?)
+                // Prompt state stuff, related to shell integration
+                // Ignore for the time being...
+                return;
+            }
+        }
+    }
+
+    if (seq.length() >= 5) {
+        if (seq.at(0) == ']') {
+            if (seq.at(1) == '1' && seq.at(2) == '3' && seq.at(3) == '3' && seq.at(4) == '7') {
+                // iTerm2 proprietary, various stuff, shell integration and more.
+                // Ignore for the time being...
+                return;
+            }
+        }
     }
 
     qDebug() << "unhandled OSC" << seq;
