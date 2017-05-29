@@ -667,6 +667,10 @@ void TextRender::mousePressEvent(QMouseEvent *event)
     qreal eventY = event->localPos().y();
     dragOrigin = QPointF(eventX, eventY);
     newSelection = true;
+
+    if (m_dragMode == DragSelect) {
+        m_terminal.clearSelection();
+    }
 }
 
 void TextRender::mouseMoveEvent(QMouseEvent *event)
