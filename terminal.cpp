@@ -1646,7 +1646,6 @@ void Terminal::resetBackBufferScrollPos()
     }
 }
 
-// ### should be const really
 QString Terminal::selectedText() const
 {
     if (selection().isNull())
