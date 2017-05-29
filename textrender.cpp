@@ -55,7 +55,6 @@
 
 TextRender::TextRender(QQuickItem *parent)
     : QQuickItem(parent)
-    , newSelection(true)
     , iAllowGestures(true)
     , m_contentItem(0)
     , m_backgroundContainer(0)
@@ -666,7 +665,6 @@ void TextRender::mousePressEvent(QMouseEvent *event)
     qreal eventX = event->localPos().x();
     qreal eventY = event->localPos().y();
     dragOrigin = QPointF(eventX, eventY);
-    newSelection = true;
 
     if (m_dragMode == DragSelect) {
         m_terminal.clearSelection();
@@ -746,7 +744,6 @@ void TextRender::selectionHelper(QPointF scenePos, bool selectionOngoing)
 
     if (start != end) {
         m_terminal.setSelection(start, end, selectionOngoing);
-        newSelection = false;
     }
 }
 

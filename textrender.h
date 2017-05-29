@@ -181,7 +181,6 @@ private:
      **/
     QPointF scrollBackBuffer(QPointF now, QPointF last);
 
-    bool newSelection;
     QPointF dragOrigin;
 
     QFont iFont;
