@@ -266,8 +266,6 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
 {
     QString toWrite;
 
-    resetBackBufferScrollPos();
-
     if (key > 0xFFFF) {
         int modcode = (modifiers & Qt::ShiftModifier ? 1 : 0) | 
                       (modifiers & Qt::AltModifier ? 2 : 0) |
@@ -381,10 +379,15 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
         }
 
         if (!toWrite.isEmpty()) {
+            resetBackBufferScrollPos();
+            if (!toWrite.startsWith('\e')) {
+                // Only affect selection if not writing escape codes
+                clearSelection();
+            }
+
             m_pty->writeTerm(toWrite);
-        } else {
-            qDebug() << "unknown special key: " << key;
         }
+
         return;
     }
 
@@ -415,6 +418,8 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
         }
     }
 
+    resetBackBufferScrollPos();
+    clearSelection();
     m_pty->writeTerm(toWrite);
     return;
 }
