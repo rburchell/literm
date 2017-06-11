@@ -17,7 +17,7 @@
  */
 
 import QtQuick 2.6
-import FingerTerm 1.0
+import literm 1.0
 import QtQuick.Window 2.2
 
 Rectangle {
@@ -391,7 +391,7 @@ Rectangle {
         }
     }
 
-    MenuFingerterm {
+    MenuLiterm {
         id: menu
         anchors.fill: parent
         activeTerminal: tabView.activeTabItem

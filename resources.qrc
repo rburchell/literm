@@ -5,7 +5,7 @@
         <file>qml/desktop/Keyboard.qml</file>
         <file>qml/desktop/Button.qml</file>
         <file>qml/desktop/ScrollDecorator.qml</file>
-        <file>qml/desktop/MenuFingerterm.qml</file>
+        <file>qml/desktop/MenuLiterm.qml</file>
         <file>qml/desktop/NotifyWin.qml</file>
         <file>qml/desktop/PopupWindow.qml</file>
         <file>qml/desktop/UrlWindow.qml</file>
@@ -19,7 +19,7 @@
         <file>qml/mobile/Lineview.qml</file>
         <file>qml/mobile/Button.qml</file>
         <file>qml/mobile/ScrollDecorator.qml</file>
-        <file>qml/mobile/MenuFingerterm.qml</file>
+        <file>qml/mobile/MenuLiterm.qml</file>
         <file>qml/mobile/NotifyWin.qml</file>
         <file>qml/mobile/PopupWindow.qml</file>
         <file>qml/mobile/UrlWindow.qml</file>

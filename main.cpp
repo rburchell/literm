@@ -32,7 +32,7 @@ static void copyFileFromResources(QString from, QString to);
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication::setApplicationName("Fingerterm");
+    QCoreApplication::setApplicationName("literm");
 
     QGuiApplication app(argc, argv);
 
@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
                                      | Qt::InvertedPortraitOrientation);
     }
 
-    qmlRegisterType<TextRender>("FingerTerm", 1, 0, "TextRender");
-    qmlRegisterUncreatableType<Util>("FingerTerm", 1, 0, "Util", "Util is created by app");
+    qmlRegisterType<TextRender>("literm", 1, 0, "TextRender");
+    qmlRegisterUncreatableType<Util>("literm", 1, 0, "Util", "Util is created by app");
     QQuickView view;
 
 #if defined(DESKTOP_BUILD)
@@ -65,12 +65,12 @@ int main(int argc, char *argv[])
         view.setHeight(screenSize.height() / 2);
     }
 
-    QString settings_path(QDir::homePath() + "/.config/FingerTerm");
+    QString settings_path(QDir::homePath() + "/.config/literm");
     QDir dir;
 
     if (!dir.exists(settings_path)) {
         if (!dir.mkdir(settings_path))
-            qWarning() << "Could not create fingerterm settings path" << settings_path;
+            qWarning() << "Could not create literm settings path" << settings_path;
     }
 
     QString settingsFile = settings_path + "/settings.ini";

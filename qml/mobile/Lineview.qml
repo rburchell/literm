@@ -16,7 +16,7 @@
 */
 
 import QtQuick 2.0
-import FingerTerm 1.0
+import literm 1.0
 
 Rectangle {
     id: lineView
