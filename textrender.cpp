@@ -729,7 +729,8 @@ void TextRender::wheelEvent(QWheelEvent *event)
         dragOrigin = scrollBackBuffer(dragOrigin + event->pixelDelta(), dragOrigin);
         event->accept();
     } else {
-        // TODO: angleDelta.
+        dragOrigin = scrollBackBuffer(dragOrigin + event->angleDelta()/2, dragOrigin);
+        event->accept();
     }
 }
 
