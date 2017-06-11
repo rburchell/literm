@@ -69,7 +69,12 @@ int main(int argc, char *argv[])
     QDir dir;
 
     if (!dir.exists(settings_path)) {
-        if (!dir.mkdir(settings_path))
+        // Migrate FingerTerm settings if present
+        QString old_settings_path(QDir::homePath() + "/.config/FingerTerm");
+        if (dir.exists(old_settings_path)) {
+            if (!dir.rename(old_settings_path, settings_path))
+                qWarning() << "Could not migrate FingerTerm settings path" << old_settings_path << "to" << settings_path;
+        } else if (!dir.mkdir(settings_path))
             qWarning() << "Could not create literm settings path" << settings_path;
     }
 
