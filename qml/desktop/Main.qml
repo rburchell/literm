@@ -443,7 +443,6 @@ Rectangle {
             str += "</font>";
             return str;
         }
-        onDismissed: util.showWelcomeScreen = false
     }
 
     NotifyWin {
@@ -459,8 +458,6 @@ Rectangle {
     }
 
     Component.onCompleted: {
-        if (util.showWelcomeScreen)
-            aboutDialog.show = true
         if (startupErrorMessage != "") {
             showErrorMessage(startupErrorMessage)
         }
