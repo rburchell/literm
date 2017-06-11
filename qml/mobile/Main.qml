@@ -345,7 +345,6 @@ Item {
                     str += "</font>";
                     return str;
                 }
-                onDismissed: util.showWelcomeScreen = false
             }
 
             NotifyWin {
@@ -427,8 +426,6 @@ Item {
             }
 
             Component.onCompleted: {
-                if (util.showWelcomeScreen)
-                    aboutDialog.show = true
                 if (startupErrorMessage != "") {
                     showErrorMessage(startupErrorMessage)
                 }

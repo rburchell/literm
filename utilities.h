@@ -43,7 +43,6 @@ class Util : public QObject
     Q_PROPERTY(QString charset READ charset CONSTANT)
     Q_PROPERTY(int keyboardMargins READ keyboardMargins CONSTANT)
     Q_PROPERTY(int orientationMode READ orientationMode WRITE setOrientationMode NOTIFY orientationModeChanged)
-    Q_PROPERTY(bool showWelcomeScreen READ showWelcomeScreen WRITE setShowWelcomeScreen NOTIFY showWelcomeScreenChanged)
     Q_PROPERTY(QByteArray terminalEmulator READ terminalEmulator CONSTANT)
     Q_PROPERTY(QString terminalCommand READ terminalCommand CONSTANT)
     Q_PROPERTY(QString panLeftTitle READ panLeftTitle CONSTANT)
@@ -137,9 +136,6 @@ public:
     int orientationMode();
     void setOrientationMode(int mode);
 
-    bool showWelcomeScreen();
-    void setShowWelcomeScreen(bool value);
-
 signals:
     void notify(QString msg);
     void windowTitleChanged();
@@ -150,7 +146,6 @@ signals:
     void keyboardFadeOutDelayChanged();
     void keyboardLayoutChanged();
     void orientationModeChanged();
-    void showWelcomeScreenChanged();
 
 private:
     Q_DISABLE_COPY(Util)

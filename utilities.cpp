@@ -376,19 +376,6 @@ void Util::setOrientationMode(int mode)
     emit orientationModeChanged();
 }
 
-bool Util::showWelcomeScreen()
-{
-    return settingsValue("state/showWelcomeScreen", true).toBool();
-}
-
-void Util::setShowWelcomeScreen(bool value)
-{
-    if (value != showWelcomeScreen()) {
-        setSettingsValue("state/showWelcomeScreen", value);
-        emit showWelcomeScreenChanged();
-    }
-}
-
 void Util::notifyText(QString text)
 {
     emit notify(text);
