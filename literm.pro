@@ -52,7 +52,7 @@ OTHER_FILES += \
     qml/mobile/Key.qml \
     qml/mobile/Lineview.qml \
     qml/mobile/Button.qml \
-    qml/mobile/MenuFingerterm.qml \
+    qml/mobile/MenuLiterm.qml \
     qml/mobile/NotifyWin.qml \
     qml/mobile/UrlWindow.qml \
     qml/mobile/LayoutWindow.qml \
@@ -63,7 +63,7 @@ OTHER_FILES += \
     qml/desktop/Keyboard.qml \
     qml/desktop/Key.qml \
     qml/desktop/Button.qml \
-    qml/desktop/MenuFingerterm.qml \
+    qml/desktop/MenuLiterm.qml \
     qml/desktop/NotifyWin.qml \
     qml/desktop/UrlWindow.qml \
     qml/desktop/LayoutWindow.qml \
