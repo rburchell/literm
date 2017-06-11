@@ -73,6 +73,7 @@ TextRender::TextRender(QQuickItem *parent)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
     setFiltersChildMouseEvents(true);
+    setCursor(Qt::IBeamCursor);
 
     connect(QGuiApplication::clipboard(), SIGNAL(dataChanged()), this, SIGNAL(clipboardChanged()));
 
