@@ -252,7 +252,11 @@ void TextRender::setFont(const QFont &font)
     iFont = font;
     QFontMetricsF fontMetrics(iFont);
     iFontHeight = fontMetrics.height();
-    iFontWidth = fontMetrics.maxWidth();
+
+    // Sometimes, maxWidth is inexplicably less than averageCharWidth. See issue #4.
+    // ### This should ideally be followed up on and fixed properly.
+    iFontWidth = std::max(fontMetrics.maxWidth(), fontMetrics.averageCharWidth());
+
     iFontDescent = fontMetrics.descent();
 
     polish();
