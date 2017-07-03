@@ -47,3 +47,15 @@ found them.
 It is also partly inspired by [Yat, a terminal emulator by Jørgen
 Lind](https://github.com/jorgen/yat), but it does not share any code from it.
 
+## differences from fingerterm
+
+Notable changes since forking from fingerterm:
+
+* Separate desktop UI (mobile UI is still intact)
+* Rewritten terminal rendering using QtQuick rather than software rendering
+* 24bit color support
+* Improved parsing performance
+* Support for underlined, italic, and blinking text attributes
+* Support for bracketed paste mode (used by zsh and others), and other escapes
+* Sends cursor scroll escapes when scrolling in applications like vim
+
