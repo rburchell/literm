@@ -464,7 +464,7 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
         if(y >= cutAfter)
             opacity = 0.3;
 
-        const auto &lineBuffer = buffer.at(i);;
+        const auto &lineBuffer = buffer.at(i);
         int xcount = qMin(lineBuffer.size(), m_terminal.columns());
 
         // background for the current line
