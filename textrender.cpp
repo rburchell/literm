@@ -319,14 +319,20 @@ void TextRender::updatePolish()
     m_overlayContainer->setWidth(width());
     m_overlayContainer->setHeight(height());
 
+    // Ensure that there's sufficient width, if that changed.
+    const int columnCount = m_terminal.columns();
+    for (int row = 0; row < m_cells.size(); ++row) {
+        auto &cellRow = m_cells[row];
+        auto &contentsRow = m_cellsContent[row];
+        ensureRowPopulated(cellRow, contentsRow, columnCount);
+    }
+
     // If the height grows, make sure we have enough rows
     if (m_cells.size() < m_terminal.rows()) {
         const int oldSize = m_cells.size();
 
         m_cells.resize(m_terminal.rows());
         m_cellsContent.resize(m_terminal.rows());
-
-        const int columnCount = m_terminal.columns();
 
         for (int row = oldSize; row < m_cells.size(); ++row) {
             auto &cellRow = m_cells[row];
@@ -335,15 +341,6 @@ void TextRender::updatePolish()
         }
     }
 
-    // Ensure that there's sufficient width too, if that changed.
-    if (m_cells[0].size() < m_terminal.columns()) {
-        const int columnCount = m_terminal.columns();
-        for (int row = 0; row < m_terminal.rows(); ++row) {
-            auto &cellRow = m_cells[row];
-            auto &contentsRow = m_cellsContent[row];
-            ensureRowPopulated(cellRow, contentsRow, columnCount);
-        }
-    }
 
     qreal y = 0;
     int yDelegateIndex = 0;
@@ -368,7 +365,8 @@ void TextRender::updatePolish()
 
     // paint any remaining rows unused
     for (; yDelegateIndex < m_cells.size(); ++yDelegateIndex) {
-        for (int j=0;j<m_terminal.columns(); j++) {
+        int rowContent = m_cells.at(yDelegateIndex).size();
+        for (int j = 0; j < rowContent; j++) {
             m_cells.at(yDelegateIndex).at(j)->setVisible(false);
             m_cellsContent.at(yDelegateIndex).at(j)->setVisible(false);
         }
