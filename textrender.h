@@ -49,7 +49,6 @@ class TextRender : public QQuickItem
 public:
     explicit TextRender(QQuickItem *parent = 0);
     virtual ~TextRender();
-    void updatePolish() override;
 
     Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
     Q_INVOKABLE void putString(QString str);
@@ -142,6 +141,7 @@ public slots:
     void redraw();
 
 protected:
+    void updatePolish() override;
     bool childMouseEventFilter(QQuickItem *item,  QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
