@@ -268,32 +268,40 @@ QFont TextRender::font() const
     return iFont;
 }
 
-/*!
- * \internal
+/*! \internal
  *
- * Ensures \a row and \a rowContents have enough delegates to display
- * \a columnCount columns
+ * Fetch a cell from the free list (or allocate a new one, if required)
  */
-void TextRender::ensureRowPopulated(QVector<QQuickItem*> &row, QVector<QQuickItem*> &rowContents, int columnCount)
+QQuickItem *TextRender::fetchFreeCell()
 {
-    row.reserve(columnCount);
-    rowContents.reserve(columnCount);
-
-    for (int col = row.size(); col < columnCount; ++col) {
-        QQuickItem *it = nullptr;
-
+    QQuickItem *it = nullptr;
+    if (!m_freeCells.isEmpty()) {
+        it = m_freeCells.takeFirst();
+    } else {
         it = qobject_cast<QQuickItem*>(m_cellDelegate->create(qmlContext(this)));
-        it->setVisible(false);
-        it->setParentItem(m_backgroundContainer);
-        Q_ASSERT(it);
-        row.append(it);
-
-        it = qobject_cast<QQuickItem*>(m_cellContentsDelegate->create(qmlContext(this)));
-        it->setVisible(false);
-        it->setParentItem(m_textContainer);
-        Q_ASSERT(it);
-        rowContents.append(it);
     }
+
+    it->setParentItem(m_backgroundContainer);
+    m_cells.append(it);
+    return it;
+}
+
+/*! \internal
+ *
+ * Fetch a content cell from the free list (or allocate a new one, if required)
+ */
+QQuickItem *TextRender::fetchFreeCellContent()
+{
+    QQuickItem *it = nullptr;
+    if (!m_freeCellsContent.isEmpty()) {
+        it = m_freeCellsContent.takeFirst();
+    } else {
+        it = qobject_cast<QQuickItem*>(m_cellContentsDelegate->create(qmlContext(this)));
+    }
+
+    it->setParentItem(m_textContainer);
+    m_cellsContent.append(it);
+    return it;
 }
 
 void TextRender::updatePolish()
@@ -319,31 +327,13 @@ void TextRender::updatePolish()
     m_overlayContainer->setWidth(width());
     m_overlayContainer->setHeight(height());
 
-    // If the height grows, make sure we have enough rows
-    if (m_cells.size() < m_terminal.rows()) {
-        const int oldSize = m_cells.size();
+    // Push everything back to the free list.
+    // We could optimize this by having a "dirty" area from the terminal backend.
+    m_freeCells += m_cells;
+    m_freeCellsContent += m_cellsContent;
 
-        m_cells.resize(m_terminal.rows());
-        m_cellsContent.resize(m_terminal.rows());
-
-        const int columnCount = m_terminal.columns();
-
-        for (int row = oldSize; row < m_cells.size(); ++row) {
-            auto &cellRow = m_cells[row];
-            auto &contentsRow = m_cellsContent[row];
-            ensureRowPopulated(cellRow, contentsRow, columnCount);
-        }
-    }
-
-    // Ensure that there's sufficient width too, if that changed.
-    if (m_cells[0].size() < m_terminal.columns()) {
-        const int columnCount = m_terminal.columns();
-        for (int row = 0; row < m_terminal.rows(); ++row) {
-            auto &cellRow = m_cells[row];
-            auto &contentsRow = m_cellsContent[row];
-            ensureRowPopulated(cellRow, contentsRow, columnCount);
-        }
-    }
+    m_cells.clear();
+    m_cellsContent.clear();
 
     qreal y = 0;
     int yDelegateIndex = 0;
@@ -366,12 +356,12 @@ void TextRender::updatePolish()
         paintFromBuffer(m_terminal.buffer(), 0, count, y, yDelegateIndex);
     }
 
-    // paint any remaining rows unused
-    for (; yDelegateIndex < m_cells.size(); ++yDelegateIndex) {
-        for (int j=0;j<m_terminal.columns(); j++) {
-            m_cells.at(yDelegateIndex).at(j)->setVisible(false);
-            m_cellsContent.at(yDelegateIndex).at(j)->setVisible(false);
-        }
+    // any remaining items in the free lists are unused
+    for (QQuickItem *it : m_freeCells) {
+        it->setVisible(false);
+    }
+    for (QQuickItem *it : m_freeCellsContent) {
+        it->setVisible(false);
     }
 
     // cursor
@@ -480,7 +470,6 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
         // background for the current line
         currentX = leftmargin;
         qreal fragWidth = 0;
-        int xDelegateIndex = 0;
         for(int j=0; j<xcount; j++) {
             fragWidth += iFontWidth;
             if (j==0) {
@@ -496,7 +485,7 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
                 currAttrib.fgColor != nextAttrib.fgColor ||
                 j==xcount-1)
             {
-                QQuickItem *backgroundRectangle = m_cells.at(yDelegateIndex).at(xDelegateIndex++);
+                QQuickItem *backgroundRectangle = fetchFreeCell();
                 drawBgFragment(backgroundRectangle, currentX, y-iFontHeight+iFontDescent, std::ceil(fragWidth), currAttrib);
                 backgroundRectangle->setOpacity(opacity);
                 currentX += fragWidth;
@@ -507,15 +496,9 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
             }
         }
 
-        // Mark all remaining background cells unused.
-        for (int j=xDelegateIndex;j<m_cells.at(yDelegateIndex).size(); j++) {
-            m_cells.at(yDelegateIndex).at(j)->setVisible(false);
-        }
-
         // text for the current line
         QString line;
         currentX = leftmargin;
-        xDelegateIndex = 0;
         for (int j=0; j<xcount; j++) {
             tmp = lineBuffer.at(j);
             line += tmp.c;
@@ -531,7 +514,7 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
                 currAttrib.fgColor != nextAttrib.fgColor ||
                 j==xcount-1)
             {
-                QQuickItem *foregroundText = m_cellsContent.at(yDelegateIndex).at(xDelegateIndex++);
+                QQuickItem *foregroundText = fetchFreeCellContent();
                 drawTextFragment(foregroundText, currentX, y-iFontHeight+iFontDescent, line, currAttrib);
                 foregroundText->setOpacity(opacity);
                 currentX += iFontWidth*line.length();
@@ -540,11 +523,6 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
                 currAttrib.bgColor = nextAttrib.bgColor;
                 currAttrib.fgColor = nextAttrib.fgColor;
             }
-        }
-
-        // Mark all remaining foreground cells unused.
-        for (int j=xDelegateIndex;j<m_cellsContent.at(yDelegateIndex).size(); j++) {
-            m_cellsContent.at(yDelegateIndex).at(j)->setVisible(false);
         }
     }
 }
@@ -806,12 +784,10 @@ void TextRender::setCellDelegate(QQmlComponent *component)
     if (m_cellDelegate == component)
         return;
 
-    // ###
-    //for (QVector<QQuickItem*> cells : qAsConst(m_cells)) {
-    foreach (const QVector<QQuickItem*> &cells , m_cells) {
-        qDeleteAll(cells);
-    }
+    qDeleteAll(m_cells);
+    qDeleteAll(m_freeCells);
     m_cells.clear();
+    m_freeCells.clear();
     m_cellDelegate = component;
     emit cellDelegateChanged();
     polish();
@@ -827,12 +803,10 @@ void TextRender::setCellContentsDelegate(QQmlComponent *component)
     if (m_cellContentsDelegate == component)
         return;
 
-    // ###
-    //for (QVector<QQuickItem*> cells : qAsConst(m_cellsContent)) {
-    foreach (const QVector<QQuickItem*> &cells , m_cells) {
-        qDeleteAll(cells);
-    }
+    qDeleteAll(m_cellsContent);
+    qDeleteAll(m_freeCellsContent);
     m_cellsContent.clear();
+    m_freeCellsContent.clear();
     m_cellContentsDelegate = component;
     emit cellContentsDelegateChanged();
     polish();

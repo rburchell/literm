@@ -165,7 +165,6 @@ private:
     void paintFromBuffer(const TerminalBuffer &buffer, int from, int to, qreal &y, int &yDelegateIndex);
     QPointF charsToPixels(QPoint pos);
     void selectionHelper(QPointF scenePos, bool selectionOngoing);
-    void ensureRowPopulated(QVector<QQuickItem*> &row, QVector<QQuickItem*> &rowContents, int columnCount);
 
     qreal fontWidth() { return iFontWidth; }
     qreal fontHeight() { return iFontHeight; }
@@ -181,6 +180,9 @@ private:
      **/
     QPointF scrollBackBuffer(QPointF now, QPointF last);
 
+    QQuickItem *fetchFreeCell();
+    QQuickItem *fetchFreeCellContent();
+
     QPointF dragOrigin;
 
     QFont iFont;
@@ -195,9 +197,11 @@ private:
     QQuickItem *m_textContainer;
     QQuickItem *m_overlayContainer;
     QQmlComponent *m_cellDelegate;
-    QVector<QVector<QQuickItem*>> m_cells;
+    QVector<QQuickItem*> m_cells;
+    QVector<QQuickItem*> m_freeCells;
     QQmlComponent *m_cellContentsDelegate;
-    QVector<QVector<QQuickItem*>> m_cellsContent;
+    QVector<QQuickItem*> m_cellsContent;
+    QVector<QQuickItem*> m_freeCellsContent;
     QQmlComponent *m_cursorDelegate;
     QQuickItem *m_cursorDelegateInstance;
     QQmlComponent *m_selectionDelegate;
