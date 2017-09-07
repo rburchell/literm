@@ -122,6 +122,8 @@ Item {
                 contentItem: Item {
                     width: parent.width
                     height: parent.height
+                    opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
+                                                                                    : 1.0
 
                     Behavior on opacity {
                         NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
@@ -206,8 +208,6 @@ Item {
                 width: parent.width
                 font.family: util.fontFamily
                 font.pointSize: util.fontSize
-                opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
-                                                                                : 1.0
                 allowGestures: !vkb.active && !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
 
                 onCutAfterChanged: {
@@ -231,8 +231,7 @@ Item {
                     y: parent.height-vkb.height
                     visible: textrender.activeFocus && visibleSetting
 
-                    opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.6
-                                                                                    : 0.3
+                    opacity: vkb.active ? 0.7 : 0.3
                     Behavior on opacity {
                         NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
                     }
