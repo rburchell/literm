@@ -120,7 +120,9 @@ Item {
                         bellTimer.start()
                 }
                 contentItem: Item {
-                    anchors.fill: parent
+                    width: parent.width
+                    height: parent.height
+
                     Behavior on opacity {
                         NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
                     }
@@ -390,31 +392,31 @@ Item {
                 {
                     vkb.visibleSetting = true;
                     if(vkb.active) {
-                        var move = textrender.cursorPixelPos().y + textrender.fontHeight/2
-                                + textrender.fontHeight*util.extraLinesFromCursor
+                        var move = textrender.cursorPixelPos().y + textrender.cellSize.height/2
+                                + textrender.cellSize.height * util.extraLinesFromCursor
                         if(move < vkb.y) {
-                            textrender.y = 0;
+                            textrender.contentItem.y = 0;
                             textrender.cutAfter = vkb.y;
                         } else {
-                            textrender.y = 0 - move + vkb.y
+                            textrender.contentItem.y = 0 - move + vkb.y
                             textrender.cutAfter = move;
                         }
                     } else {
                         textrender.cutAfter = textrender.height;
-                        textrender.y = 0;
+                        textrender.contentItem.y = 0;
                     }
                 }
                 else if (util.keyboardMode == Util.KeyboardFade)
                 {
                     vkb.visibleSetting = true;
                     textrender.cutAfter = textrender.height;
-                    textrender.y = 0;
+                    textrender.contentItem.y = 0;
                 }
                 else // "off" (vkb disabled)
                 {
                     vkb.visibleSetting = false;
                     textrender.cutAfter = textrender.height;
-                    textrender.y = 0;
+                    textrender.contentItem.y = 0;
                 }
             }
 
@@ -422,8 +424,8 @@ Item {
             {
                 lineView.lines = textrender.printableLinesFromCursor(util.extraLinesFromCursor);
                 lineView.cursorX = textrender.cursorPixelPos().x;
-                lineView.cursorWidth = textrender.cursorPixelSize().width;
-                lineView.cursorHeight = textrender.cursorPixelSize().height;
+                lineView.cursorWidth = textrender.cellSize.width;
+                lineView.cursorHeight = textrender.cellSize.height;
                 setTextRenderAttributes();
             }
 

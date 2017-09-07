@@ -261,6 +261,7 @@ void TextRender::setFont(const QFont &font)
 
     polish();
     emit fontChanged();
+    emit cellSizeChanged();
 }
 
 QFont TextRender::font() const
@@ -374,7 +375,7 @@ void TextRender::updatePolish()
 
         m_cursorDelegateInstance->setVisible(true);
         QPointF cursor = cursorPixelPos();
-        QSizeF csize = cursorPixelSize();
+        QSizeF csize = cellSize();
         m_cursorDelegateInstance->setX(cursor.x());
         m_cursorDelegateInstance->setY(cursor.y());
         m_cursorDelegateInstance->setWidth(csize.width());
@@ -756,7 +757,7 @@ QPointF TextRender::charsToPixels(QPoint pos)
     return QPointF(x, y);
 }
 
-QSizeF TextRender::cursorPixelSize()
+QSizeF TextRender::cellSize()
 {
     return QSizeF(iFontWidth, iFontHeight);
 }
