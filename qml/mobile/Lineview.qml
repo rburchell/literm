@@ -27,9 +27,7 @@ Rectangle {
     property int cursorWidth: 10
     property int cursorHeight: 10
     property int extraLines: util.extraLinesFromCursor
-    property bool show
 
-    y: show ? 0 : -(height+window.paddingSmall)
     color: "#404040"
     border.width: 2
     border.color: "#909090"
@@ -47,7 +45,6 @@ Rectangle {
     }
 
     Rectangle {
-        visible: vkb.active
         x: cursorX
         y: lineTextCol.y + fontHeightHack.height*(extraLines+1) - cursorHeight - 3
         width: cursorWidth

@@ -216,12 +216,14 @@ Item {
 
                 Lineview {
                     id: lineView
-                    show: (util.keyboardMode == Util.KeyboardFade) && vkb.active
+                    opacity: ((util.keyboardMode == Util.KeyboardFade) && vkb.active) ? 0.8
+                                                                                      : 0.0
                 }
 
                 Keyboard {
                     id: vkb
 
+                    property bool active
                     property bool visibleSetting: true
 
                     y: parent.height-vkb.height

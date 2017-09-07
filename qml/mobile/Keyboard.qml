@@ -30,8 +30,6 @@ Item {
     property string keyHilightBgColor: "#ffffff"
     property string keyBorderColor: "#303030"
 
-    property bool active
-
     property int outmargins: util.keyboardMargins
     property int keyspacing: 6
     property int keysPerRow: keyLoader.vkbColumns()
