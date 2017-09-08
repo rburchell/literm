@@ -120,7 +120,11 @@ Item {
                         bellTimer.start()
                 }
                 contentItem: Item {
-                    anchors.fill: parent
+                    width: parent.width
+                    height: parent.height
+                    opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
+                                                                                    : 1.0
+
                     Behavior on opacity {
                         NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
                     }
@@ -160,7 +164,7 @@ Item {
                     id: cursor
                     opacity: 0.5
                     SequentialAnimation {
-                        running: true
+                        running: Qt.application.state == Qt.ApplicationActive
                         loops: Animation.Infinite
                         NumberAnimation {
                             target: cursor
@@ -204,8 +208,6 @@ Item {
                 width: parent.width
                 font.family: util.fontFamily
                 font.pointSize: util.fontSize
-                opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.3
-                                                                                : 1.0
                 allowGestures: !vkb.active && !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
 
                 onCutAfterChanged: {
@@ -216,19 +218,20 @@ Item {
 
                 Lineview {
                     id: lineView
-                    show: (util.keyboardMode == Util.KeyboardFade) && vkb.active
+                    opacity: ((util.keyboardMode == Util.KeyboardFade) && vkb.active) ? 0.8
+                                                                                      : 0.0
                 }
 
                 Keyboard {
                     id: vkb
 
+                    property bool active
                     property bool visibleSetting: true
 
                     y: parent.height-vkb.height
                     visible: textrender.activeFocus && visibleSetting
 
-                    opacity: (util.keyboardMode == Util.KeyboardFade && vkb.active) ? 0.6
-                                                                                    : 0.3
+                    opacity: vkb.active ? 0.7 : 0.3
                     Behavior on opacity {
                         NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
                     }
@@ -388,31 +391,31 @@ Item {
                 {
                     vkb.visibleSetting = true;
                     if(vkb.active) {
-                        var move = textrender.cursorPixelPos().y + textrender.fontHeight/2
-                                + textrender.fontHeight*util.extraLinesFromCursor
+                        var move = textrender.cursorPixelPos().y + textrender.cellSize.height/2
+                                + textrender.cellSize.height * util.extraLinesFromCursor
                         if(move < vkb.y) {
-                            textrender.y = 0;
+                            textrender.contentItem.y = 0;
                             textrender.cutAfter = vkb.y;
                         } else {
-                            textrender.y = 0 - move + vkb.y
+                            textrender.contentItem.y = 0 - move + vkb.y
                             textrender.cutAfter = move;
                         }
                     } else {
                         textrender.cutAfter = textrender.height;
-                        textrender.y = 0;
+                        textrender.contentItem.y = 0;
                     }
                 }
                 else if (util.keyboardMode == Util.KeyboardFade)
                 {
                     vkb.visibleSetting = true;
                     textrender.cutAfter = textrender.height;
-                    textrender.y = 0;
+                    textrender.contentItem.y = 0;
                 }
                 else // "off" (vkb disabled)
                 {
                     vkb.visibleSetting = false;
                     textrender.cutAfter = textrender.height;
-                    textrender.y = 0;
+                    textrender.contentItem.y = 0;
                 }
             }
 
@@ -420,8 +423,8 @@ Item {
             {
                 lineView.lines = textrender.printableLinesFromCursor(util.extraLinesFromCursor);
                 lineView.cursorX = textrender.cursorPixelPos().x;
-                lineView.cursorWidth = textrender.cursorPixelSize().width;
-                lineView.cursorHeight = textrender.cursorPixelSize().height;
+                lineView.cursorWidth = textrender.cellSize.width;
+                lineView.cursorHeight = textrender.cellSize.height;
                 setTextRenderAttributes();
             }
 

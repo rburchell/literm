@@ -29,6 +29,7 @@ class TextRender : public QQuickItem
     Q_PROPERTY(DragMode dragMode READ dragMode WRITE setDragMode NOTIFY dragModeChanged)
     Q_PROPERTY(QQuickItem* contentItem READ contentItem WRITE setContentItem NOTIFY contentItemChanged)
     Q_PROPERTY(QFont font READ font WRITE setFont NOTIFY fontChanged)
+    Q_PROPERTY(QSizeF cellSize READ cellSize NOTIFY cellSizeChanged)
     Q_PROPERTY(bool showBufferScrollIndicator READ showBufferScrollIndicator WRITE setShowBufferScrollIndicator NOTIFY showBufferScrollIndicatorChanged)
     Q_PROPERTY(bool allowGestures READ allowGestures WRITE setAllowGestures NOTIFY allowGesturesChanged)
     Q_PROPERTY(QQmlComponent* cellDelegate READ cellDelegate WRITE setCellDelegate NOTIFY cellDelegateChanged)
@@ -95,7 +96,7 @@ public:
     void setShowBufferScrollIndicator(bool s) { if(iShowBufferScrollIndicator!=s) { iShowBufferScrollIndicator=s; emit showBufferScrollIndicatorChanged(); } }
 
     Q_INVOKABLE QPointF cursorPixelPos();
-    Q_INVOKABLE QSizeF cursorPixelSize();
+    Q_INVOKABLE QSizeF cellSize();
 
     bool allowGestures();
     void setAllowGestures(bool allow);
@@ -112,6 +113,7 @@ public:
 signals:
     void contentItemChanged();
     void fontChanged();
+    void cellSizeChanged();
     void showBufferScrollIndicatorChanged();
     void allowGesturesChanged();
     void cellDelegateChanged();

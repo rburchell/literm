@@ -12,10 +12,6 @@ enable-feedback {
     DEFINES += HAVE_FEEDBACK
 }
 
-enable-nemonotifications {
-    PKGCONFIG += nemonotifications-qt5
-}
-
 isEmpty(DEFAULT_FONT) {
     mac: DEFAULT_FONT = Monaco
     else: DEFAULT_FONT = monospace

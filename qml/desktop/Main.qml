@@ -160,7 +160,7 @@ Rectangle {
                     id: cursor
                     opacity: 0.5
                     SequentialAnimation {
-                        running: true
+                        running: Qt.application.state == Qt.ApplicationActive
                         loops: Animation.Infinite
                         NumberAnimation {
                             target: cursor
