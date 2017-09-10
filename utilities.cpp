@@ -170,11 +170,11 @@ int Util::uiFontSize()
 
 int Util::fontSize()
 {
-#if defined(MOBILE_BUILD)
-    return settingsValue("ui/fontSize", 11).toInt();
-#else
+#if defined(Q_OS_MAC)
     return settingsValue("ui/fontSize", 14).toInt();
 #endif
+
+    return settingsValue("ui/fontSize", 11).toInt();
 }
 
 void Util::setFontSize(int size)
