@@ -47,7 +47,12 @@ Rectangle {
     property int _animationDuration: 100
 
     // How high to make our tabs?
-    property int _tabHeight: 25
+    property int _tabHeight: tm.height + 10
+    TextMetrics {
+        id: tm
+        text: "Hello, world"
+    }
+
 
     // Constraints for the size a tab can take up
     property int _maxTabWidth: 200
