@@ -803,63 +803,16 @@ void Terminal::ansiSequence(const QString& seq)
         break;
 
     case 'L':  // insert lines
-        if(!extra.isEmpty()) {
-            unhandled=true;
-            break;
-        }
-        if(cursorPos().y() < iMarginTop || cursorPos().y() > iMarginBottom)
-            break;
-        if(params.count()<1)
-            params.append(1);
-        if(params.at(0)==0)
-            params[0]=1;
-        if(params.at(0) > iMarginBottom-cursorPos().y())
-            scrollBack(iMarginBottom-cursorPos().y(), cursorPos().y());
-        else
-            scrollBack(params.at(0), cursorPos().y());
-        setCursorPos(QPoint(1,cursorPos().y()));
+        unhandled = handleIL(params, extra);
         break;
     case 'M':  // delete lines
-        if(!extra.isEmpty()) {
-            unhandled=true;
-            break;
-        }
-        if(cursorPos().y() < iMarginTop || cursorPos().y() > iMarginBottom)
-            break;
-        if(params.count()<1)
-            params.append(1);
-        if(params.at(0)==0)
-            params[0]=1;
-        if(params.at(0) > iMarginBottom-cursorPos().y())
-            scrollFwd(iMarginBottom-cursorPos().y(), cursorPos().y());
-        else
-            scrollFwd(params.at(0), cursorPos().y());
-        setCursorPos(QPoint(1,cursorPos().y()));
+        unhandled = handleDL(params, extra);
         break;
-
     case 'P': // delete characters
-        if(!extra.isEmpty()) {
-            unhandled=true;
-            break;
-        }
-        if(params.count()<1)
-            params.append(1);
-        if(params.at(0)==0)
-            params[0]=1;
-        for(int i=0; i<params.at(0); i++)
-            deleteAt(cursorPos());
+        unhandled = handleDCH(params, extra);
         break;
     case '@': // insert blank characters
-        if(!extra.isEmpty()) {
-            unhandled=true;
-            break;
-        }
-        if(params.count()<1)
-            params.append(1);
-        if(params.at(0)==0)
-            params[0] = 1;
-        for(int i=1; i<=params.at(0); i++)
-            insertAtCursor(zeroChar.c, false, false);
+        unhandled = handleICH(params, extra);
         break;
 
     case 'S':  // scroll up n lines
@@ -1066,6 +1019,80 @@ void Terminal::handleMode(int mode, bool set, const QString &extra)
     } else {
         qDebug() << "Unhandled DEC mode " << mode << set << extra;
     }
+}
+
+bool Terminal::handleIL(const QList<int> &params, const QString &extra)
+{
+    if(!extra.isEmpty()) {
+        return false;
+    }
+    if(cursorPos().y() < iMarginTop || cursorPos().y() > iMarginBottom)
+        return true;
+
+    int p = params.count() < 0 ? 1 : params.at(0);
+    if (p == 0) {
+        p = 1;
+    }
+
+    if(p > iMarginBottom-cursorPos().y())
+        scrollBack(iMarginBottom-cursorPos().y(), cursorPos().y());
+    else
+        scrollBack(p, cursorPos().y());
+    setCursorPos(QPoint(1,cursorPos().y()));
+    return true;
+}
+
+bool Terminal::handleDL(const QList<int> &params, const QString &extra)
+{
+    if(!extra.isEmpty()) {
+        return false;
+    }
+    if(cursorPos().y() < iMarginTop || cursorPos().y() > iMarginBottom)
+        return true;
+
+    int p = params.count() < 0 ? 1 : params.at(0);
+    if (p == 0) {
+        p = 1;
+    }
+
+    if(p > iMarginBottom-cursorPos().y())
+        scrollFwd(iMarginBottom-cursorPos().y(), cursorPos().y());
+    else
+        scrollFwd(p, cursorPos().y());
+    setCursorPos(QPoint(1,cursorPos().y()));
+    return true;
+}
+
+bool Terminal::handleDCH(const QList<int> &params, const QString &extra)
+{
+    if(!extra.isEmpty()) {
+        return false;
+    }
+
+    int p = params.count() < 0 ? 1 : params.at(0);
+    if (p == 0) {
+        p = 1;
+    }
+
+    for(int i=0; i<p; i++)
+        deleteAt(cursorPos());
+    return true;
+}
+
+bool Terminal::handleICH(const QList<int> &params, const QString &extra)
+{
+    if(!extra.isEmpty()) {
+        return false;
+    }
+
+    int p = params.count() < 0 ? 1 : params.at(0);
+    if (p == 0) {
+        p = 1;
+    }
+
+    for(int i=1; i<=p; i++)
+        insertAtCursor(zeroChar.c, false, false);
+    return true;
 }
 
 // Erase in Display (DECSED)
