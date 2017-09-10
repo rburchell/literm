@@ -766,48 +766,14 @@ void Terminal::ansiSequence(const QString& seq)
         else
             setCursorPos(QPoint( params.at(1), params.at(0) ));
         break;
-    case 'J': //erase data
-        if(!extra.isEmpty() && extra!="?") {
-            unhandled=true;
-            break;
-        }
-        if(params.count()>=1 && params.at(0)==1) {
-            eraseLineAtCursor(1,cursorPos().x());
-            for(int i=0; i<cursorPos().y()-1; i++) {
-                buffer()[i].clear();
-            }
-        } else if(params.count()>=1 && params.at(0)==2) {
-            clearAll();
-        } else {
-            eraseLineAtCursor(cursorPos().x());
-            for(int i=cursorPos().y(); i<buffer().size(); i++)
-                buffer()[i].clear();
-        }
+    case 'J':
+        unhandled = handleDECSED(params, extra);
         break;
-    case 'K': //erase in line
-        if(!extra.isEmpty() && extra!="?") {
-            unhandled=true;
-            break;
-        }
-        if(params.count()>=1 && params.at(0)==1) {
-            eraseLineAtCursor(1,cursorPos().x());
-        }
-        else if(params.count()>=1 && params.at(0)==2) {
-            currentLine().clear();
-        } else {
-            eraseLineAtCursor(cursorPos().x());
-        }
+    case 'K':
+        unhandled = handleEL(params, extra);
         break;
-
     case 'X':
-        if(!extra.isEmpty() || (params.count()>1)) {
-            unhandled=true;
-            break;
-        }
-        if (params.count()==0) {
-            params.append(1);
-        }
-        eraseLineAtCursor(cursorPos().x(),cursorPos().x()+(params.at(0)?params.at(0)-1:0));
+        unhandled = handleECH(params, extra);
         break;
 
     case 'I':
@@ -1100,6 +1066,58 @@ void Terminal::handleMode(int mode, bool set, const QString &extra)
     } else {
         qDebug() << "Unhandled DEC mode " << mode << set << extra;
     }
+}
+
+// Erase in Display (DECSED)
+bool Terminal::handleDECSED(const QList<int> &params, const QString &extra)
+{
+    if(!extra.isEmpty() && extra!="?") {
+        return false;
+    }
+
+    if(params.count()>=1 && params.at(0)==1) {
+        eraseLineAtCursor(1,cursorPos().x());
+        for(int i=0; i<cursorPos().y()-1; i++) {
+            buffer()[i].clear();
+        }
+    } else if(params.count()>=1 && params.at(0)==2) {
+        clearAll();
+    } else {
+        eraseLineAtCursor(cursorPos().x());
+        for(int i=cursorPos().y(); i<buffer().size(); i++)
+            buffer()[i].clear();
+    }
+
+    return true;
+}
+
+// Erase in Line (EL)
+bool Terminal::handleEL(const QList<int> &params, const QString &extra)
+{
+    if(!extra.isEmpty() && extra!="?") {
+        return false;
+    }
+    if(params.count()>=1 && params.at(0)==1) {
+        eraseLineAtCursor(1,cursorPos().x());
+    }
+    else if(params.count()>=1 && params.at(0)==2) {
+        currentLine().clear();
+    } else {
+        eraseLineAtCursor(cursorPos().x());
+    }
+    return true;
+}
+
+// Erase Characters (ECH)
+bool Terminal::handleECH(const QList<int> &params, const QString &extra)
+{
+    if(!extra.isEmpty() || (params.count()>1)) {
+        return false;
+    }
+
+    int p = params.isEmpty() ? 1 : params.at(0);
+    eraseLineAtCursor(cursorPos().x(),cursorPos().x()+(p ? p - 1 : 0));
+    return true;
 }
 
 void Terminal::handleSGR(const QList<int> &params, const QString &extra)

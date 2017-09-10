@@ -174,6 +174,9 @@ private:
     void clearAll(bool wholeBuffer=false);
     void ansiSequence(const QString& seq);
     void handleMode(int mode, bool set, const QString &extra);
+    bool handleDECSED(const QList<int> &params, const QString &extra);
+    bool handleEL(const QList<int> &params, const QString &extra);
+    bool handleECH(const QList<int> &params, const QString &extra);
     void handleSGR(const QList<int> &params, const QString &extra);
     void oscSequence(const QString& seq);
     void escControlChar(const QString& seq);
