@@ -235,13 +235,13 @@ Rectangle {
         }
 
         Shortcut {
-            sequence: "Ctrl+C"
+            sequence: Qt.platform.os == "osx" ? "Ctrl+C" : "Ctrl+Shift+C"
             onActivated: {
                 tabView.activeTabItem.copy();
             }
         }
         Shortcut {
-            sequence: "Ctrl+V"
+            sequence: Qt.platform.os == "osx" ? "Ctrl+C" : "Ctrl+Shift+V"
             onActivated: {
                 if (tabView.activeTabItem.canPaste)
                     tabView.activeTabItem.paste();
@@ -320,13 +320,13 @@ Rectangle {
             }
         }
         Shortcut {
-            sequence: "Ctrl+T"
+            sequence: Qt.platform.os == "osx" ? "Ctrl+T" : "Ctrl+Shift+T"
             onActivated: {
                 tabView.createTab();
             }
         }
         Shortcut {
-            sequence: "Ctrl+W"
+            sequence: Qt.platform.os == "osx" ? "Ctrl+W" : "Ctrl+Shift+W"
             onActivated: {
                 tabView.closeTab(tabView.activeTabItem)
             }
