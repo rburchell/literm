@@ -55,16 +55,18 @@ Rectangle {
 
 
     // Constraints for the size a tab can take up
-    property int _maxTabWidth: 200
+    property int _maxTabWidth: (width / _minVisibleTabs)
     property real _minTabWidth: (width / _maxVisibleTabs) // real is deliberate, otherwise loss of precision stacks up
 
     // How many tabs can appear in the bar before we begin to abbreviate?
-    property int _maxVisibleTabs: 8
+    readonly property int _maxVisibleTabs: 8
+    readonly property int _minVisibleTabs: 2
 
     // Current size all tabs should be (evaluated here, so it's only calculated
     // once).
     property real _currentTabWidth: Math.max(tabBar._minTabWidth, Math.min(tabBar._maxTabWidth, tabBar.width / tabBar.tabCount))
     Behavior on _currentTabWidth {
+        // ### ideally, we disable the animation when processing a window // resize..
         NumberAnimation {
             duration: tabBar._animationDuration
         }
