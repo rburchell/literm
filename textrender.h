@@ -96,7 +96,7 @@ public:
     void setShowBufferScrollIndicator(bool s) { if(iShowBufferScrollIndicator!=s) { iShowBufferScrollIndicator=s; emit showBufferScrollIndicatorChanged(); } }
 
     Q_INVOKABLE QPointF cursorPixelPos();
-    Q_INVOKABLE QSizeF cellSize();
+    QSizeF cellSize();
 
     bool allowGestures();
     void setAllowGestures(bool allow);
@@ -141,10 +141,12 @@ signals:
 
 public slots:
     void redraw();
+    void mousePress(float eventX, float eventY);
+    void mouseMove(float eventX, float eventY);
+    void mouseRelease(float eventX, float eventY);
 
 protected:
     void updatePolish() override;
-    bool childMouseEventFilter(QQuickItem *item,  QEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
