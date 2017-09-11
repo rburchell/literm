@@ -67,9 +67,11 @@ Terminal::Terminal(QObject *parent)
     , iShowCursor(true)
     , iUseAltScreenBuffer(false)
     , iAppCursorKeys(false)
+    , iReplaceMode(false)
+    , iNewLineMode(false)
+    , iBackBufferScrollPos(0)
     , m_dispatch_timer(0)
 {
-
     //normal
     iColorTable.append(QColor(0, 0, 0).rgb());
     iColorTable.append(QColor(210, 0, 0).rgb());
