@@ -55,6 +55,7 @@
 
 TextRender::TextRender(QQuickItem *parent)
     : QQuickItem(parent)
+    , m_activeClick(false)
     , iAllowGestures(true)
     , m_contentItem(0)
     , m_backgroundContainer(0)
@@ -625,6 +626,8 @@ void TextRender::mousePress(float eventX, float eventY)
     if (!allowGestures())
         return;
 
+    m_activeClick = true;
+
     dragOrigin = QPointF(eventX, eventY);
 
     if (m_dragMode == DragSelect) {
@@ -641,7 +644,7 @@ void TextRender::mouseMoveEvent(QMouseEvent *event)
 
 void TextRender::mouseMove(float eventX, float eventY)
 {
-    if (!allowGestures())
+    if (!allowGestures() || !m_activeClick)
         return;
 
     QPointF eventPos(eventX, eventY);
@@ -663,7 +666,7 @@ void TextRender::mouseReleaseEvent(QMouseEvent *event)
 
 void TextRender::mouseRelease(float eventX, float eventY)
 {
-    if (!allowGestures())
+    if (!allowGestures() || !m_activeClick)
         return;
 
     QPointF eventPos(eventX, eventY);
@@ -759,6 +762,10 @@ void TextRender::setAllowGestures(bool allow)
     if (iAllowGestures != allow) {
         iAllowGestures = allow;
         emit allowGesturesChanged();
+    }
+
+    if (!allow) {
+        m_activeClick = false;
     }
 }
 

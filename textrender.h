@@ -188,6 +188,7 @@ private:
     QQuickItem *fetchFreeCellContent();
 
     QPointF dragOrigin;
+    bool m_activeClick;
 
     QFont iFont;
     qreal iFontWidth;
