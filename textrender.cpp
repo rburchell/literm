@@ -828,6 +828,7 @@ void TextRender::setCursorDelegate(QQmlComponent *component)
     m_cursorDelegate = component;
 
     emit cursorDelegateChanged();
+    polish();
 }
 
 QQmlComponent *TextRender::selectionDelegate() const
@@ -850,6 +851,7 @@ void TextRender::setSelectionDelegate(QQmlComponent *component)
     m_selectionDelegate = component;
 
     emit selectionDelegateChanged();
+    polish();
 }
 
 int TextRender::contentHeight() const
