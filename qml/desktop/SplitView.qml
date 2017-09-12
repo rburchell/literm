@@ -34,37 +34,45 @@ FocusScope {
             property bool isHorizontal: true
             property int childCount: children.length
 
-            property real widthRatio: 1.0
-            property real heightRatio: 1.0
+            property real splitRatio: 1.0
 
             function layout() {
+                // Calculate the sum of child ratios, and sum margin from splitter size
+                var sumRatio = 0, sumMargin = 0
+                for (var i = 0; i < childCount; i++) {
+                    var kid = children[i]
+                    if (kid.hasOwnProperty("isSplitter")) {
+                        sumMargin += 10
+                    } else {
+                        sumRatio += kid.splitRatio
+                    }
+                }
+
                 var cpos = 0
                 for (var i = 0; i < childCount; ++i) {
                     var kid = children[i]
 
                     if (kid.hasOwnProperty("isSplitter")) {
-                        if (isHorizontal) {
-                            kid.width = 10
-                            kid.height = height
-                        } else {
-                            kid.height = 10
-                            kid.width = width
-                        }
-                        if (isHorizontal) {
-                            kid.x = cpos - kid.width / 2
-                            kid.y = 0
-                        } else {
-                            kid.x = 0
-                            kid.y = cpos - kid.height / 2
-                        }
+                        kid.width = isHorizontal ? 10 : width
+                        kid.height = isHorizontal ? height : 10
+                        kid.x = isHorizontal ? cpos : 0
+                        kid.y = isHorizontal ? 0 : cpos
+                        cpos += 10
                     } else {
-                        kid.width = width * kid.widthRatio
-                        kid.height = height * kid.heightRatio
+                        // Ratio defines how much space a child should receive relative to its
+                        // siblings, with 1.0 being an even split. Specifically, each child
+                        // gets (childRatio/sumRatio) of the available space, which excludes
+                        // splitters (sumMargin).
+
                         if (isHorizontal) {
-                            kid.x = cpos 
-                            cpos += kid.width
+                            kid.width = (kid.splitRatio/sumRatio) * (width-sumMargin)
+                            kid.height = height
+                            kid.x = cpos
                             kid.y = 0
+                            cpos += kid.width
                         } else {
+                            kid.width = width
+                            kid.height = (kid.splitRatio/sumRatio) * (height-sumMargin)
                             kid.x = 0
                             kid.y = cpos
                             cpos += kid.height
@@ -146,11 +154,8 @@ FocusScope {
             var newSplit = splitView.createObject(parentSplit, { 'isHorizontal': horizontal })
             parentBack(parentSplit, tmp)
 
-            newSplit.widthRatio = item.widthRatio
-            newSplit.heightRatio = item.heightRatio
-
-            item.widthRatio = 1.0
-            item.heightRatio = 1.0
+            newSplit.splitRatio = item.splitRatio
+            item.splitRatio = 1.0
 
             item.parent = newSplit
             parentSplit.layout()
@@ -160,17 +165,10 @@ FocusScope {
         var wrapper = item.parent
         var tmp = reparentIntoEther(wrapper, item)
 
-        // Halve the current size
-        if (horizontal) {
-            item.widthRatio /= 2
-        } else {
-            item.heightRatio /= 2
-        }
-
         splitter.createObject(parentSplit)
         var sibling = delegate.createObject(parentSplit)
-        sibling.widthRatio = item.widthRatio
-        sibling.heightRatio = item.heightRatio
+        // New sibling uses the same proportion of space as the item it's splitting
+        sibling.splitRatio = item.splitRatio
 
         parentBack(wrapper, tmp)
 
@@ -200,9 +198,6 @@ FocusScope {
 
         for (var i = 0; i < layout.children.length; ++i) {
             if (layout.children[i] == item) {
-                var oldW = item.widthRatio
-                var oldH = item.heightRatio
-
                 // First let's destroy the right splitter.
                 if (i == 0) {
                     // If we remove the first item, we must remove the first splitter.
@@ -224,17 +219,9 @@ FocusScope {
 
                 if (layout.children.length > 1) {
                     // If > 1, then there must be at least two items (and a
-                    // splitter) left in this layout.
-                    //
-                    // Find the next item, and increase its size.
-                    var nextChild = layout.children[i]
-                    if (layout.isHorizontal) {
-                        nextChild.widthRatio += oldW
-                    } else {
-                        nextChild.heightRatio += oldH
-                    }
+                    // splitter) left in this layout. Trigger a layout.
                     layout.layout()
-                    return nextChild
+                    return layout.children[i]
                 } else {
                     // If it wasn't on the other hand, then the layout has a
                     // single child left in it. Remove the layout, demoting the
@@ -245,8 +232,7 @@ FocusScope {
                     // intact.
                     if (layout == rootItem) {
                         var item = layout.children[0]
-                        item.widthRatio = layout.widthRatio
-                        item.heightRatio = layout.heightRatio
+                        item.splitRatio = 1.0
                         layout.layout()
                         return item
                     } else {
@@ -258,8 +244,7 @@ FocusScope {
                         var tmp = reparentIntoEther(newLayout, oldLayout)
 
                         item.parent = layout.parent
-                        item.widthRatio = layout.widthRatio
-                        item.heightRatio = layout.heightRatio
+                        item.splitRatio = layout.splitRatio
 
                         parentBack(item.parent, tmp)
 

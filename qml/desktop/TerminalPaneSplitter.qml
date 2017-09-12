@@ -52,15 +52,9 @@ Rectangle {
             var deltaY = pressY - mouse.y
 
             var layout = parent.parent
-            if (layout.isHorizontal) {
-                var ratioDelta = (deltaX / layout.width)
-                layout.children[childIndexBefore].widthRatio += -ratioDelta
-                layout.children[childIndexAfter].widthRatio += ratioDelta
-            } else {
-                var ratioDelta = (deltaY / layout.height)
-                layout.children[childIndexBefore].heightRatio += -ratioDelta
-                layout.children[childIndexAfter].heightRatio += ratioDelta
-            }
+            var ratioDelta = layout.isHorizontal ? (deltaX / layout.width) : (deltaY / layout.height)
+            layout.children[childIndexBefore].splitRatio += -ratioDelta
+            layout.children[childIndexAfter].splitRatio += ratioDelta
 
             layout.layout()
         }
