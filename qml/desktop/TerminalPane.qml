@@ -26,8 +26,7 @@ TextRender {
 
     opacity: activeItem == this ? 1.0 : 0.5
 
-    property real widthRatio: 1.0
-    property real heightRatio: 1.0
+    property real splitRatio: 1.0
 
     onWidthChanged: console.log("w", width)
     onHeightChanged: console.log("h", height)
