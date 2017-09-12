@@ -208,7 +208,7 @@ Item {
                 width: parent.width
                 font.family: util.fontFamily
                 font.pointSize: util.fontSize
-                allowGestures: !vkb.active && !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
+                allowGestures: !vkb.active
 
                 onCutAfterChanged: {
                     // this property is used in the paint function, so make sure that the element gets
@@ -358,7 +358,6 @@ Item {
 
             MenuLiterm {
                 id: menu
-                anchors.fill: parent
             }
 
             Text {

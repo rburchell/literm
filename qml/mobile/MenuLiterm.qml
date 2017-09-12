@@ -24,6 +24,7 @@ Item {
 
     property bool showing
 
+    anchors.fill: parent
     visible: rect.x < menuWin.width
 
     Rectangle {
