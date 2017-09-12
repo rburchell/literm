@@ -177,11 +177,14 @@ FocusScope {
     }
 
     property Item activeItem
+    onActiveItemChanged: {
+        activeItem.forceActiveFocus()
+    }
+
     Shortcut {
         sequence: "Ctrl+D"
         onActivated: {
             activeItem = split(activeItem, true)
-            activeItem.forceActiveFocus()
         }
     }
 
@@ -192,6 +195,73 @@ FocusScope {
         }
     }
 
+    Shortcut {
+        sequence: "Ctrl+["
+        onActivated: {
+            setActiveItem(adjacentItem(activeItem, -1, 0))
+        }
+    }
+
+    Shortcut {
+        sequence: "Ctrl+]"
+        onActivated: {
+            setActiveItem(adjacentItem(activeItem, 1, 0))
+        }
+    }
+
+    // XXX These need better keyboard shortcuts.
+    Shortcut {
+        sequence: "Ctrl+Shift+\\"
+        onActivated: {
+            setActiveItem(adjacentItem(activeItem, 0, -1))
+        }
+    }
+
+    Shortcut {
+        sequence: "Ctrl+\\"
+        onActivated: {
+            setActiveItem(adjacentItem(activeItem, 0, 1))
+        }
+    }
+
+    function adjacentItem(item, lookX, lookY) {
+        var layout = item.parent
+
+        // Look 15 pixels from the edge in the direction specified
+        var xEdge = item.x + (lookX > 0 ? item.width : 0) + (lookX*15)
+        var yEdge = item.y + (lookY > 0 ? item.height : 0) + (lookY*15)
+
+        if (xEdge < 0 || xEdge >= layout.width ||
+            yEdge < 0 || yEdge >= layout.height) {
+            if (layout === rootItem) {
+                return null
+            }
+            return adjacentItem(layout, lookX, lookY)
+        }
+
+        var child = layout.childAt(xEdge, yEdge)
+        if (child == null) {
+            return
+        }
+
+        if (child.hasOwnProperty('isSplitter')) {
+            // Hit a splitter, look further in the same direction
+            return adjacentItem(item, lookX*2, lookY*2)
+        }
+
+        return child
+    }
+
+    function setActiveItem(item) {
+        if (item == null) {
+            return
+        }
+        while (item.hasOwnProperty('isSplitView')) {
+            // XXX Should make these remember the last focused child, maybe FocusScope?
+            item = item.children[item.children.length-1]
+        }
+        activeItem = item
+    }
 
     function removeAndDestroyItem(item) {
         var layout = item.parent
