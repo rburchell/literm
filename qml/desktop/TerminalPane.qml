@@ -49,8 +49,7 @@ TextRender {
     }
 
     onDisplayBufferChanged: {
-        textrender.cutAfter = textrender.height;
-        textrender.y = 0;
+        textrender.cutAfter = textrender.height
     }
     charset: util.charset
     terminalCommand: util.terminalCommand
