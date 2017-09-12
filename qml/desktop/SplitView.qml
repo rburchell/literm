@@ -177,11 +177,14 @@ FocusScope {
     }
 
     property Item activeItem
+    onActiveItemChanged: {
+        activeItem.forceActiveFocus()
+    }
+
     Shortcut {
         sequence: "Ctrl+D"
         onActivated: {
             activeItem = split(activeItem, true)
-            activeItem.forceActiveFocus()
         }
     }
 
@@ -191,7 +194,6 @@ FocusScope {
             activeItem = split(activeItem, false)
         }
     }
-
 
     function removeAndDestroyItem(item) {
         var layout = item.parent
