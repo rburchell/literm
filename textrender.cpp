@@ -55,6 +55,7 @@
 
 TextRender::TextRender(QQuickItem *parent)
     : QQuickItem(parent)
+    , m_activeClick(false)
     , iAllowGestures(true)
     , m_contentItem(0)
     , m_backgroundContainer(0)
@@ -72,7 +73,6 @@ TextRender::TextRender(QQuickItem *parent)
     , m_dispatch_timer(0)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
-    setFiltersChildMouseEvents(true);
     setCursor(Qt::IBeamCursor);
 
     connect(QGuiApplication::clipboard(), SIGNAL(dataChanged()), this, SIGNAL(clipboardChanged()));
@@ -614,40 +614,20 @@ void TextRender::timerEvent(QTimerEvent *)
     polish();
 }
 
-bool TextRender::childMouseEventFilter(QQuickItem *item, QEvent *event)
+void TextRender::mousePressEvent(QMouseEvent *event)
 {
-    QMouseEvent *mev = static_cast<QMouseEvent*>(event);
-
-    switch (event->type()) {
-    case QEvent::MouseButtonPress: {
-        QMouseEvent cp(mev->type(), mapFromItem(item, mev->localPos()), mev->windowPos(), mev->screenPos(), mev->button(), mev->buttons(), mev->modifiers(), mev->source());
-        mousePressEvent(&cp);
-        break;
-    }
-    case QEvent::MouseButtonRelease: {
-        QMouseEvent cp(mev->type(), mapFromItem(item, mev->localPos()), mev->windowPos(), mev->screenPos(), mev->button(), mev->buttons(), mev->modifiers(), mev->source());
-        mouseReleaseEvent(&cp);
-        break;
-    }
-    case QEvent::MouseMove: {
-        QMouseEvent cp(mev->type(), mapFromItem(item, mev->localPos()), mev->windowPos(), mev->screenPos(), mev->button(), mev->buttons(), mev->modifiers(), mev->source());
-        mouseMoveEvent(&cp);
-        break;
-    }
-    default:
-        break;
-    }
-
-    return false;
+    qreal eventX = event->localPos().x();
+    qreal eventY = event->localPos().y();
+    mousePress(eventX, eventY);
 }
 
-void TextRender::mousePressEvent(QMouseEvent *event)
+void TextRender::mousePress(float eventX, float eventY)
 {
     if (!allowGestures())
         return;
 
-    qreal eventX = event->localPos().x();
-    qreal eventY = event->localPos().y();
+    m_activeClick = true;
+
     dragOrigin = QPointF(eventX, eventY);
 
     if (m_dragMode == DragSelect) {
@@ -659,10 +639,15 @@ void TextRender::mouseMoveEvent(QMouseEvent *event)
 {
     qreal eventX = event->localPos().x();
     qreal eventY = event->localPos().y();
-    QPointF eventPos(eventX, eventY);
+    mouseMove(eventX, eventY);
+}
 
-    if (!allowGestures())
+void TextRender::mouseMove(float eventX, float eventY)
+{
+    if (!allowGestures() || !m_activeClick)
         return;
+
+    QPointF eventPos(eventX, eventY);
 
     if(m_dragMode == DragScroll) {
         dragOrigin = scrollBackBuffer(eventPos, dragOrigin);
@@ -676,11 +661,16 @@ void TextRender::mouseReleaseEvent(QMouseEvent *event)
 {
     qreal eventX = event->localPos().x();
     qreal eventY = event->localPos().y();
+    mouseRelease(eventX, eventY);
+}
+
+void TextRender::mouseRelease(float eventX, float eventY)
+{
+    if (!allowGestures() || !m_activeClick)
+        return;
+
     QPointF eventPos(eventX, eventY);
     const int reqDragLength = 140;
-
-    if (!allowGestures())
-        return;
 
     if(m_dragMode == DragGestures) {
         int xdist = qAbs(eventPos.x() - dragOrigin.x());
@@ -773,6 +763,10 @@ void TextRender::setAllowGestures(bool allow)
         iAllowGestures = allow;
         emit allowGesturesChanged();
     }
+
+    if (!allow) {
+        m_activeClick = false;
+    }
 }
 
 QQmlComponent *TextRender::cellDelegate() const
@@ -828,6 +822,7 @@ void TextRender::setCursorDelegate(QQmlComponent *component)
     m_cursorDelegate = component;
 
     emit cursorDelegateChanged();
+    polish();
 }
 
 QQmlComponent *TextRender::selectionDelegate() const
@@ -850,6 +845,7 @@ void TextRender::setSelectionDelegate(QQmlComponent *component)
     m_selectionDelegate = component;
 
     emit selectionDelegateChanged();
+    polish();
 }
 
 int TextRender::contentHeight() const

@@ -208,7 +208,7 @@ Item {
                 width: parent.width
                 font.family: util.fontFamily
                 font.pointSize: util.fontSize
-                allowGestures: !vkb.active && !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
+                allowGestures: !vkb.active
 
                 onCutAfterChanged: {
                     // this property is used in the paint function, so make sure that the element gets
@@ -220,20 +220,89 @@ Item {
                     id: lineView
                     opacity: ((util.keyboardMode == Util.KeyboardFade) && vkb.active) ? 0.8
                                                                                       : 0.0
+                    cursorWidth: textrender.cellSize.width
+                    cursorHeight: textrender.cellSize.height
                 }
 
                 Keyboard {
                     id: vkb
 
                     property bool active
-                    property bool visibleSetting: true
+                    property bool keyboardEnabled: (util.keyboardMode == Util.KeyboardMove)
+                                                    || (util.keyboardMode == Util.KeyboardFade)
 
-                    y: parent.height-vkb.height
-                    visible: textrender.activeFocus && visibleSetting
+                    y: parent.height - vkb.height
+                    visible: keyboardEnabled
 
                     opacity: vkb.active ? 0.7 : 0.3
                     Behavior on opacity {
                         NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
+                    }
+                }
+
+                // area to handle keyboard usage
+                MultiPointTouchArea {
+                    id: multiTouchArea
+
+                    anchors.fill: parent
+
+                    property int firstTouchId: -1
+                    property var pressedKeys: ({})
+
+                    onPressed: {
+                        touchPoints.forEach(function (touchPoint) {
+                            if (multiTouchArea.firstTouchId == -1) {
+                                multiTouchArea.firstTouchId = touchPoint.pointId
+                                //gestures c++ handler
+                                textrender.mousePress(touchPoint.x, touchPoint.y)
+                            }
+                            var key = vkb.keyAt(touchPoint.x, touchPoint.y)
+                            if (key != null) {
+                                key.handlePress(multiTouchArea, touchPoint.x, touchPoint.y)
+                            }
+                            multiTouchArea.pressedKeys[touchPoint.pointId] = key
+                        })
+                    }
+                    onUpdated: {
+                        touchPoints.forEach(function (touchPoint) {
+                            if (multiTouchArea.firstTouchId == touchPoint.pointId) {
+                                //gestures c++ handler
+                                textrender.mouseMove(touchPoint.x, touchPoint.y);
+                            }
+                            var key = multiTouchArea.pressedKeys[touchPoint.pointId]
+                            if (key != null) {
+                                if (!key.handleMove(multiTouchArea, touchPoint.x, touchPoint.y)) {
+                                    delete multiTouchArea.pressedKeys[touchPoint.pointId];
+                                }
+                            }
+                        })
+                    }
+                    onReleased: {
+                        touchPoints.forEach(function (touchPoint) {
+                            if (multiTouchArea.firstTouchId == touchPoint.pointId) {
+                                // Toggle keyboard wake-up when tapping outside the keyboard, but:
+                                //   - only when not scrolling (y-diff < 20 pixels)
+                                //   - not in select mode, as it would be hard to select text
+                                if (touchPoint.y < vkb.y && touchPoint.startY < vkb.y &&
+                                        Math.abs(touchPoint.y - touchPoint.startY) < 20 &&
+                                        util.dragMode !== Util.DragSelect) {
+                                    if (vkb.active) {
+                                        window.sleepVKB()
+                                    } else {
+                                        window.wakeVKB()
+                                    }
+                                }
+
+                                //gestures c++ handler
+                                textrender.mouseRelease(touchPoint.x, touchPoint.y)
+                                multiTouchArea.firstTouchId = -1
+                            }
+                            var key = multiTouchArea.pressedKeys[touchPoint.pointId]
+                            if (key != null) {
+                                key.handleRelease(multiTouchArea, touchPoint.x, touchPoint.y)
+                            }
+                            delete multiTouchArea.pressedKeys[touchPoint.pointId]
+                        })
                     }
                 }
             }
@@ -292,7 +361,6 @@ Item {
 
             MenuLiterm {
                 id: menu
-                anchors.fill: parent
             }
 
             Text {
@@ -369,7 +437,7 @@ Item {
 
             function wakeVKB()
             {
-                if(!vkb.visibleSetting)
+                if (!vkb.keyboardEnabled)
                     return;
 
                 textrender.duration = window.fadeOutTime;
@@ -387,35 +455,19 @@ Item {
 
             function setTextRenderAttributes()
             {
-                if (util.keyboardMode == Util.KeyboardMove)
-                {
-                    vkb.visibleSetting = true;
-                    if(vkb.active) {
-                        var move = textrender.cursorPixelPos().y + textrender.cellSize.height/2
-                                + textrender.cellSize.height * util.extraLinesFromCursor
-                        if(move < vkb.y) {
-                            textrender.contentItem.y = 0;
-                            textrender.cutAfter = vkb.y;
-                        } else {
-                            textrender.contentItem.y = 0 - move + vkb.y
-                            textrender.cutAfter = move;
-                        }
+                if (util.keyboardMode == Util.KeyboardMove && vkb.active) {
+                    var move = textrender.cursorPixelPos().y
+                            + textrender.cellSize.height * (util.extraLinesFromCursor + 0.5)
+                    if (move < vkb.y) {
+                        textrender.contentItem.y = 0
+                        textrender.cutAfter = vkb.y
                     } else {
-                        textrender.cutAfter = textrender.height;
-                        textrender.contentItem.y = 0;
+                        textrender.contentItem.y = 0 - move + vkb.y
+                        textrender.cutAfter = move
                     }
-                }
-                else if (util.keyboardMode == Util.KeyboardFade)
-                {
-                    vkb.visibleSetting = true;
-                    textrender.cutAfter = textrender.height;
-                    textrender.contentItem.y = 0;
-                }
-                else // "off" (vkb disabled)
-                {
-                    vkb.visibleSetting = false;
-                    textrender.cutAfter = textrender.height;
-                    textrender.contentItem.y = 0;
+                } else {
+                    textrender.cutAfter = textrender.height
+                    textrender.contentItem.y = 0
                 }
             }
 
@@ -423,8 +475,6 @@ Item {
             {
                 lineView.lines = textrender.printableLinesFromCursor(util.extraLinesFromCursor);
                 lineView.cursorX = textrender.cursorPixelPos().x;
-                lineView.cursorWidth = textrender.cellSize.width;
-                lineView.cursorHeight = textrender.cellSize.height;
                 setTextRenderAttributes();
             }
 
