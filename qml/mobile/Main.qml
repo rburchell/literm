@@ -220,16 +220,19 @@ Item {
                     id: lineView
                     opacity: ((util.keyboardMode == Util.KeyboardFade) && vkb.active) ? 0.8
                                                                                       : 0.0
+                    cursorWidth: textrender.cellSize.width
+                    cursorHeight: textrender.cellSize.height
                 }
 
                 Keyboard {
                     id: vkb
 
                     property bool active
-                    property bool visibleSetting: true
+                    property bool keyboardEnabled: (util.keyboardMode == Util.KeyboardMove)
+                                                    || (util.keyboardMode == Util.KeyboardFade)
 
                     y: parent.height - vkb.height
-                    visible: textrender.activeFocus && visibleSetting
+                    visible: keyboardEnabled
 
                     opacity: vkb.active ? 0.7 : 0.3
                     Behavior on opacity {
@@ -434,7 +437,7 @@ Item {
 
             function wakeVKB()
             {
-                if(!vkb.visibleSetting)
+                if (!vkb.keyboardEnabled)
                     return;
 
                 textrender.duration = window.fadeOutTime;
@@ -452,35 +455,19 @@ Item {
 
             function setTextRenderAttributes()
             {
-                if (util.keyboardMode == Util.KeyboardMove)
-                {
-                    vkb.visibleSetting = true;
-                    if(vkb.active) {
-                        var move = textrender.cursorPixelPos().y + textrender.cellSize.height/2
-                                + textrender.cellSize.height * util.extraLinesFromCursor
-                        if(move < vkb.y) {
-                            textrender.contentItem.y = 0;
-                            textrender.cutAfter = vkb.y;
-                        } else {
-                            textrender.contentItem.y = 0 - move + vkb.y
-                            textrender.cutAfter = move;
-                        }
+                if (util.keyboardMode == Util.KeyboardMove && vkb.active) {
+                    var move = textrender.cursorPixelPos().y
+                            + textrender.cellSize.height * (util.extraLinesFromCursor + 0.5)
+                    if (move < vkb.y) {
+                        textrender.contentItem.y = 0
+                        textrender.cutAfter = vkb.y
                     } else {
-                        textrender.cutAfter = textrender.height;
-                        textrender.contentItem.y = 0;
+                        textrender.contentItem.y = 0 - move + vkb.y
+                        textrender.cutAfter = move
                     }
-                }
-                else if (util.keyboardMode == Util.KeyboardFade)
-                {
-                    vkb.visibleSetting = true;
-                    textrender.cutAfter = textrender.height;
-                    textrender.contentItem.y = 0;
-                }
-                else // "off" (vkb disabled)
-                {
-                    vkb.visibleSetting = false;
-                    textrender.cutAfter = textrender.height;
-                    textrender.contentItem.y = 0;
+                } else {
+                    textrender.cutAfter = textrender.height
+                    textrender.contentItem.y = 0
                 }
             }
 
@@ -488,8 +475,6 @@ Item {
             {
                 lineView.lines = textrender.printableLinesFromCursor(util.extraLinesFromCursor);
                 lineView.cursorX = textrender.cursorPixelPos().x;
-                lineView.cursorWidth = textrender.cellSize.width;
-                lineView.cursorHeight = textrender.cellSize.height;
                 setTextRenderAttributes();
             }
 
