@@ -72,6 +72,8 @@ Terminal::Terminal(QObject *parent)
     , iBackBufferScrollPos(0)
     , m_dispatch_timer(0)
 {
+    iColorTable.reserve(256);
+
     //normal
     iColorTable.append(QColor(0, 0, 0).rgb());
     iColorTable.append(QColor(210, 0, 0).rgb());
@@ -93,18 +95,20 @@ Terminal::Terminal(QObject *parent)
     iColorTable.append(QColor(255, 255, 255).rgb());
 
     //colour cube
-    for (int r = 0x00; r < 0x100; r += 0x33)
-        for (int g = 0x00; g < 0x100; g += 0x33)
-            for (int b = 0x00; b < 0x100; b += 0x33)
+    for (int r = 0x00; r < 0x100; ) {
+        for (int g = 0x00; g < 0x100; ) {
+            for (int b = 0x00; b < 0x100; ) {
                 iColorTable.append(QColor(r, g, b).rgb());
+                b += b ? 0x28 : 0x5f;
+            }
+            g += g ? 0x28 : 0x5f;
+        }
+        r += r ? 0x28 : 0x5f;
+    }
 
     //greyscale ramp
-    int ramp[] = {
-          0,  11,  22,  33,  44,  55,  66,  77,  88,  99, 110, 121,
-        133, 144, 155, 166, 177, 188, 199, 210, 221, 232, 243, 255
-    };
-    for (int i = 0; i < 24; i++)
-        iColorTable.append(QColor(ramp[i], ramp[i], ramp[i]).rgb());
+    for (int i = 0, g = 8; i < 24; i++, g += 10)
+        iColorTable.append(QColor(g, g, g).rgb());
 
     if(iColorTable.size() != 256)
         qFatal("invalid color table");
@@ -269,7 +273,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
     QString toWrite;
 
     if (key > 0xFFFF) {
-        int modcode = (modifiers & Qt::ShiftModifier ? 1 : 0) | 
+        int modcode = (modifiers & Qt::ShiftModifier ? 1 : 0) |
                       (modifiers & Qt::AltModifier ? 2 : 0) |
                       (modifiers & MyControlModifier? 4 : 0);
 
@@ -302,7 +306,7 @@ void Terminal::keyPress(int key, int modifiers, const QString& text)
             if( key==Qt::Key_F10 ) fmt = "%1[21~";
             if( key==Qt::Key_F11 ) fmt = "%1[23~";
             if( key==Qt::Key_F12 ) fmt = "%1[24~";
-            
+
             if (!fmt.isEmpty())
                 toWrite += fmt.arg('\e');
 
@@ -1272,7 +1276,8 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
             if(params[pidx] == 5 && params[pidx+1] >= 0 && params[pidx+1] <= 255) {
                 if(p == 38) {
                     int cidx = params[pidx+1];
-                    if (iTermAttribs.currentAttrib & TermChar::BoldAttribute)
+                    // Only apply bold attribute for standard 16-color; 256-color doesn't have bold
+                    if (cidx < 9 && iTermAttribs.currentAttrib & TermChar::BoldAttribute)
                         cidx += 8;
                     iTermAttribs.currentFgColor = iColorTable[cidx];
                 }
