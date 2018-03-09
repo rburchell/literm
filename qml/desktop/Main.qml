@@ -27,6 +27,9 @@ Rectangle {
     height: 960
     color: "#000000"
 
+    // On Mac, Ctrl == Cmd. For Linux and Windows, Alt is more natural I think.
+    property string tabChangeKey: Qt.platform.os == "osx" ? "Ctrl" : "Alt"
+
     property int fontSize: 14*pixelRatio
 
     property int fadeOutTime: 80
@@ -250,70 +253,70 @@ Rectangle {
 
         // hurgh, this is a bit ugly
         Shortcut {
-            sequence: "Ctrl+1"
+            sequence: window.tabChangeKey + "+1"
             onActivated: {
                 if (tabView.count >= 2)
                     tabView.currentIndex = 0 // yes, this is right. 0 indexed.
             }
         }
         Shortcut {
-            sequence: "Ctrl+2"
+            sequence: window.tabChangeKey + "+2"
             onActivated: {
                 if (tabView.count >= 2)
                     tabView.currentIndex = 1 // yes, this is right. 0 indexed.
             }
         }
         Shortcut {
-            sequence: "Ctrl+3"
+            sequence: window.tabChangeKey + "+3"
             onActivated: {
                 if (tabView.count >= 3)
                     tabView.currentIndex = 2 // yes, this is right. 0 indexed.
             }
         }
         Shortcut {
-            sequence: "Ctrl+4"
+            sequence: window.tabChangeKey + "+4"
             onActivated: {
                 if (tabView.count >= 4)
                     tabView.currentIndex = 3 // yes, this is right. 0 indexed.
             }
         }
         Shortcut {
-            sequence: "Ctrl+5"
+            sequence: window.tabChangeKey + "+5"
             onActivated: {
                 if (tabView.count >= 5)
                     tabView.currentIndex = 4 // yes, this is right. 0 indexed.
             }
         }
         Shortcut {
-            sequence: "Ctrl+6"
+            sequence: window.tabChangeKey + "+6"
             onActivated: {
                 if (tabView.count >= 6)
                     tabView.currentIndex = 5 // yes, this is right. 0 indexed.
             }
         }
         Shortcut {
-            sequence: "Ctrl+7"
+            sequence: window.tabChangeKey + "+7"
             onActivated: {
                 if (tabView.count >= 7)
                     tabView.currentIndex = 6 // yes, this is right. 0 indexed.
             }
         }
         Shortcut {
-            sequence: "Ctrl+8"
+            sequence: window.tabChangeKey + "+8"
             onActivated: {
                 if (tabView.count >= 8)
                     tabView.currentIndex = 7 // yes, this is right. 0 indexed.
             }
         }
         Shortcut {
-            sequence: "Ctrl+9"
+            sequence: window.tabChangeKey + "+9"
             onActivated: {
                 if (tabView.count >= 9)
                     tabView.currentIndex = 8 // yes, this is right. 0 indexed.
             }
         }
         Shortcut {
-            sequence: "Ctrl+0"
+            sequence: window.tabChangeKey + "+0"
             onActivated: {
                 if (tabView.count >= 10)
                     tabView.currentIndex = 9 // yes, this is right. 0 indexed.
