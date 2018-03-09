@@ -48,7 +48,7 @@ signals:
     void hangupReceived();
 
 private slots:
-    void doHup();
+    void checkForDeadPids();
 
 private:
     Q_DISABLE_COPY(PtyIFace)
@@ -69,7 +69,7 @@ private:
     QString m_pendingData;
 
     static void sighandler(int sig);
-    static QVector<PtyIFace*> m_ifaces;
+    static std::vector<int> m_deadPids;
     static bool m_initializedSignalHandler;
 };
 

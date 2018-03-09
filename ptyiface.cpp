@@ -17,6 +17,7 @@
 */
 
 #include <QCoreApplication>
+#include <QAbstractEventDispatcher>
 #include <QDebug>
 #include <QTimer>
 
@@ -43,7 +44,7 @@ extern "C" {
 #include "terminal.h"
 #include "ptyiface.h"
 
-QVector<PtyIFace*> PtyIFace::m_ifaces;
+std::vector<int> PtyIFace::m_deadPids;
 bool PtyIFace::m_initializedSignalHandler = false;
 
 void PtyIFace::sighandler(int sig)
@@ -52,25 +53,30 @@ void PtyIFace::sighandler(int sig)
         int pid = wait(NULL);
 
         if(pid > 0) {
-            foreach (PtyIFace *iface, m_ifaces) {
-                if (iface->m_childProcessPid > 0 && pid == iface->m_childProcessPid) {
-                    int status=0;
-                    waitpid(iface->m_childProcessPid, &status, WNOHANG);
-                    iface->m_childProcessQuit = true;
-                    iface->m_childProcessPid = 0;
-
-                    // not a good idea to emit inside a signal handler.
-                    QTimer::singleShot(0, iface, &PtyIFace::doHup);
-                    break;
-                }
-            }
+            // we cannot reallocate in a signal handler, or Bad Things will happen
+            Q_ASSERT(m_deadPids.size() + 1 <= m_deadPids.capacity());
+            m_deadPids.push_back(pid);
         }
     }
 }
 
-void PtyIFace::doHup()
+void PtyIFace::checkForDeadPids()
 {
-    emit hangupReceived();
+    for (size_t i = 0; i < m_deadPids.size(); ++i) {
+        if (m_deadPids.at(i) == m_childProcessPid) {
+            delete iReadNotifier;
+
+            m_deadPids.erase(m_deadPids.begin() + i);
+
+            int status=0;
+            waitpid(m_childProcessPid, &status, WNOHANG);
+            m_childProcessQuit = true;
+            m_childProcessPid = 0;
+
+            emit hangupReceived();
+            return;
+        }
+    }
 }
 
 PtyIFace::PtyIFace(Terminal *term, const QString &charset, const QByteArray &termEnv, const QString &commandOverride, QObject *parent)
@@ -82,7 +88,8 @@ PtyIFace::PtyIFace(Terminal *term, const QString &charset, const QByteArray &ter
     , iReadNotifier(0)
     , iTextCodec(0)
 {
-    m_ifaces.push_back(this);
+    m_deadPids.reserve(m_deadPids.capacity() + 1);
+    connect(qApp->eventDispatcher(), &QAbstractEventDispatcher::awake, this, &PtyIFace::checkForDeadPids);
 
     // fork the child process before creating QGuiApplication
     int socketM;
@@ -168,8 +175,6 @@ PtyIFace::~PtyIFace()
         kill(iPid, SIGHUP);
         kill(iPid, SIGTERM);
     }
-
-    m_ifaces.removeAt(m_ifaces.indexOf(this));
 }
 
 void PtyIFace::readActivated()
