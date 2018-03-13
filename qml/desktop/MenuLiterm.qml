@@ -86,7 +86,6 @@ Item {
             x: parent.width-window.paddingMedium
             y: menuFlickArea.visibleArea.yPosition*menuFlickArea.height + window.scrollBarWidth
             height: menuFlickArea.visibleArea.heightRatio*menuFlickArea.height
-            color: "#202020"
         }
 
         Flickable {

@@ -123,11 +123,13 @@ Rectangle {
                 }
 
                 ScrollDecorator {
-                    color: "#DFDFDF"
                     anchors.right: parent.right
                     anchors.rightMargin: window.paddingMedium
-                    y: ((parent.contentY + (parent.visibleHeight/2)) / parent.contentHeight) * (parent.height - height)
-                    height: (parent.visibleHeight / parent.contentHeight) * parent.height
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    position: ((parent.contentY) / parent.contentHeight)
+                    size: (parent.visibleHeight / parent.contentHeight)
+                    orientation: Qt.Vertical
                     visible: parent.contentHeight > parent.visibleHeight
                 }
 

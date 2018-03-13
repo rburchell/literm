@@ -1,7 +1,12 @@
 import QtQuick 2.0
+import QtQuick.Controls 2.2
 
-Rectangle {
-    width: window.scrollBarWidth
-    radius: 3*window.pixelRatio
+ScrollBar {
+    contentItem: Rectangle {
+        color: "#DFDFDF"
+        implicitWidth: window.scrollBarWidth
+        implicitHeight: 100
+    }
+    enabled: false
 }
 
