@@ -604,6 +604,10 @@ void TextRender::redraw()
     if (m_dispatch_timer)
         return;
 
+    // instantly polish
+    polish();
+
+    // ... but now, wait a while, so we don't constantly re-polish.
     m_dispatch_timer = startTimer(3);
 }
 

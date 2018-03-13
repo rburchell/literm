@@ -153,7 +153,10 @@ void Terminal::onDataAvailable()
     if (m_dispatch_timer)
         return;
 
-    // ### instantly dispatch if there's a lot of data?
+    // instantly dispatch
+    insertInBuffer(m_pty->takeData());
+
+    // ... but now, wait a while, so we don't constantly reupdate.
     m_dispatch_timer = startTimer(3);
 }
 
