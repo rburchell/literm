@@ -220,7 +220,7 @@ QString Util::fontFamily()
 
 TextRender::DragMode Util::dragMode()
 {
-    QString mode = settingsValue("ui/dragMode", "scroll").toString();
+    QString mode = settingsValue("ui/dragMode", DEFAULT_DRAG_MODE).toString();
 
     if (mode == "gestures") {
         return TextRender::DragGestures;

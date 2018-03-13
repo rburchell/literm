@@ -82,3 +82,12 @@ contains(MEEGO_EDITION,nemo) {
 } else {
     DEFINES += DESKTOP_BUILD
 }
+
+contains(DEFINES, MOBILE_BUILD) {
+    DEFAULT_DRAG_MODE = scroll
+} else {
+    DEFAULT_DRAG_MODE = select
+}
+
+DEFINES += DEFAULT_DRAG_MODE=\\\"$$DEFAULT_DRAG_MODE\\\"
+
