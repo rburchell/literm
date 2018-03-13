@@ -15,6 +15,7 @@ enable-feedback {
 isEmpty(DEFAULT_FONT) {
     mac: DEFAULT_FONT = Monaco
     else: DEFAULT_FONT = monospace
+    linux: DEFINES += DETECT_FONT_USING_FC_MATCH
 }
 
 DEFINES += DEFAULT_FONTFAMILY=\\\"$$DEFAULT_FONT\\\"

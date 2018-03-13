@@ -215,7 +215,30 @@ bool Util::visualBellEnabled()
 
 QString Util::fontFamily()
 {
-    return settingsValue("ui/fontFamily", DEFAULT_FONTFAMILY).toString();
+    static QString possibleFontFamily;
+#if defined(DETECT_FONT_USING_FC_MATCH)
+    if (possibleFontFamily.isEmpty()) {
+        QProcess p;
+        p.start("fc-match", QStringList() << "monospace", QIODevice::ReadWrite);
+        p.waitForStarted(500);
+        p.waitForFinished(500);
+        QByteArray fcOutput = p.readAllStandardOutput();
+        if (!fcOutput.isEmpty()) {
+            QList<QByteArray> fcBits = fcOutput.split('\"');
+            if (fcBits.size() == 5) {
+                possibleFontFamily = fcBits[1];
+            } else {
+                qWarning() << "fc-match output didn't return what I expected";
+                possibleFontFamily = DEFAULT_FONTFAMILY;
+            }
+        } else {
+            possibleFontFamily = DEFAULT_FONTFAMILY;
+        }
+    }
+#else
+    possibleFontFamily = DEFAULT_FONTFAMILY;
+#endif
+    return settingsValue("ui/fontFamily", possibleFontFamily).toString();
 }
 
 TextRender::DragMode Util::dragMode()
