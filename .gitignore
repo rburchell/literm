@@ -2,5 +2,6 @@ Makefile
 *.pro.user*
 *.o
 moc_*
-./literm
+/literm
+/apptest/apptest
 qrc_resources.cpp
