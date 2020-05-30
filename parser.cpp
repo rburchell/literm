@@ -123,15 +123,6 @@ bool Parser::handleSGR(Parser::SGRParserState& state, const QList<int> &params, 
     while (pidx < params.count()) {
         int p = params.at(pidx++);
         switch (p) {
-        // Consider supporting:
-        // 2 (faint)
-        // 8 (invisible)
-        // 9 (crossed out -- what is this?)
-        // 21 (double underline)
-        // 22 (normal, not faint)
-        // 28 (visible)
-        // 29 (not crossed out)
-
         case 0:
             state.colours.fg = state.colours.defaultFg;
             state.colours.bg = state.colours.defaultBg;
@@ -139,6 +130,9 @@ bool Parser::handleSGR(Parser::SGRParserState& state, const QList<int> &params, 
             break;
         case 1:
             state.currentAttributes |= Parser::BoldAttribute;
+            break;
+        case 2:
+            // TODO: Faint ("half bright")
             break;
         case 3:
             state.currentAttributes |= Parser::ItalicAttribute;
@@ -149,8 +143,21 @@ bool Parser::handleSGR(Parser::SGRParserState& state, const QList<int> &params, 
         case 5:
             state.currentAttributes |= Parser::BlinkAttribute;
             break;
+        case 6:
+            // This is supposed to be a "fast blink"? what is that?
+            state.currentAttributes |= Parser::BlinkAttribute;
+            break;
         case 7:
             state.currentAttributes |= Parser::NegativeAttribute;
+            break;
+        case 8:
+            // TODO: Invisible..?
+            break;
+        case 9:
+            // TODO: strikethrough
+            break;
+        case 21:
+            // TODO: double underline..?
             break;
         case 22:
             state.currentAttributes &= ~Parser::BoldAttribute;
@@ -164,8 +171,18 @@ bool Parser::handleSGR(Parser::SGRParserState& state, const QList<int> &params, 
         case 25:
             state.currentAttributes &= ~Parser::BlinkAttribute;
             break;
+        case 26:
+            // "fast blink" off...
+            state.currentAttributes &= ~Parser::BlinkAttribute;
+            break;
         case 27:
             state.currentAttributes &= ~Parser::NegativeAttribute;
+            break;
+        case 28:
+            // TODO: visible..?
+            break;
+        case 29:
+            // TODO: !strikethrough
             break;
 
         case 30: // fg black
