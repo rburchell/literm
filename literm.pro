@@ -7,11 +7,6 @@ OBJECTS_DIR = .obj
 
 CONFIG += link_pkgconfig
 
-enable-feedback {
-    QT += feedback
-    DEFINES += HAVE_FEEDBACK
-}
-
 isEmpty(DEFAULT_FONT) {
     mac: DEFAULT_FONT = Monaco
     else: DEFAULT_FONT = monospace
@@ -77,21 +72,9 @@ RESOURCES += \
 target.path = /usr/bin
 INSTALLS += target
 
-contains(MEEGO_EDITION,nemo) {
-    desktopfile.extra = cp $${TARGET}.desktop.nemo $${TARGET}.desktop
-    desktopfile.path = /usr/share/applications
-    desktopfile.files = $${TARGET}.desktop
-    INSTALLS += desktopfile
-    DEFINES += MOBILE_BUILD
-} else {
-    DEFINES += DESKTOP_BUILD
-}
-
-contains(DEFINES, MOBILE_BUILD) {
-    DEFAULT_DRAG_MODE = scroll
-} else {
-    DEFAULT_DRAG_MODE = select
-}
+isEmpty(LITERM_TARGET): LITERM_TARGET=desktop
+!include(targets/$${LITERM_TARGET}.pri): error("Can't load LITERM_TARGET definition: $$LITERM_TARGET")
+isEmpty(DEFAULT_DRAG_MODE): error("LITERM_TARGET $$LITERM_TARGET did not set DEFAULT_DRAG_MODE")
 
 DEFINES += DEFAULT_DRAG_MODE=\\\"$$DEFAULT_DRAG_MODE\\\"
 
