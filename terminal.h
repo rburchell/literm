@@ -26,6 +26,7 @@
 #include "ptyiface.h"
 
 struct TermChar {
+    // TODO: Replace with the version in Parser.
     enum TextAttributes {
         NoAttributes = 0x00,
         BoldAttribute = 0x01,
@@ -99,9 +100,6 @@ class Terminal : public QObject
     Q_OBJECT
 
 public:
-    static QRgb defaultFgColor;
-    static QRgb defaultBgColor;
-
     explicit Terminal(QObject *parent = 0);
     virtual ~Terminal() {}
 
@@ -181,7 +179,6 @@ private:
     bool handleDECSED(const QList<int> &params, const QString &extra);
     bool handleEL(const QList<int> &params, const QString &extra);
     bool handleECH(const QList<int> &params, const QString &extra);
-    void handleSGR(const QList<int> &params, const QString &extra);
     void oscSequence(const QString& seq);
     void escControlChar(const QString& seq);
     void trimBackBuffer();

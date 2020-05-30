@@ -33,7 +33,9 @@ HEADERS += \
     textrender.h \
     version.h \
     utilities.h \
-    keyloader.h
+    keyloader.h \
+    parser.h \
+    catch.hpp
 
 SOURCES += \
     main.cpp \
@@ -41,7 +43,8 @@ SOURCES += \
     textrender.cpp \
     ptyiface.cpp \
     utilities.cpp \
-    keyloader.cpp
+    keyloader.cpp \
+    parser.cpp
 
 OTHER_FILES += \
     qml/mobile/Main.qml \

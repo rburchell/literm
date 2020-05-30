@@ -22,6 +22,7 @@
 #include <QRegularExpression>
 
 #include "terminal.h"
+#include "parser.h"
 #include "ptyiface.h"
 #include "textrender.h"
 
@@ -57,9 +58,6 @@ static bool charIsHexDigit(QChar ch)
     return false;
 }
 
-QRgb Terminal::defaultFgColor;
-QRgb Terminal::defaultBgColor;
-
 Terminal::Terminal(QObject *parent)
     : QObject(parent)
     , iTermSize(0,0)
@@ -72,59 +70,15 @@ Terminal::Terminal(QObject *parent)
     , iBackBufferScrollPos(0)
     , m_dispatch_timer(0)
 {
-    iColorTable.reserve(256);
-
-    //normal
-    iColorTable.append(QColor(0, 0, 0).rgb());
-    iColorTable.append(QColor(210, 0, 0).rgb());
-    iColorTable.append(QColor(0, 210, 0).rgb());
-    iColorTable.append(QColor(210, 210, 0).rgb());
-    iColorTable.append(QColor(0, 0, 240).rgb());
-    iColorTable.append(QColor(210, 0, 210).rgb());
-    iColorTable.append(QColor(0, 210, 210).rgb());
-    iColorTable.append(QColor(235, 235, 235).rgb());
-
-    //bright
-    iColorTable.append(QColor(127, 127, 127).rgb());
-    iColorTable.append(QColor(255, 0, 0).rgb());
-    iColorTable.append(QColor(0, 255, 0).rgb());
-    iColorTable.append(QColor(255, 255, 0).rgb());
-    iColorTable.append(QColor(92, 92, 255).rgb());
-    iColorTable.append(QColor(255, 0, 255).rgb());
-    iColorTable.append(QColor(0, 255, 255).rgb());
-    iColorTable.append(QColor(255, 255, 255).rgb());
-
-    //colour cube
-    for (int r = 0x00; r < 0x100; ) {
-        for (int g = 0x00; g < 0x100; ) {
-            for (int b = 0x00; b < 0x100; ) {
-                iColorTable.append(QColor(r, g, b).rgb());
-                b += b ? 0x28 : 0x5f;
-            }
-            g += g ? 0x28 : 0x5f;
-        }
-        r += r ? 0x28 : 0x5f;
-    }
-
-    //greyscale ramp
-    for (int i = 0, g = 8; i < 24; i++, g += 10)
-        iColorTable.append(QColor(g, g, g).rgb());
-
-    if(iColorTable.size() != 256)
-        qFatal("invalid color table");
-
-    defaultFgColor = iColorTable[7];
-    defaultBgColor = iColorTable[0];
-
     zeroChar.c = ' ';
-    zeroChar.bgColor = defaultBgColor;
-    zeroChar.fgColor = defaultFgColor;
+    zeroChar.bgColor = Parser::fetchDefaultBgColor();
+    zeroChar.fgColor = Parser::fetchDefaultFgColor();
     zeroChar.attrib = TermChar::NoAttributes;
 
     escape = -1;
 
-    iTermAttribs.currentFgColor = defaultFgColor;
-    iTermAttribs.currentBgColor = defaultBgColor;
+    iTermAttribs.currentFgColor = Parser::fetchDefaultFgColor();
+    iTermAttribs.currentBgColor = Parser::fetchDefaultBgColor();
     iTermAttribs.currentAttrib = TermChar::NoAttributes;
     iTermAttribs.cursorPos = QPoint(0,0);
     iMarginBottom = 0;
@@ -657,6 +611,48 @@ void Terminal::forwardTab()
     }
 }
 
+static Parser::TextAttributes convert(TermChar::TextAttributes& ta)
+{
+    Parser::TextAttributes attrs = Parser::NoAttributes;
+    if (ta & TermChar::BoldAttribute) {
+        attrs.setFlag(Parser::TextAttribute::BoldAttribute);
+    }
+    if (ta & TermChar::ItalicAttribute) {
+        attrs.setFlag(Parser::TextAttribute::ItalicAttribute);
+    }
+    if (ta & TermChar::UnderlineAttribute) {
+        attrs.setFlag(Parser::TextAttribute::UnderlineAttribute);
+    }
+    if (ta & TermChar::NegativeAttribute) {
+        attrs.setFlag(Parser::TextAttribute::NegativeAttribute);
+    }
+    if (ta & TermChar::BlinkAttribute) {
+        attrs.setFlag(Parser::TextAttribute::BlinkAttribute);
+    }
+    return attrs;
+}
+
+static TermChar::TextAttributes convert(Parser::TextAttributes& ta)
+{
+    TermChar::TextAttributes attrs = TermChar::NoAttributes;
+    if (ta & Parser::BoldAttribute) {
+        attrs |= TermChar::TextAttributes(Parser::TextAttribute::BoldAttribute);
+    }
+    if (ta & Parser::ItalicAttribute) {
+        attrs |= TermChar::TextAttributes(Parser::TextAttribute::ItalicAttribute);
+    }
+    if (ta & Parser::UnderlineAttribute) {
+        attrs |= TermChar::TextAttributes(Parser::TextAttribute::UnderlineAttribute);
+    }
+    if (ta & Parser::NegativeAttribute) {
+        attrs |= TermChar::TextAttributes(Parser::TextAttribute::NegativeAttribute);
+    }
+    if (ta & Parser::BlinkAttribute) {
+        attrs |= TermChar::TextAttributes(Parser::TextAttribute::BlinkAttribute);
+    }
+    return attrs;
+}
+
 void Terminal::ansiSequence(const QString& seq)
 {
     if(seq.length() <= 1 || seq.at(0)!='[')
@@ -906,7 +902,15 @@ void Terminal::ansiSequence(const QString& seq)
     case 'm': //graphics mode
         if (params.count() == 0)
             params.append(0);
-        handleSGR(params, extra);
+        {
+            Parser::TextAttributes attribs = convert(iTermAttribs.currentAttrib);
+            Parser::SGRParserState state(iTermAttribs.currentFgColor, iTermAttribs.currentBgColor, Parser::fetchDefaultFgColor(), Parser::fetchDefaultBgColor(), attribs);
+            QString errorString;
+            if (!Parser::handleSGR(state, params, errorString)) {
+                qWarning() << "Error parsing SGR: " << params << extra << " -- " << errorString;
+            }
+            iTermAttribs.currentAttrib = convert(attribs);
+        }
         break;
 
     case 'h':
@@ -1156,196 +1160,6 @@ bool Terminal::handleECH(const QList<int> &params, const QString &extra)
     return true;
 }
 
-void Terminal::handleSGR(const QList<int> &params, const QString &extra)
-{
-// I think this check was wrong. At least vttest sends 5; 7; sometimes.
-//    if(!extra.isEmpty()) {
-//        qDebug() << "got SGR with empty extra, params: " << params;
-//        return;
-//    }
-
-    int pidx = 0;
-
-    while (pidx < params.count()) {
-        int p = params.at(pidx++);
-        switch (p) {
-        // Consider supporting:
-        // 2 (faint)
-        // 8 (invisible)
-        // 9 (crossed out -- what is this?)
-        // 21 (double underline)
-        // 22 (normal, not faint)
-        // 28 (visible)
-        // 29 (not crossed out)
-
-        case 0:
-            iTermAttribs.currentFgColor = defaultFgColor;
-            iTermAttribs.currentBgColor = defaultBgColor;
-            iTermAttribs.currentAttrib = TermChar::NoAttributes;
-            break;
-        case 1:
-            iTermAttribs.currentAttrib |= TermChar::BoldAttribute;
-            break;
-        case 3:
-            iTermAttribs.currentAttrib |= TermChar::ItalicAttribute;
-            break;
-        case 4:
-            iTermAttribs.currentAttrib |= TermChar::UnderlineAttribute;
-            break;
-        case 5:
-            iTermAttribs.currentAttrib |= TermChar::BlinkAttribute;
-            break;
-        case 7:
-            iTermAttribs.currentAttrib |= TermChar::NegativeAttribute;
-            break;
-        case 22:
-            iTermAttribs.currentAttrib &= ~TermChar::BoldAttribute;
-            break;
-        case 23:
-            iTermAttribs.currentAttrib &= ~TermChar::ItalicAttribute;
-            break;
-        case 24:
-            iTermAttribs.currentAttrib &= ~TermChar::UnderlineAttribute;
-            break;
-        case 25:
-            iTermAttribs.currentAttrib &= ~TermChar::BlinkAttribute;
-            break;
-        case 27:
-            iTermAttribs.currentAttrib &= ~TermChar::NegativeAttribute;
-            break;
-
-        case 30: // fg black
-        case 31:
-        case 32:
-        case 33:
-        case 34:
-        case 35:
-        case 36:
-        case 37:
-            if (iTermAttribs.currentFgColor & TermChar::BoldAttribute)
-                p += 8;
-            iTermAttribs.currentFgColor = iColorTable[p-30];
-            break;
-
-        case 39: // fg default
-            iTermAttribs.currentFgColor = defaultFgColor;
-            break;
-
-        case 40: // bg black
-        case 41:
-        case 42:
-        case 43:
-        case 44:
-        case 45:
-        case 46:
-        case 47:
-            iTermAttribs.currentBgColor = iColorTable[p-40];
-            break;
-
-        case 49: // bg default
-            iTermAttribs.currentBgColor = defaultBgColor;
-            break;
-
-
-        case 90: // fg black, bold/bright, nonstandard
-        case 91:
-        case 92:
-        case 93:
-        case 94:
-        case 95:
-        case 96:
-        case 97:
-            iTermAttribs.currentFgColor = iColorTable[p-90+8];
-            break;
-
-        case 100: // fg black, bold/bright, nonstandard
-        case 101:
-        case 102:
-        case 103:
-        case 104:
-        case 105:
-        case 106:
-        case 107:
-            iTermAttribs.currentFgColor = iColorTable[p-100+8];
-            break;
-
-        case 38:
-        case 48:
-            if (pidx >= params.count()) {
-                qWarning() << "got invalid extended SGR (no type): " << params << extra;
-                continue;
-            }
-
-            bool isForeground = p == 38;
-            int ctype = params.at(pidx++);
-
-            switch (ctype) {
-            case 5: {
-                // 5: 256 colors (xterm)
-                if (pidx >= params.count()) {
-                    qWarning() << "got invalid 256color SGR with no color: " << params << extra;
-                    continue;
-                }
-
-                int colorIndex = params.at(pidx++);
-                if (colorIndex < 0 || colorIndex >= iColorTable.size()) {
-                    qWarning() << "got invalid 256color SGR with out-of-range color: " << params << extra;
-                    continue;
-                }
-
-                if (isForeground) {
-                    // Only apply bold attribute for standard 16-color; 256-color doesn't have bold
-                    if (colorIndex < 9 && iTermAttribs.currentAttrib & TermChar::BoldAttribute)
-                        colorIndex += 8;
-                    iTermAttribs.currentFgColor = iColorTable[colorIndex];
-                } else {
-                    iTermAttribs.currentBgColor = iColorTable[colorIndex];
-                }
-                break;
-            }
-            case 2: {
-                // 2: 16-bit colors
-                // r;g;b
-                if (params.count() - pidx < 3) {
-                    qWarning() << "got invalid 16bit SGR with too few parameters: " << params << extra << params.count() - pidx;
-                    continue;
-                }
-
-                int r = params.at(pidx++);
-                int g = params.at(pidx++);
-                int b = params.at(pidx++);
-
-                // We try to cope with these by just setting out of range components to 0.
-                // Not sure if it would be better to ignore this or not.
-                if (r < 0 || r >= 256) {
-                    qWarning() << "got invalid 16bit SGR out-of-range r: " << r;
-                    r = 0;
-                }
-                if (g < 0 || g >= 256) {
-                    qWarning() << "got invalid 16bit SGR out-of-range g: " << g;
-                    g = 0;
-                }
-                if (b < 0 || b >= 256) {
-                    qWarning() << "got invalid 16bit SGR out-of-range b: " << b;
-                    b = 0;
-                }
-
-                if (isForeground)
-                    iTermAttribs.currentFgColor = QColor(r, g, b).rgb();
-                else
-                    iTermAttribs.currentBgColor = QColor(r, g, b).rgb();
-                break;
-            }
-            default:
-                qDebug() << "got unknown extended SGR: " << params << extra;
-                break;
-            }
-
-            break;
-        }
-    }
-}
-
 void Terminal::oscSequence(const QString& seq)
 {
     if(seq.length() <= 1 || seq.at(0)!=']')
@@ -1567,8 +1381,8 @@ void Terminal::resetTerminal()
     iAltBuffer.clear();
     iBackBuffer.clear();
 
-    iTermAttribs.currentFgColor = defaultFgColor;
-    iTermAttribs.currentBgColor = defaultBgColor;
+    iTermAttribs.currentFgColor = Parser::fetchDefaultFgColor();
+    iTermAttribs.currentBgColor = Parser::fetchDefaultBgColor();
     iTermAttribs.currentAttrib = TermChar::NoAttributes;
     iTermAttribs.cursorPos = QPoint(1,1);
     iTermAttribs.wrapAroundMode = true;

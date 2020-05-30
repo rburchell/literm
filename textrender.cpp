@@ -17,6 +17,7 @@
 */
 
 #include <QtGui>
+#include "parser.h"
 #include "textrender.h"
 #include "terminal.h"
 
@@ -380,7 +381,7 @@ void TextRender::updatePolish()
         m_cursorDelegateInstance->setY(cursor.y());
         m_cursorDelegateInstance->setWidth(csize.width());
         m_cursorDelegateInstance->setHeight(csize.height());
-        m_cursorDelegateInstance->setProperty("color", Terminal::defaultFgColor);
+        m_cursorDelegateInstance->setProperty("color", Parser::fetchDefaultFgColor());
     } else if (m_cursorDelegateInstance) {
         m_cursorDelegateInstance->setVisible(false);
     }
@@ -538,8 +539,8 @@ void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int 
 
     QColor qtColor;
 
-    if (m_terminal.inverseVideoMode() && style.bgColor == Terminal::defaultBgColor) {
-        qtColor = Terminal::defaultFgColor;
+    if (m_terminal.inverseVideoMode() && style.bgColor == Parser::fetchDefaultBgColor()) {
+        qtColor = Parser::fetchDefaultFgColor();
     } else {
         qtColor = style.bgColor;
     }
@@ -577,8 +578,8 @@ void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qre
 
     QColor qtColor;
 
-    if (m_terminal.inverseVideoMode() && style.fgColor == Terminal::defaultFgColor) {
-        qtColor = Terminal::defaultBgColor;
+    if (m_terminal.inverseVideoMode() && style.fgColor == Parser::fetchDefaultFgColor()) {
+        qtColor = Parser::fetchDefaultBgColor();
     } else {
         qtColor = style.fgColor;
     }
