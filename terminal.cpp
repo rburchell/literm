@@ -1271,34 +1271,76 @@ void Terminal::handleSGR(const QList<int> &params, const QString &extra)
 
         case 38:
         case 48:
-            // xterm 256-colour support
-            if (params.count() - pidx < 2) {
-                qDebug() << "got invalid extended SGR: " << params << extra;
+            if (pidx >= params.count()) {
+                qWarning() << "got invalid extended SGR (no type): " << params << extra;
                 continue;
             }
-            if(params[pidx] == 5 && params[pidx+1] >= 0 && params[pidx+1] <= 255) {
-                if(p == 38) {
-                    int cidx = params[pidx+1];
-                    // Only apply bold attribute for standard 16-color; 256-color doesn't have bold
-                    if (cidx < 9 && iTermAttribs.currentAttrib & TermChar::BoldAttribute)
-                        cidx += 8;
-                    iTermAttribs.currentFgColor = iColorTable[cidx];
+
+            bool isForeground = p == 38;
+            int ctype = params.at(pidx++);
+
+            switch (ctype) {
+            case 5: {
+                // 5: 256 colors (xterm)
+                if (pidx >= params.count()) {
+                    qWarning() << "got invalid 256color SGR with no color: " << params << extra;
+                    continue;
                 }
-                else
-                    iTermAttribs.currentBgColor = iColorTable[params[pidx+1]];
 
-                pidx += 2; // eat the '5' and color index
-            } else if (params[pidx] == 2 && params.count() - pidx >= 5) {
-                if (p == 38)
-                    iTermAttribs.currentFgColor = QColor(params.at(pidx+1), params.at(pidx+2), params.at(pidx+3)).rgb();
-                else
-                    iTermAttribs.currentBgColor = QColor(params.at(pidx+1), params.at(pidx+2), params.at(pidx+3)).rgb();
+                int colorIndex = params.at(pidx++);
+                if (colorIndex < 0 || colorIndex >= iColorTable.size()) {
+                    qWarning() << "got invalid 256color SGR with out-of-range color: " << params << extra;
+                    continue;
+                }
 
-                pidx += 4; // '2' and 3 colors.
-            } else {
-                qDebug() << "got malformed extended SGR: " << params << extra;
-                continue;
+                if (isForeground) {
+                    // Only apply bold attribute for standard 16-color; 256-color doesn't have bold
+                    if (colorIndex < 9 && iTermAttribs.currentAttrib & TermChar::BoldAttribute)
+                        colorIndex += 8;
+                    iTermAttribs.currentFgColor = iColorTable[colorIndex];
+                } else {
+                    iTermAttribs.currentBgColor = iColorTable[colorIndex];
+                }
+                break;
             }
+            case 2: {
+                // 2: 16-bit colors
+                // r;g;b
+                if (params.count() - pidx < 3) {
+                    qWarning() << "got invalid 16bit SGR with too few parameters: " << params << extra << params.count() - pidx;
+                    continue;
+                }
+
+                int r = params.at(pidx++);
+                int g = params.at(pidx++);
+                int b = params.at(pidx++);
+
+                // We try to cope with these by just setting out of range components to 0.
+                // Not sure if it would be better to ignore this or not.
+                if (r < 0 || r >= 256) {
+                    qWarning() << "got invalid 16bit SGR out-of-range r: " << r;
+                    r = 0;
+                }
+                if (g < 0 || g >= 256) {
+                    qWarning() << "got invalid 16bit SGR out-of-range g: " << g;
+                    g = 0;
+                }
+                if (b < 0 || b >= 256) {
+                    qWarning() << "got invalid 16bit SGR out-of-range b: " << b;
+                    b = 0;
+                }
+
+                if (isForeground)
+                    iTermAttribs.currentFgColor = QColor(r, g, b).rgb();
+                else
+                    iTermAttribs.currentBgColor = QColor(r, g, b).rgb();
+                break;
+            }
+            default:
+                qDebug() << "got unknown extended SGR: " << params << extra;
+                break;
+            }
+
             break;
         }
     }
