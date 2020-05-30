@@ -615,19 +615,19 @@ static Parser::TextAttributes convert(TermChar::TextAttributes& ta)
 {
     Parser::TextAttributes attrs = Parser::NoAttributes;
     if (ta & TermChar::BoldAttribute) {
-        attrs.setFlag(Parser::TextAttribute::BoldAttribute);
+        attrs |= Parser::TextAttribute::BoldAttribute;
     }
     if (ta & TermChar::ItalicAttribute) {
-        attrs.setFlag(Parser::TextAttribute::ItalicAttribute);
+        attrs |= Parser::TextAttribute::ItalicAttribute;
     }
     if (ta & TermChar::UnderlineAttribute) {
-        attrs.setFlag(Parser::TextAttribute::UnderlineAttribute);
+        attrs |= Parser::TextAttribute::UnderlineAttribute;
     }
     if (ta & TermChar::NegativeAttribute) {
-        attrs.setFlag(Parser::TextAttribute::NegativeAttribute);
+        attrs |= Parser::TextAttribute::NegativeAttribute;
     }
     if (ta & TermChar::BlinkAttribute) {
-        attrs.setFlag(Parser::TextAttribute::BlinkAttribute);
+        attrs |= Parser::TextAttribute::BlinkAttribute;
     }
     return attrs;
 }
