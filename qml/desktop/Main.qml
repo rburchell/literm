@@ -112,7 +112,8 @@ Rectangle {
                     if (util.visualBellEnabled)
                         bellTimer.start()
                 }
-                contentItem: Item {
+/*
+                contentItem: BackgroundItem {
                     anchors.fill: parent
                     Behavior on opacity {
                         NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
@@ -121,6 +122,7 @@ Rectangle {
                         NumberAnimation { duration: textrender.duration; easing.type: Easing.InOutQuad }
                     }
                 }
+*/
 
                 ScrollDecorator {
                     anchors.right: parent.right
@@ -133,8 +135,6 @@ Rectangle {
                     visible: parent.contentHeight > parent.visibleHeight
                 }
 
-                cellDelegate: Rectangle {
-                }
                 cellContentsDelegate: Text {
                     id: text
                     property bool blinking: false

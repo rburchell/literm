@@ -1,22 +1,39 @@
 /*
-    Copyright (C) 2017 Crimson AS <info@crimson.no>
-    Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
+    Copyright (C) 2017-2020 Crimson AS <info@crimson.no>
 
-    This work is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy of
+    this software and associated documentation files (the "Software"), to deal in
+    the Software without restriction, including without limitation the rights to
+    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+    of the Software, and to permit persons to whom the Software is furnished to
+    do so, subject to the following conditions:
 
-    This work is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+        The above copyright notice and this permission notice shall be included
+        in all copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this work.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+    FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+    COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+    IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include <QtGui>
+
+// NB: This file contains code originally inspired by Heikki Holstila (in 2011-2012).
+// It has subsequently been rewritten. Many thanks for his work, though.
+//
+// The original code used software rendering via QPainter, whereas this code uses QtQuick's
+// primatives to render in a hardware-accelerated manner.
+
+#include <QSGSimpleRectNode>
+#include <QQuickItem>
+#include <QCursor>
+#include <QGuiApplication>
+#include <QClipboard>
+#include <QFontMetrics>
+#include <math.h>
+#include <qsgsimplerectnode.h>
 #include "parser.h"
 #include "textrender.h"
 #include "terminal.h"
@@ -30,7 +47,7 @@
  * TextRender is organized of a number of different parts. The user is expected
  * to set a number of "delegates", which are the pieces instantiated by
  * TextRender to correspond with the data from the Terminal. For instance, there
- * is a background cell delegate (for coloring), a cell contents delegate (for
+ * is a cell contents delegate (for
  * the text), a cursor delegate, and so on.
  *
  * TextRender organises its child delegate instances in a slightly complex way,
@@ -39,7 +56,6 @@
  * TextRender
  *      contentItem
  *          backgroundContainer
- *              cellDelegates
  *          textContainer
  *              cellContentsDelegates
  *          overlayContainer
@@ -58,11 +74,8 @@ TextRender::TextRender(QQuickItem *parent)
     : QQuickItem(parent)
     , m_activeClick(false)
     , iAllowGestures(true)
-    , m_contentItem(0)
-    , m_backgroundContainer(0)
     , m_textContainer(0)
     , m_overlayContainer(0)
-    , m_cellDelegate(0)
     , m_cellContentsDelegate(0)
     , m_cursorDelegate(0)
     , m_cursorDelegateInstance(0)
@@ -73,6 +86,7 @@ TextRender::TextRender(QQuickItem *parent)
     , m_dragMode(DragScroll)
     , m_dispatch_timer(0)
 {
+    setFlag(QQuickItem::ItemHasContents, true);
     setAcceptedMouseButtons(Qt::LeftButton);
     setCursor(Qt::IBeamCursor);
 
@@ -94,6 +108,11 @@ TextRender::TextRender(QQuickItem *parent)
     connect(&m_terminal, SIGNAL(selectionChanged()), this, SLOT(redraw()));
     connect(&m_terminal, SIGNAL(scrollBackBufferAdjusted(bool)), this, SLOT(handleScrollBack(bool)));
     connect(&m_terminal, SIGNAL(selectionChanged()), this, SIGNAL(selectionChanged()));
+
+    m_textContainer = new QQuickItem(this);
+    m_textContainer->setClip(true);
+    m_overlayContainer = new QQuickItem(this);
+    m_overlayContainer->setClip(true);
 }
 
 TextRender::~TextRender()
@@ -231,20 +250,6 @@ void TextRender::setDragMode(DragMode dragMode)
     emit dragModeChanged();
 }
 
-void TextRender::setContentItem(QQuickItem *contentItem)
-{
-    Q_ASSERT(!m_contentItem); // changing this requires work
-    m_contentItem = contentItem;
-    m_contentItem->setParentItem(this);
-    m_backgroundContainer = new QQuickItem(m_contentItem);
-    m_backgroundContainer->setClip(true);
-    m_textContainer = new QQuickItem(m_contentItem);
-    m_textContainer->setClip(true);
-    m_overlayContainer = new QQuickItem(m_contentItem);
-    m_overlayContainer->setClip(true);
-    polish();
-}
-
 void TextRender::setFont(const QFont &font)
 {
     if (iFont == font)
@@ -268,24 +273,6 @@ void TextRender::setFont(const QFont &font)
 QFont TextRender::font() const
 {
     return iFont;
-}
-
-/*! \internal
- *
- * Fetch a cell from the free list (or allocate a new one, if required)
- */
-QQuickItem *TextRender::fetchFreeCell()
-{
-    QQuickItem *it = nullptr;
-    if (!m_freeCells.isEmpty()) {
-        it = m_freeCells.takeFirst();
-    } else {
-        it = qobject_cast<QQuickItem*>(m_cellDelegate->create(qmlContext(this)));
-    }
-
-    it->setParentItem(m_backgroundContainer);
-    m_cells.append(it);
-    return it;
 }
 
 /*! \internal
@@ -317,13 +304,9 @@ void TextRender::updatePolish()
     QSize size((width() - 4) / iFontWidth, (height() - 4) / iFontHeight);
     m_terminal.setTermSize(size);
 
-    if (!m_contentItem || m_terminal.rows() == 0 || m_terminal.columns() == 0)
+    if (m_terminal.rows() == 0 || m_terminal.columns() == 0)
         return;
 
-    m_contentItem->setWidth(width());
-    m_contentItem->setHeight(height());
-    m_backgroundContainer->setWidth(width());
-    m_backgroundContainer->setHeight(height());
     m_textContainer->setWidth(width());
     m_textContainer->setHeight(height());
     m_overlayContainer->setWidth(width());
@@ -331,11 +314,9 @@ void TextRender::updatePolish()
 
     // Push everything back to the free list.
     // We could optimize this by having a "dirty" area from the terminal backend.
-    m_freeCells += m_cells;
     m_freeCellsContent += m_cellsContent;
-
-    m_cells.clear();
     m_cellsContent.clear();
+    m_bgFragments.clear();
 
     qreal y = 0;
     int yDelegateIndex = 0;
@@ -359,9 +340,6 @@ void TextRender::updatePolish()
     }
 
     // any remaining items in the free lists are unused
-    for (QQuickItem *it : m_freeCells) {
-        it->setVisible(false);
-    }
     for (QQuickItem *it : m_freeCellsContent) {
         it->setVisible(false);
     }
@@ -447,6 +425,44 @@ void TextRender::updatePolish()
     }
 }
 
+QSGNode* TextRender::updatePaintNode(QSGNode* oldNode, QQuickItem::UpdatePaintNodeData *updatePaintNodeData)
+{
+    Q_UNUSED(updatePaintNodeData);
+    QSGSimpleRectNode* rootNode = nullptr;
+    if (oldNode) {
+        rootNode = static_cast<QSGSimpleRectNode*>(oldNode);
+        rootNode->setColor(Parser::fetchDefaultBgColor());
+        rootNode->setRect(boundingRect());
+    } else {
+        rootNode = new QSGSimpleRectNode(boundingRect(), Parser::fetchDefaultBgColor());
+    }
+
+    // ### Optimize: reuse nodes, rather than deleting them
+    // ### Or better still, use QSGGeometry rather than separate rect nodes.
+    while (rootNode->firstChild()) {
+        auto c = rootNode->firstChild();
+        delete c;
+    }
+    rootNode->removeAllChildNodes();
+
+    for (const auto& frag : m_bgFragments) {
+        auto fg = frag.style.fgColor;
+        auto bg = frag.style.bgColor;
+
+        if (frag.style.attrib & TermChar::NegativeAttribute) {
+            std::swap(bg, fg);
+        }
+
+        if (m_terminal.inverseVideoMode() && bg == Parser::fetchDefaultBgColor()) {
+            bg = Parser::fetchDefaultFgColor();
+        }
+
+        rootNode->appendChildNode(new QSGSimpleRectNode(QRectF(frag.x, frag.y, frag.width, iFontHeight), bg));
+    }
+
+    return rootNode;
+}
+
 void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to, qreal &y, int &yDelegateIndex)
 {
     const int leftmargin = 2;
@@ -487,9 +503,7 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
                 currAttrib.fgColor != nextAttrib.fgColor ||
                 j==xcount-1)
             {
-                QQuickItem *backgroundRectangle = fetchFreeCell();
-                drawBgFragment(backgroundRectangle, currentX, y-iFontHeight+iFontDescent, std::ceil(fragWidth), currAttrib);
-                backgroundRectangle->setOpacity(opacity);
+                drawBgFragment(currentX, y-iFontHeight+iFontDescent, std::ceil(fragWidth), opacity, currAttrib);
                 currentX += fragWidth;
                 fragWidth = 0;
                 currAttrib.attrib = nextAttrib.attrib;
@@ -529,28 +543,16 @@ void TextRender::paintFromBuffer(const TerminalBuffer &buffer, int from, int to,
     }
 }
 
-void TextRender::drawBgFragment(QQuickItem *cellDelegate, qreal x, qreal y, int width, TermChar style)
+void TextRender::drawBgFragment(qreal x, qreal y, qreal width, qreal opacity, TermChar style)
 {
-    if (style.attrib & TermChar::NegativeAttribute) {
-        QRgb c = style.fgColor;
-        style.fgColor = style.bgColor;
-        style.bgColor = c;
-    }
-
-    QColor qtColor;
-
-    if (m_terminal.inverseVideoMode() && style.bgColor == Parser::fetchDefaultBgColor()) {
-        qtColor = Parser::fetchDefaultFgColor();
-    } else {
-        qtColor = style.bgColor;
-    }
-
-    cellDelegate->setX(x);
-    cellDelegate->setY(y);
-    cellDelegate->setWidth(width);
-    cellDelegate->setHeight(iFontHeight);
-    cellDelegate->setProperty("color", qtColor);
-    cellDelegate->setVisible(true);
+    update();
+    BgFragment frag;
+    frag.x = x;
+    frag.y = y;
+    frag.width = width;
+    frag.opacity = opacity;
+    frag.style = style;
+    m_bgFragments.append(frag);
 }
 
 void TextRender::drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, QString text, TermChar style)
@@ -772,25 +774,6 @@ void TextRender::setAllowGestures(bool allow)
     if (!allow) {
         m_activeClick = false;
     }
-}
-
-QQmlComponent *TextRender::cellDelegate() const
-{
-    return m_cellDelegate;
-}
-
-void TextRender::setCellDelegate(QQmlComponent *component)
-{
-    if (m_cellDelegate == component)
-        return;
-
-    qDeleteAll(m_cells);
-    qDeleteAll(m_freeCells);
-    m_cells.clear();
-    m_freeCells.clear();
-    m_cellDelegate = component;
-    emit cellDelegateChanged();
-    polish();
 }
 
 QQmlComponent *TextRender::cellContentsDelegate() const

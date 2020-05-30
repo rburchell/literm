@@ -1,38 +1,39 @@
 /*
-    Copyright (C) 2017 Crimson AS <info@crimson.no>
-    Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
+    Copyright (C) 2017-2020 Crimson AS <info@crimson.no>
 
-    This work is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    Permission is hereby granted, free of charge, to any person obtaining a copy of
+    this software and associated documentation files (the "Software"), to deal in
+    the Software without restriction, including without limitation the rights to
+    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+    of the Software, and to permit persons to whom the Software is furnished to
+    do so, subject to the following conditions:
 
-    This work is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+        The above copyright notice and this permission notice shall be included
+        in all copies or substantial portions of the Software.
 
-    You should have received a copy of the GNU General Public License
-    along with this work.  If not, see <http://www.gnu.org/licenses/>.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+    FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+    COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+    IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef TEXTRENDER_H
-#define TEXTRENDER_H
+// NB: This file contains code originally inspired by Heikki Holstila (in 2011-2012).
+// It has subsequently been rewritten. Many thanks for his work, though.
 
+#pragma once
 #include <QQuickItem>
-
 #include "terminal.h"
 
 class TextRender : public QQuickItem
 {
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
     Q_PROPERTY(DragMode dragMode READ dragMode WRITE setDragMode NOTIFY dragModeChanged)
-    Q_PROPERTY(QQuickItem* contentItem READ contentItem WRITE setContentItem NOTIFY contentItemChanged)
     Q_PROPERTY(QFont font READ font WRITE setFont NOTIFY fontChanged)
     Q_PROPERTY(QSizeF cellSize READ cellSize NOTIFY cellSizeChanged)
     Q_PROPERTY(bool showBufferScrollIndicator READ showBufferScrollIndicator WRITE setShowBufferScrollIndicator NOTIFY showBufferScrollIndicatorChanged)
     Q_PROPERTY(bool allowGestures READ allowGestures WRITE setAllowGestures NOTIFY allowGesturesChanged)
-    Q_PROPERTY(QQmlComponent* cellDelegate READ cellDelegate WRITE setCellDelegate NOTIFY cellDelegateChanged)
     Q_PROPERTY(QQmlComponent* cellContentsDelegate READ cellContentsDelegate WRITE setCellContentsDelegate NOTIFY cellContentsDelegateChanged)
     Q_PROPERTY(QQmlComponent* cursorDelegate READ cursorDelegate WRITE setCursorDelegate NOTIFY cursorDelegateChanged)
     Q_PROPERTY(QQmlComponent* selectionDelegate READ selectionDelegate WRITE setSelectionDelegate NOTIFY selectionDelegateChanged)
@@ -86,9 +87,6 @@ public:
     DragMode dragMode() const;
     void setDragMode(DragMode dragMode);
 
-    QQuickItem *contentItem() const { return m_contentItem; }
-    void setContentItem(QQuickItem *contentItem);
-
     QSize terminalSize() const;
     QFont font() const;
     void setFont(const QFont &font);
@@ -101,7 +99,6 @@ public:
     bool allowGestures();
     void setAllowGestures(bool allow);
 
-    QQmlComponent *cellDelegate() const;
     void setCellDelegate(QQmlComponent *delegate);
     QQmlComponent *cellContentsDelegate() const;
     void setCellContentsDelegate(QQmlComponent *delegate);
@@ -116,7 +113,6 @@ signals:
     void cellSizeChanged();
     void showBufferScrollIndicatorChanged();
     void allowGesturesChanged();
-    void cellDelegateChanged();
     void cellContentsDelegateChanged();
     void cursorDelegateChanged();
     void selectionDelegateChanged();
@@ -154,6 +150,7 @@ protected:
     void wheelEvent(QWheelEvent *event) override;
     void timerEvent(QTimerEvent *event) override;
     void componentComplete() override;
+    QSGNode* updatePaintNode(QSGNode* oldNode, QQuickItem::UpdatePaintNodeData *updatePaintNodeData) override;
 
 private slots:
     void handleScrollBack(bool reset);
@@ -164,7 +161,14 @@ private:
 
     enum PanGesture { PanNone, PanLeft, PanRight, PanUp, PanDown };
 
-    void drawBgFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, int width, TermChar style);
+    struct BgFragment {
+        qreal x = 0;
+        qreal y = 0;
+        qreal width = 0;
+        qreal opacity = 0;
+        TermChar style;
+    };
+    void drawBgFragment(qreal x, qreal y, qreal width, qreal opacity, TermChar style);
     void drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, QString text, TermChar style);
     void paintFromBuffer(const TerminalBuffer &buffer, int from, int to, qreal &y, int &yDelegateIndex);
     QPointF charsToPixels(QPoint pos);
@@ -184,7 +188,6 @@ private:
      **/
     QPointF scrollBackBuffer(QPointF now, QPointF last);
 
-    QQuickItem *fetchFreeCell();
     QQuickItem *fetchFreeCellContent();
 
     QPointF dragOrigin;
@@ -197,13 +200,8 @@ private:
     bool iShowBufferScrollIndicator;
     bool iAllowGestures;
 
-    QQuickItem *m_contentItem;
-    QQuickItem *m_backgroundContainer;
     QQuickItem *m_textContainer;
     QQuickItem *m_overlayContainer;
-    QQmlComponent *m_cellDelegate;
-    QVector<QQuickItem*> m_cells;
-    QVector<QQuickItem*> m_freeCells;
     QQmlComponent *m_cellContentsDelegate;
     QVector<QQuickItem*> m_cellsContent;
     QVector<QQuickItem*> m_freeCellsContent;
@@ -217,6 +215,5 @@ private:
     QString m_title;
     int m_dispatch_timer;
     Terminal m_terminal;
+    QVector<BgFragment> m_bgFragments;
 };
-
-#endif // TEXTRENDER_H
