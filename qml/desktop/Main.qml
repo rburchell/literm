@@ -31,9 +31,6 @@ Rectangle {
     property string tabChangeKey: Qt.platform.os == "osx" ? "Ctrl" : "Alt"
 
     property int fontSize: 14*pixelRatio
-
-    property int fadeOutTime: 80
-    property int fadeInTime: 350
     property real pixelRatio: 1.0
 
     Binding {
