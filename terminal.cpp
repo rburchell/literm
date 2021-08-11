@@ -1289,7 +1289,8 @@ void Terminal::escControlChar(const QString& seq)
             iTabStops.append(QVector<int>());
 
         iTabStops[cursorPos().y() - 1].append(cursorPos().x());
-        qSort(iTabStops[cursorPos().y() - 1]);
+        auto& row = iTabStops[cursorPos().y() - 1];
+        std::sort(row.begin(), row.end());
     } else if (ch.toLatin1() == 'D') { // cursor down/scroll down one line
         scrollFwd(1, cursorPos().y());
     } else if (ch.toLatin1() == 'M') { // cursor up/scroll up one line
@@ -1489,26 +1490,30 @@ const QStringList Terminal::grabURLsFromBuffer()
     {
         for (int i = 0; i < iBackBuffer.size(); i++) {
             for (int j = 0; j < iBackBuffer[i].size(); j++) {
-                if (iBackBuffer[i][j].c.isPrint())
-                    buf.append(iBackBuffer[i][j].c);
-                else if (iBackBuffer[i][j].c == 0)
+                if (iBackBuffer[i][j].c.isPrint()) {
+                    buf.append(QString(iBackBuffer[i][j].c).toUtf8());
+                } else if (iBackBuffer[i][j].c == 0) {
                     buf.append(' ');
+                }
             }
-            if (iBackBuffer[i].size() < iTermSize.width())
+            if (iBackBuffer[i].size() < iTermSize.width()) {
                 buf.append(' ');
+            }
         }
     }
 
     //main buffer
     for (int i = 0; i < buffer().size(); i++) {
         for (int j = 0; j < buffer()[i].size(); j++) {
-            if (buffer()[i][j].c.isPrint())
-                buf.append(buffer()[i][j].c);
-            else if (buffer()[i][j].c == 0)
+            if (buffer()[i][j].c.isPrint()) {
+                buf.append(QString(buffer()[i][j].c).toUtf8());
+            } else if (buffer()[i][j].c == 0) {
                 buf.append(' ');
+            }
         }
-        if (buffer()[i].size() < iTermSize.width())
+        if (buffer()[i].size() < iTermSize.width()) {
             buf.append(' ');
+        }
     }
 
     /* http://blog.mattheworiordan.com/post/13174566389/url-regular-expression-for-links-with-or-without-the */
