@@ -16,10 +16,15 @@
     along with this work.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "textrender.h"
+#include <QClipboard>
+#include <QCursor>
+#include <QFontMetrics>
+#include <QGuiApplication>
+#include <cmath>
+
 #include "parser.h"
 #include "terminal.h"
-#include <QtGui>
+#include "textrender.h"
 
 /*!
  * \internal

@@ -15,13 +15,13 @@
     along with this work.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "qplatformdefs.h"
-
 #include <QDir>
+#include <QGuiApplication>
+#include <QQmlContext>
+#include <QQmlEngine>
 #include <QQuickView>
+#include <QScreen>
 #include <QString>
-#include <QtGui>
-#include <QtQml>
 
 #include "keyloader.h"
 #include "textrender.h"
