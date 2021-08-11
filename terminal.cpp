@@ -998,12 +998,19 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
         case 1:
             iAppCursorKeys = set;
             break;
-        case 3: // column mode
+        case 3:
+            // column mode
             // not supported, just clear screen, move cursor home & reset scrolling region
             clearAll();
             resetTabs();
             iMarginTop = 1;
             iMarginBottom = iTermSize.height();
+            break;
+        case 4:
+            // DECSCLM
+            // Sets the way the terminal scrolls lines.
+            // Smooth (default), or jump.
+            // TODO: implement
             break;
         case 5: {
             // inverse video (DECSCNM)
@@ -1020,6 +1027,9 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
             break;
         case 25: // show cursor
             iShowCursor = set;
+            break;
+        case 69:
+            // TODO: Not sure what this is...
             break;
         case 1049: // use alt screen buffer and save cursor
             if (set) {
@@ -1045,7 +1055,7 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
             m_bracketedPasteMode = set;
             break;
         default:
-            qDebug() << "Unhandled DEC mode " << mode << set << extra;
+            qDebug() << "Unhandled DEC private mode " << mode << set << extra;
         }
     } else if (extra == "") {
         switch (mode) {
@@ -1056,10 +1066,10 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
             iNewLineMode = set;
             break;
         default:
-            qDebug() << "Unhandled DEC mode " << mode << set << extra;
+            qDebug() << "Unhandled ANSI mode " << mode << set << extra;
         }
     } else {
-        qDebug() << "Unhandled DEC mode " << mode << set << extra;
+        qDebug() << "Unhandled ANSI/DEC mode " << mode << set << extra;
     }
 }
 
@@ -1149,12 +1159,16 @@ bool Terminal::handleDECSED(const QList<int>& params, const QString& extra)
         for (int i = 0; i < cursorPos().y() - 1; i++) {
             buffer()[i].clear();
         }
+        return false;
     } else if (params.count() >= 1 && params.at(0) == 2) {
         clearAll();
+        return false;
     } else {
         eraseLineAtCursor(cursorPos().x());
-        for (int i = cursorPos().y(); i < buffer().size(); i++)
+        for (int i = cursorPos().y(); i < buffer().size(); i++) {
             buffer()[i].clear();
+        }
+        return false;
     }
 
     return true;
@@ -1168,10 +1182,13 @@ bool Terminal::handleEL(const QList<int>& params, const QString& extra)
     }
     if (params.count() >= 1 && params.at(0) == 1) {
         eraseLineAtCursor(1, cursorPos().x());
+        return false;
     } else if (params.count() >= 1 && params.at(0) == 2) {
         currentLine().clear();
+        return false;
     } else {
         eraseLineAtCursor(cursorPos().x());
+        return false;
     }
     return true;
 }
