@@ -15,17 +15,17 @@
     along with this work.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <QtCore>
 #include <QDebug>
+#include <QtCore>
 
 #include "keyloader.h"
 #include "utilities.h"
 
-KeyLoader::KeyLoader(QObject *parent) :
-    QObject(parent),
-    iVkbRows(0),
-    iVkbColumns(0),
-    iUtil(0)
+KeyLoader::KeyLoader(QObject* parent)
+    : QObject(parent)
+    , iVkbRows(0)
+    , iVkbColumns(0)
+    , iUtil(0)
 {
 }
 
@@ -36,16 +36,15 @@ KeyLoader::~KeyLoader()
 bool KeyLoader::loadLayout(QString layout)
 {
     bool ret = false;
-    if(layout.isEmpty() || !iUtil)
+    if (layout.isEmpty() || !iUtil)
         return false;
 
-    if (layout.at(0)==':') {  // load from resources
+    if (layout.at(0) == ':') { // load from resources
         QResource res(layout);
-        QByteArray resArr( reinterpret_cast<const char*>(res.data()) );
-        QBuffer resBuf( &resArr );
+        QByteArray resArr(reinterpret_cast<const char*>(res.data()));
+        QBuffer resBuf(&resArr);
         ret = loadLayoutInternal(resBuf);
-    }
-    else { // load from file
+    } else { // load from file
         QFile f(iUtil->configPath() + "/" + layout + ".layout");
         ret = loadLayoutInternal(f);
     }
@@ -53,7 +52,7 @@ bool KeyLoader::loadLayout(QString layout)
     return ret;
 }
 
-bool KeyLoader::loadLayoutInternal(QIODevice &from)
+bool KeyLoader::loadLayoutInternal(QIODevice& from)
 {
     iKeyData.clear();
     bool ret = true;
@@ -62,14 +61,13 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
     iVkbColumns = 0;
     bool lastLineHadKey = false;
 
-    if( !from.open(QIODevice::ReadOnly | QIODevice::Text) )
+    if (!from.open(QIODevice::ReadOnly | QIODevice::Text))
         return false;
 
     QList<KeyData> keyRow;
-    while(!from.atEnd()) {
+    while (!from.atEnd()) {
         QString line = QString::fromUtf8(from.readLine()).simplified();
-        if(line.length()>=2 && line.at(0)!=';' && line.at(0)=='[' && line.at(line.length()-1)==']')
-        {
+        if (line.length() >= 2 && line.at(0) != ';' && line.at(0) == '[' && line.at(line.length() - 1) == ']') {
             KeyData key;
             key.label = "";
             key.code = 0;
@@ -96,24 +94,24 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
             line.replace("\\x5C", "\\");
 
             QStringList parts = line.split(",", QString::KeepEmptyParts);
-            if(parts.count()>=2) {
+            if (parts.count() >= 2) {
                 bool ok = true;
                 key.label = parts.at(0);
-                key.label.replace("\\x2C",",");
-                parts[1].replace("0x","");
-                key.code = parts.at(1).toInt(&ok,16);
-                if(!ok) {
+                key.label.replace("\\x2C", ",");
+                parts[1].replace("0x", "");
+                key.code = parts.at(1).toInt(&ok, 16);
+                if (!ok) {
                     ret = false;
                     break;
                 }
-                if(key.code==Qt::AltModifier || key.code==Qt::ControlModifier || key.code==Qt::ShiftModifier)
+                if (key.code == Qt::AltModifier || key.code == Qt::ControlModifier || key.code == Qt::ShiftModifier)
                     key.isModifier = true;
-                if(parts.count()>=4 && !key.isModifier) {
+                if (parts.count() >= 4 && !key.isModifier) {
                     key.label_alt = parts.at(2);
-                    key.label_alt.replace("\\x2C",",");
-                    parts[3].replace("0x","");
-                    key.code_alt = parts.at(3).toInt(&ok,16);
-                    if(!ok) {
+                    key.label_alt.replace("\\x2C", ",");
+                    parts[3].replace("0x", "");
+                    key.code_alt = parts.at(3).toInt(&ok, 16);
+                    if (!ok) {
                         ret = false;
                         break;
                     }
@@ -122,25 +120,23 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
             lastLineHadKey = true;
             cleanUpKey(key);
             keyRow.append(key);
-        }
-        else if(line.length()==0 && lastLineHadKey) {
-            if(keyRow.count() > iVkbColumns) {
+        } else if (line.length() == 0 && lastLineHadKey) {
+            if (keyRow.count() > iVkbColumns) {
                 iVkbColumns = keyRow.count();
             }
             iKeyData.append(keyRow);
             keyRow.clear();
             lastLineHadKey = false;
-        }
-        else {
+        } else {
             lastLineHadKey = false;
         }
     }
-    if(keyRow.count() > 0)
+    if (keyRow.count() > 0)
         iKeyData.append(keyRow);
 
     iVkbRows = iKeyData.count();
-    foreach(QList<KeyData> r, iKeyData) {
-        if(r.count() > iVkbColumns)
+    foreach (QList<KeyData> r, iKeyData) {
+        if (r.count() > iVkbColumns)
             iVkbColumns = r.count();
     }
 
@@ -158,16 +154,16 @@ bool KeyLoader::loadLayoutInternal(QIODevice &from)
 QVariantList KeyLoader::keyAt(int row, int col)
 {
     QVariantList ret;
-    ret.append(""); //label
-    ret.append(0);  //code
-    ret.append(""); //label_alt
-    ret.append(0);  //code_alt
-    ret.append(0);  //width
-    ret.append(false);  //isModifier
+    ret.append("");    //label
+    ret.append(0);     //code
+    ret.append("");    //label_alt
+    ret.append(0);     //code_alt
+    ret.append(0);     //width
+    ret.append(false); //isModifier
 
-    if(iKeyData.count() <= row)
+    if (iKeyData.count() <= row)
         return ret;
-    if(iKeyData.at(row).count() <= col)
+    if (iKeyData.at(row).count() <= col)
         return ret;
 
     ret[0] = iKeyData.at(row).at(col).label;
@@ -188,28 +184,28 @@ const QStringList KeyLoader::availableLayouts()
     QDir confDir(iUtil->configPath());
     QStringList filter("*.layout");
 
-    QStringList results = confDir.entryList(filter, QDir::Files|QDir::Readable, QDir::Name);
+    QStringList results = confDir.entryList(filter, QDir::Files | QDir::Readable, QDir::Name);
 
     QStringList ret;
-    foreach(QString s, results) {
+    foreach (QString s, results) {
         ret << s.left(s.lastIndexOf('.'));
     }
 
     return ret;
 }
 
-void KeyLoader::cleanUpKey(KeyData &key)
+void KeyLoader::cleanUpKey(KeyData& key)
 {
     // make sure that a key does not try to use some (currently) unsupported feature...
 
     // if the label is an image or a modifier, we do not support an alternative label
-    if ((key.label.startsWith(':') && key.label.length()>1) || key.isModifier) {
+    if ((key.label.startsWith(':') && key.label.length() > 1) || key.isModifier) {
         key.label_alt = "";
         key.code_alt = 0;
     }
 
     // if the alternative label is an image (and the default one was not), use it as the (only) default
-    if (key.label_alt.startsWith(':') && key.label_alt.length()>1) {
+    if (key.label_alt.startsWith(':') && key.label_alt.length() > 1) {
         key.label = key.label_alt;
         key.code = key.code_alt;
         key.label_alt = "";
@@ -217,13 +213,13 @@ void KeyLoader::cleanUpKey(KeyData &key)
     }
 
     // alphabet letters can't have an alternative, they just switch between lower and upper case
-    if (key.label.length()==1 && key.label.at(0).isLetter()) {
+    if (key.label.length() == 1 && key.label.at(0).isLetter()) {
         key.label_alt = "";
         key.code_alt = 0;
     }
 
     // ... also, can't have alphabet letters as an alternative label
-    if (key.label_alt.length()==1 && key.label_alt.at(0).isLetter()) {
+    if (key.label_alt.length() == 1 && key.label_alt.at(0).isLetter()) {
         key.label_alt = "";
         key.code_alt = 0;
     }

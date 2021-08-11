@@ -17,32 +17,32 @@
 
 #include "qplatformdefs.h"
 
+#include <QDir>
+#include <QQuickView>
+#include <QString>
 #include <QtGui>
 #include <QtQml>
-#include <QQuickView>
-#include <QDir>
-#include <QString>
 
+#include "keyloader.h"
 #include "textrender.h"
 #include "utilities.h"
 #include "version.h"
-#include "keyloader.h"
 
 static void copyFileFromResources(QString from, QString to);
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     QCoreApplication::setApplicationName("literm");
 
     QGuiApplication app(argc, argv);
 
     QScreen* sc = app.primaryScreen();
-    if(sc){
+    if (sc) {
         sc->setOrientationUpdateMask(Qt::PrimaryOrientation
-                                     | Qt::LandscapeOrientation
-                                     | Qt::PortraitOrientation
-                                     | Qt::InvertedLandscapeOrientation
-                                     | Qt::InvertedPortraitOrientation);
+            | Qt::LandscapeOrientation
+            | Qt::PortraitOrientation
+            | Qt::InvertedLandscapeOrientation
+            | Qt::InvertedPortraitOrientation);
     }
 
     qmlRegisterType<TextRender>("literm", 1, 0, "TextRender");
@@ -80,39 +80,38 @@ int main(int argc, char *argv[])
 
     QString settingsFile = settings_path + "/settings.ini";
 
-
     Util util(settingsFile);
 
     QString startupErrorMsg;
 
     // copy the default config files to the config dir if they don't already exist
-    copyFileFromResources(":/data/menu.xml", util.configPath()+"/menu.xml");
-    copyFileFromResources(":/data/english.layout", util.configPath()+"/english.layout");
-    copyFileFromResources(":/data/finnish.layout", util.configPath()+"/finnish.layout");
-    copyFileFromResources(":/data/french.layout", util.configPath()+"/french.layout");
-    copyFileFromResources(":/data/german.layout", util.configPath()+"/german.layout");
-    copyFileFromResources(":/data/qwertz.layout", util.configPath()+"/qwertz.layout");
+    copyFileFromResources(":/data/menu.xml", util.configPath() + "/menu.xml");
+    copyFileFromResources(":/data/english.layout", util.configPath() + "/english.layout");
+    copyFileFromResources(":/data/finnish.layout", util.configPath() + "/finnish.layout");
+    copyFileFromResources(":/data/french.layout", util.configPath() + "/french.layout");
+    copyFileFromResources(":/data/german.layout", util.configPath() + "/german.layout");
+    copyFileFromResources(":/data/qwertz.layout", util.configPath() + "/qwertz.layout");
 
     KeyLoader keyLoader;
     keyLoader.setUtil(&util);
     bool ret = keyLoader.loadLayout(util.keyboardLayout());
-    if(!ret) {
+    if (!ret) {
         // on failure, try to load the default one (english) directly from resources
         startupErrorMsg = "There was an error loading the keyboard layout.<br>\nUsing the default one instead.";
         util.setKeyboardLayout("english");
         ret = keyLoader.loadLayout(":/data/english.layout");
-        if(!ret)
+        if (!ret)
             qFatal("failure loading keyboard layout");
     }
 
-    QQmlContext *context = view.rootContext();
-    context->setContextProperty( "util", &util );
-    context->setContextProperty( "keyLoader", &keyLoader );
-    context->setContextProperty( "startupErrorMessage", startupErrorMsg);
+    QQmlContext* context = view.rootContext();
+    context->setContextProperty("util", &util);
+    context->setContextProperty("keyLoader", &keyLoader);
+    context->setContextProperty("startupErrorMessage", startupErrorMsg);
 
     util.setWindow(&view);
 
-    QObject::connect(view.engine(),SIGNAL(quit()),&app,SLOT(quit()));
+    QObject::connect(view.engine(), SIGNAL(quit()), &app, SLOT(quit()));
 
     // Allow overriding the UX choice
     QString uxChoice;
@@ -125,15 +124,15 @@ int main(int argc, char *argv[])
 #if defined(MOBILE_BUILD)
         uxChoice = "mobile";
 #else
-        uxChoice =  "desktop";
+        uxChoice = "desktop";
 #endif
     }
 
     view.setResizeMode(QQuickView::SizeRootObjectToView);
     view.setSource(QUrl("qrc:/qml/" + uxChoice + "/Main.qml"));
 
-    QObject *root = view.rootObject();
-    if(!root)
+    QObject* root = view.rootObject();
+    if (!root)
         qFatal("no root object - qml error");
 
     if (fullscreen) {
@@ -149,11 +148,11 @@ static void copyFileFromResources(QString from, QString to)
 {
     // copy a file from resources to the config dir if it does not exist there
     QFileInfo toFile(to);
-    if(!toFile.exists()) {
+    if (!toFile.exists()) {
         QFile newToFile(toFile.absoluteFilePath());
         QResource res(from);
         if (newToFile.open(QIODevice::WriteOnly)) {
-            newToFile.write( reinterpret_cast<const char*>(res.data()) );
+            newToFile.write(reinterpret_cast<const char*>(res.data()));
             newToFile.close();
         } else {
             qWarning() << "Failed to copy default config from resources to" << toFile.filePath();

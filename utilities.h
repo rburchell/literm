@@ -54,25 +54,26 @@ class Util : public QObject
     Q_PROPERTY(QString panUpTitle READ panUpTitle CONSTANT)
     Q_PROPERTY(QString panUpCommand READ panUpCommand CONSTANT)
 
-
     Q_ENUMS(KeyboardMode)
     Q_ENUMS(DragMode)
     Q_ENUMS(OrientationMode)
 
 public:
-    enum KeyboardMode {
+    enum KeyboardMode
+    {
         KeyboardOff,
         KeyboardFade,
         KeyboardMove
     };
 
-    enum OrientationMode {
+    enum OrientationMode
+    {
         OrientationAuto,
         OrientationLandscape,
         OrientationPortrait
     };
 
-    explicit Util(const QString &settingsFile, QObject *parent = 0);
+    explicit Util(const QString& settingsFile, QObject* parent = 0);
     virtual ~Util();
 
     QString panLeftTitle() const;
@@ -98,7 +99,7 @@ public:
 
     Q_INVOKABLE QString versionString();
     Q_INVOKABLE QString configPath();
-    QVariant settingsValue(QString key, const QVariant &defaultValue = QVariant()) const;
+    QVariant settingsValue(QString key, const QVariant& defaultValue = QVariant()) const;
     void setSettingsValue(QString key, QVariant value);
 
     int uiFontSize();
@@ -127,7 +128,7 @@ public:
     void setKeyboardFadeOutDelay(int delay);
 
     QString keyboardLayout();
-    void setKeyboardLayout(const QString &layout);
+    void setKeyboardLayout(const QString& layout);
 
     int extraLinesFromCursor();
     QString charset();

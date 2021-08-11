@@ -22,7 +22,8 @@
 
 class Util;
 
-struct KeyData {
+struct KeyData
+{
     QString label;
     int code;
     QString label_alt;
@@ -35,7 +36,7 @@ class KeyLoader : public QObject
 {
     Q_OBJECT
 public:
-    explicit KeyLoader(QObject *parent = 0);
+    explicit KeyLoader(QObject* parent = 0);
     virtual ~KeyLoader();
 
     void setUtil(Util* util) { iUtil = util; }
@@ -53,15 +54,15 @@ public slots:
 
 private:
     Q_DISABLE_COPY(KeyLoader)
-    bool loadLayoutInternal(QIODevice &from);
-    void cleanUpKey(KeyData &key);
+    bool loadLayoutInternal(QIODevice& from);
+    void cleanUpKey(KeyData& key);
 
     int iVkbRows;
     int iVkbColumns;
 
-    QList<QList<KeyData> > iKeyData;
+    QList<QList<KeyData>> iKeyData;
 
-    Util *iUtil;
+    Util* iUtil;
 };
 
 #endif // KEYLOADER_H

@@ -25,40 +25,44 @@
 #if !defined(TEST_MODE)
 
 // Avoid catch2 trying to hijack our main
-#define CATCH_CONFIG_RUNNER
+#    define CATCH_CONFIG_RUNNER
 
 #endif
 
 namespace Parser {
-    enum TextAttribute {
-        NoAttributes = 0x00,
-        BoldAttribute = 0x01,
-        ItalicAttribute = 0x02,
-        UnderlineAttribute = 0x04,
-        NegativeAttribute = 0x08,
-        BlinkAttribute = 0x10
-    };
-    Q_DECLARE_FLAGS(TextAttributes, TextAttribute)
+enum TextAttribute
+{
+    NoAttributes = 0x00,
+    BoldAttribute = 0x01,
+    ItalicAttribute = 0x02,
+    UnderlineAttribute = 0x04,
+    NegativeAttribute = 0x08,
+    BlinkAttribute = 0x10
+};
+Q_DECLARE_FLAGS(TextAttributes, TextAttribute)
 
-    QRgb fetchDefaultFgColor();
-    QRgb fetchDefaultBgColor();
+QRgb fetchDefaultFgColor();
+QRgb fetchDefaultBgColor();
 
-    struct SGRParserState {
-        SGRParserState(QRgb& fg, QRgb& bg, QRgb defaultFg, QRgb defaultBg, TextAttributes& currentAttributes)
-            : colours(Colours {fg, defaultFg, bg, defaultBg})
-            , currentAttributes(currentAttributes)
-        {}
-        struct Colours {
-            QRgb& fg;
-            QRgb defaultFg;
-            QRgb& bg;
-            QRgb defaultBg;
-        } colours;
+struct SGRParserState
+{
+    SGRParserState(QRgb& fg, QRgb& bg, QRgb defaultFg, QRgb defaultBg, TextAttributes& currentAttributes)
+        : colours(Colours { fg, defaultFg, bg, defaultBg })
+        , currentAttributes(currentAttributes)
+    {
+    }
+    struct Colours
+    {
+        QRgb& fg;
+        QRgb defaultFg;
+        QRgb& bg;
+        QRgb defaultBg;
+    } colours;
 
-        TextAttributes& currentAttributes;
-    };
+    TextAttributes& currentAttributes;
+};
 
-    bool handleSGR(SGRParserState& state, const QList<int> &params, QString& errorString);
+bool handleSGR(SGRParserState& state, const QList<int>& params, QString& errorString);
 }
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Parser::TextAttributes)

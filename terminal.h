@@ -19,15 +19,17 @@
 #define TERMINAL_H
 
 #include <QObject>
-#include <QRgb>
 #include <QRect>
+#include <QRgb>
 #include <QVector>
 
 #include "ptyiface.h"
 
-struct TermChar {
+struct TermChar
+{
     // TODO: Replace with the version in Parser.
-    enum TextAttributes {
+    enum TextAttributes
+    {
         NoAttributes = 0x00,
         BoldAttribute = 0x01,
         ItalicAttribute = 0x02,
@@ -41,17 +43,18 @@ struct TermChar {
     QRgb bgColor;
     TextAttributes attrib;
 };
-inline TermChar::TextAttributes operator~ (TermChar::TextAttributes a) { return (TermChar::TextAttributes)~(int)a; }
-inline TermChar::TextAttributes operator| (TermChar::TextAttributes a, TermChar::TextAttributes b) { return (TermChar::TextAttributes)((int)a | (int)b); }
-inline TermChar::TextAttributes operator& (TermChar::TextAttributes a, TermChar::TextAttributes b) { return (TermChar::TextAttributes)((int)a & (int)b); }
-inline TermChar::TextAttributes operator^ (TermChar::TextAttributes a, TermChar::TextAttributes b) { return (TermChar::TextAttributes)((int)a ^ (int)b); }
-inline TermChar::TextAttributes& operator|= (TermChar::TextAttributes& a, TermChar::TextAttributes b) { return (TermChar::TextAttributes&)((int&)a |= (int)b); }
-inline TermChar::TextAttributes& operator&= (TermChar::TextAttributes& a, TermChar::TextAttributes b) { return (TermChar::TextAttributes&)((int&)a &= (int)b); }
-inline TermChar::TextAttributes& operator^= (TermChar::TextAttributes& a, TermChar::TextAttributes b) { return (TermChar::TextAttributes&)((int&)a ^= (int)b); }
+inline TermChar::TextAttributes operator~(TermChar::TextAttributes a) { return (TermChar::TextAttributes) ~(int)a; }
+inline TermChar::TextAttributes operator|(TermChar::TextAttributes a, TermChar::TextAttributes b) { return (TermChar::TextAttributes)((int)a | (int)b); }
+inline TermChar::TextAttributes operator&(TermChar::TextAttributes a, TermChar::TextAttributes b) { return (TermChar::TextAttributes)((int)a & (int)b); }
+inline TermChar::TextAttributes operator^(TermChar::TextAttributes a, TermChar::TextAttributes b) { return (TermChar::TextAttributes)((int)a ^ (int)b); }
+inline TermChar::TextAttributes& operator|=(TermChar::TextAttributes& a, TermChar::TextAttributes b) { return (TermChar::TextAttributes&)((int&)a |= (int)b); }
+inline TermChar::TextAttributes& operator&=(TermChar::TextAttributes& a, TermChar::TextAttributes b) { return (TermChar::TextAttributes&)((int&)a &= (int)b); }
+inline TermChar::TextAttributes& operator^=(TermChar::TextAttributes& a, TermChar::TextAttributes b) { return (TermChar::TextAttributes&)((int&)a ^= (int)b); }
 
 const QByteArray multiCharEscapes("().*+-/%#");
 
-struct TermAttribs {
+struct TermAttribs
+{
     QPoint cursorPos;
 
     bool wrapAroundMode;
@@ -66,13 +69,13 @@ class TerminalLine
 {
 public:
     int size() const { return m_contents.size(); }
-    void append(const TermChar &tc) { m_contents.append(tc); }
-    void insert(int pos, const TermChar &tc) { m_contents.insert(pos, tc); }
+    void append(const TermChar& tc) { m_contents.append(tc); }
+    void insert(int pos, const TermChar& tc) { m_contents.insert(pos, tc); }
     void removeAt(int pos) { m_contents.removeAt(pos); }
     void clear() { m_contents.clear(); }
-    TermChar &operator[](int pos) { return m_contents[pos]; }
-    const TermChar &operator[](int pos) const { return m_contents[pos]; }
-    const TermChar &at(int pos) const { return m_contents.at(pos); }
+    TermChar& operator[](int pos) { return m_contents[pos]; }
+    const TermChar& operator[](int pos) const { return m_contents[pos]; }
+    const TermChar& at(int pos) const { return m_contents.at(pos); }
 
 private:
     QVector<TermChar> m_contents;
@@ -82,14 +85,14 @@ class TerminalBuffer
 {
 public:
     int size() const { return m_buffer.size(); }
-    void append(const TerminalLine &l) { m_buffer.append(l); }
-    void insert(int pos, const TerminalLine &l) { m_buffer.insert(pos, l); }
+    void append(const TerminalLine& l) { m_buffer.append(l); }
+    void insert(int pos, const TerminalLine& l) { m_buffer.insert(pos, l); }
     void removeAt(int pos) { m_buffer.removeAt(pos); }
     TerminalLine takeAt(int pos) { return m_buffer.takeAt(pos); }
     void clear() { m_buffer.clear(); }
-    TerminalLine &operator[](int pos) { return m_buffer[pos]; }
-    const TerminalLine &operator[](int pos) const { return m_buffer[pos]; }
-    const TerminalLine &at(int pos) const { return m_buffer.at(pos); }
+    TerminalLine& operator[](int pos) { return m_buffer[pos]; }
+    const TerminalLine& operator[](int pos) const { return m_buffer[pos]; }
+    const TerminalLine& at(int pos) const { return m_buffer.at(pos); }
 
 private:
     QVector<TerminalLine> m_buffer;
@@ -100,8 +103,8 @@ class Terminal : public QObject
     Q_OBJECT
 
 public:
-    explicit Terminal(QObject *parent = 0);
-    virtual ~Terminal() {}
+    explicit Terminal(QObject* parent = 0);
+    virtual ~Terminal() { }
 
     void init();
 
@@ -112,19 +115,19 @@ public:
     QSize termSize() const { return iTermSize; }
     void setTermSize(QSize size);
 
-    TerminalBuffer &buffer();
-    const TerminalBuffer &buffer() const;
-    TerminalBuffer &backBuffer() { return iBackBuffer; }
-    const TerminalBuffer &backBuffer() const { return iBackBuffer; }
+    TerminalBuffer& buffer();
+    const TerminalBuffer& buffer() const;
+    TerminalBuffer& backBuffer() { return iBackBuffer; }
+    const TerminalBuffer& backBuffer() const { return iBackBuffer; }
 
-    TerminalLine &currentLine();
+    TerminalLine& currentLine();
 
     bool inverseVideoMode() const { return m_inverseVideoMode; }
 
-    void keyPress(int key, int modifiers, const QString& text="");
+    void keyPress(int key, int modifiers, const QString& text = "");
     const QStringList printableLinesFromCursor(int lines);
     void putString(QString str);
-    void paste(const QString &text);
+    void paste(const QString& text);
     const QStringList grabURLsFromBuffer();
 
     void scrollBackBufferFwd(int lines);
@@ -152,11 +155,11 @@ signals:
     void scrollBackBufferAdjusted(bool reset);
     void selectionFinished();
     void visualBell();
-    void windowTitleChanged(const QString &windowTitle);
+    void windowTitleChanged(const QString& windowTitle);
     void hangupReceived();
 
 protected:
-    void timerEvent(QTimerEvent *) override;
+    void timerEvent(QTimerEvent*) override;
 
 private slots:
     void onDataAvailable();
@@ -165,25 +168,25 @@ private:
     Q_DISABLE_COPY(Terminal)
     static const int maxScrollBackLines = 300;
 
-    void insertAtCursor(QChar c, bool overwriteMode=true, bool advanceCursor=true);
+    void insertAtCursor(QChar c, bool overwriteMode = true, bool advanceCursor = true);
     void deleteAt(QPoint pos);
     void clearAt(QPoint pos);
-    void eraseLineAtCursor(int from=-1, int to=-1);
-    void clearAll(bool wholeBuffer=false);
+    void eraseLineAtCursor(int from = -1, int to = -1);
+    void clearAll(bool wholeBuffer = false);
     void ansiSequence(const QString& seq);
-    void handleMode(int mode, bool set, const QString &extra);
-    bool handleIL(const QList<int> &params, const QString &extra);
-    bool handleDL(const QList<int> &params, const QString &extra);
-    bool handleDCH(const QList<int> &params, const QString &extra);
-    bool handleICH(const QList<int> &params, const QString &extra);
-    bool handleDECSED(const QList<int> &params, const QString &extra);
-    bool handleEL(const QList<int> &params, const QString &extra);
-    bool handleECH(const QList<int> &params, const QString &extra);
+    void handleMode(int mode, bool set, const QString& extra);
+    bool handleIL(const QList<int>& params, const QString& extra);
+    bool handleDL(const QList<int>& params, const QString& extra);
+    bool handleDCH(const QList<int>& params, const QString& extra);
+    bool handleICH(const QList<int>& params, const QString& extra);
+    bool handleDECSED(const QList<int>& params, const QString& extra);
+    bool handleEL(const QList<int>& params, const QString& extra);
+    bool handleECH(const QList<int>& params, const QString& extra);
     void oscSequence(const QString& seq);
     void escControlChar(const QString& seq);
     void trimBackBuffer();
-    void scrollBack(int lines, int insertAt=-1);
-    void scrollFwd(int lines, int removeAt=-1);
+    void scrollBack(int lines, int insertAt = -1);
+    void scrollFwd(int lines, int removeAt = -1);
     void resetTerminal();
     void resetTabs();
     void adjustSelectionPosition(int lines);
@@ -192,12 +195,12 @@ private:
     void insertInBuffer(const QString& chars);
 
     // ### consider making this not a pointer
-    PtyIFace *m_pty;
+    PtyIFace* m_pty;
 
     TerminalBuffer iBuffer;
     TerminalBuffer iAltBuffer;
     TerminalBuffer iBackBuffer;
-    QVector<QVector<int> > iTabStops;
+    QVector<QVector<int>> iTabStops;
 
     QSize iTermSize;
     bool iEmitCursorChangeSignal;

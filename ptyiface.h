@@ -19,10 +19,10 @@
 #ifndef PTYIFACE_H
 #define PTYIFACE_H
 
-#include <QObject>
-#include <QSocketNotifier>
 #include <QByteArray>
+#include <QObject>
 #include <QSize>
+#include <QSocketNotifier>
 #include <QTextCodec>
 
 class Terminal;
@@ -31,13 +31,18 @@ class PtyIFace : public QObject
 {
     Q_OBJECT
 public:
-    explicit PtyIFace(Terminal *term, const QString &charset, const QByteArray &terminalEnv, const QString &commandOverride, QObject *parent);
+    explicit PtyIFace(Terminal* term, const QString& charset, const QByteArray& terminalEnv, const QString& commandOverride, QObject* parent);
     virtual ~PtyIFace();
 
-    void writeTerm(const QString &chars);
+    void writeTerm(const QString& chars);
     bool failed() { return iFailed; }
 
-    QString takeData() { QString tmp = m_pendingData; m_pendingData = QString(); return tmp; }
+    QString takeData()
+    {
+        QString tmp = m_pendingData;
+        m_pendingData = QString();
+        return tmp;
+    }
 
 private slots:
     void resize(int rows, int columns);
@@ -53,18 +58,18 @@ private slots:
 private:
     Q_DISABLE_COPY(PtyIFace)
 
-    void writeTerm(const QByteArray &chars);
+    void writeTerm(const QByteArray& chars);
 
-    Terminal *iTerm;
+    Terminal* iTerm;
     int iPid;
     int iMasterFd;
     bool iFailed;
     bool m_childProcessQuit;
     int m_childProcessPid;
 
-    QSocketNotifier *iReadNotifier;
+    QSocketNotifier* iReadNotifier;
 
-    QTextCodec *iTextCodec;
+    QTextCodec* iTextCodec;
 
     QString m_pendingData;
 

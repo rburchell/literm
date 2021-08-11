@@ -17,22 +17,22 @@
 
 #include "qplatformdefs.h"
 
-#include <QtCore>
-#include <QtGui>
+#include <QDebug>
 #include <QGuiApplication>
 #include <QQuickView>
-#include <QDebug>
+#include <QtCore>
+#include <QtGui>
 
 #include "terminal.h"
-#include "utilities.h"
 #include "textrender.h"
+#include "utilities.h"
 #include "version.h"
 
 #ifdef HAVE_FEEDBACK
-#include <QFeedbackEffect>
+#    include <QFeedbackEffect>
 #endif
 
-Util::Util(const QString &settingsFile, QObject *parent)
+Util::Util(const QString& settingsFile, QObject* parent)
     : QObject(parent)
     , m_settings(settingsFile, QSettings::IniFormat)
     , iWindow(0)
@@ -98,7 +98,7 @@ void Util::setWindow(QQuickView* win)
     if (iWindow)
         qFatal("Should set window property only once");
     iWindow = win;
-    if(!iWindow)
+    if (!iWindow)
         qFatal("invalid main window");
     connect(win, SIGNAL(contentOrientationChanged(Qt::ScreenOrientation)), this, SIGNAL(windowOrientationChanged()));
     connect(win, SIGNAL(windowTitleChanged(QString)), this, SIGNAL(windowTitleChanged()));
@@ -133,8 +133,8 @@ void Util::openNewWindow()
 QString Util::getUserMenuXml()
 {
     QString ret;
-    QFile f(configPath()+"/menu.xml" );
-    if(f.open(QIODevice::ReadOnly|QIODevice::Text)) {
+    QFile f(configPath() + "/menu.xml");
+    if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
         ret = f.readAll();
         f.close();
     }
@@ -148,7 +148,7 @@ QString Util::configPath()
     return f.path();
 }
 
-QVariant Util::settingsValue(QString key, const QVariant &defaultValue) const
+QVariant Util::settingsValue(QString key, const QVariant& defaultValue) const
 {
     return m_settings.value(key, defaultValue);
 }
@@ -189,7 +189,7 @@ void Util::setFontSize(int size)
 
 void Util::keyPressFeedback()
 {
-    if( !settingsValue("ui/keyPressFeedback", true).toBool() )
+    if (!settingsValue("ui/keyPressFeedback", true).toBool())
         return;
 
 #ifdef HAVE_FEEDBACK
@@ -199,10 +199,10 @@ void Util::keyPressFeedback()
 
 void Util::keyReleaseFeedback()
 {
-    if( !settingsValue("ui/keyPressFeedback", true).toBool() )
+    if (!settingsValue("ui/keyPressFeedback", true).toBool())
         return;
 
-    // TODO: check what's more comfortable, only press, or press and release
+        // TODO: check what's more comfortable, only press, or press and release
 #ifdef HAVE_FEEDBACK
     QFeedbackEffect::playThemeEffect(QFeedbackEffect::ReleaseWeak);
 #endif
@@ -263,7 +263,7 @@ void Util::setDragMode(TextRender::DragMode mode)
     }
 
     QString modeString;
-    switch(mode) {
+    switch (mode) {
     case TextRender::DragGestures:
         modeString = "gestures";
         break;
@@ -302,7 +302,7 @@ void Util::setKeyboardMode(int mode)
     }
 
     QString modeString;
-    switch(mode) {
+    switch (mode) {
     case KeyboardFade:
         modeString = "fade";
         break;
@@ -338,7 +338,7 @@ QString Util::keyboardLayout()
     return settingsValue("ui/keyboardLayout", "english").toString();
 }
 
-void Util::setKeyboardLayout(const QString &layout)
+void Util::setKeyboardLayout(const QString& layout)
 {
     if (layout == keyboardLayout()) {
         return;
@@ -383,7 +383,7 @@ void Util::setOrientationMode(int mode)
     }
 
     QString modeString;
-    switch(mode) {
+    switch (mode) {
     case OrientationAuto:
         modeString = "auto";
         break;
@@ -414,9 +414,8 @@ void Util::fakeKeyPress(int key, int modifiers)
 
 void Util::copyTextToClipboard(QString str)
 {
-    QClipboard *cb = QGuiApplication::clipboard();
+    QClipboard* cb = QGuiApplication::clipboard();
 
     cb->clear();
     cb->setText(str);
 }
-

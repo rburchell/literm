@@ -48,7 +48,7 @@ class TextRender : public QQuickItem
 
     Q_OBJECT
 public:
-    explicit TextRender(QQuickItem *parent = 0);
+    explicit TextRender(QQuickItem* parent = 0);
     virtual ~TextRender();
 
     Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
@@ -56,11 +56,11 @@ public:
     Q_INVOKABLE const QStringList grabURLsFromBuffer();
 
     QString charset() const;
-    void setCharset(const QString &charset);
+    void setCharset(const QString& charset);
     QString terminalCommand() const;
-    void setTerminalCommand(const QString &terminalCommand);
+    void setTerminalCommand(const QString& terminalCommand);
     QByteArray terminalEnvironment() const;
-    void setTerminalEnvironment(const QByteArray &terminalEnvironment);
+    void setTerminalEnvironment(const QByteArray& terminalEnvironment);
 
     bool canPaste() const;
     Q_INVOKABLE void copy();
@@ -75,7 +75,8 @@ public:
 
     QString title() const;
 
-    enum DragMode {
+    enum DragMode
+    {
         DragOff,
         DragGestures,
         DragScroll,
@@ -86,14 +87,20 @@ public:
     DragMode dragMode() const;
     void setDragMode(DragMode dragMode);
 
-    QQuickItem *contentItem() const { return m_contentItem; }
-    void setContentItem(QQuickItem *contentItem);
+    QQuickItem* contentItem() const { return m_contentItem; }
+    void setContentItem(QQuickItem* contentItem);
 
     QSize terminalSize() const;
     QFont font() const;
-    void setFont(const QFont &font);
+    void setFont(const QFont& font);
     bool showBufferScrollIndicator() { return iShowBufferScrollIndicator; }
-    void setShowBufferScrollIndicator(bool s) { if(iShowBufferScrollIndicator!=s) { iShowBufferScrollIndicator=s; emit showBufferScrollIndicatorChanged(); } }
+    void setShowBufferScrollIndicator(bool s)
+    {
+        if (iShowBufferScrollIndicator != s) {
+            iShowBufferScrollIndicator = s;
+            emit showBufferScrollIndicatorChanged();
+        }
+    }
 
     Q_INVOKABLE QPointF cursorPixelPos();
     QSizeF cellSize();
@@ -101,14 +108,14 @@ public:
     bool allowGestures();
     void setAllowGestures(bool allow);
 
-    QQmlComponent *cellDelegate() const;
-    void setCellDelegate(QQmlComponent *delegate);
-    QQmlComponent *cellContentsDelegate() const;
-    void setCellContentsDelegate(QQmlComponent *delegate);
-    QQmlComponent *cursorDelegate() const;
-    void setCursorDelegate(QQmlComponent *delegate);
-    QQmlComponent *selectionDelegate() const;
-    void setSelectionDelegate(QQmlComponent *delegate);
+    QQmlComponent* cellDelegate() const;
+    void setCellDelegate(QQmlComponent* delegate);
+    QQmlComponent* cellContentsDelegate() const;
+    void setCellContentsDelegate(QQmlComponent* delegate);
+    QQmlComponent* cursorDelegate() const;
+    void setCursorDelegate(QQmlComponent* delegate);
+    QQmlComponent* selectionDelegate() const;
+    void setSelectionDelegate(QQmlComponent* delegate);
 
 signals:
     void contentItemChanged();
@@ -147,26 +154,33 @@ public slots:
 
 protected:
     void updatePolish() override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
-    void timerEvent(QTimerEvent *event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
+    void timerEvent(QTimerEvent* event) override;
     void componentComplete() override;
 
 private slots:
     void handleScrollBack(bool reset);
-    void handleTitleChanged(const QString &title);
+    void handleTitleChanged(const QString& title);
 
 private:
     Q_DISABLE_COPY(TextRender)
 
-    enum PanGesture { PanNone, PanLeft, PanRight, PanUp, PanDown };
+    enum PanGesture
+    {
+        PanNone,
+        PanLeft,
+        PanRight,
+        PanUp,
+        PanDown
+    };
 
-    void drawBgFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, int width, TermChar style);
-    void drawTextFragment(QQuickItem *cellContentsDelegate, qreal x, qreal y, QString text, TermChar style);
-    void paintFromBuffer(const TerminalBuffer &buffer, int from, int to, qreal &y, int &yDelegateIndex);
+    void drawBgFragment(QQuickItem* cellContentsDelegate, qreal x, qreal y, int width, TermChar style);
+    void drawTextFragment(QQuickItem* cellContentsDelegate, qreal x, qreal y, QString text, TermChar style);
+    void paintFromBuffer(const TerminalBuffer& buffer, int from, int to, qreal& y, int& yDelegateIndex);
     QPointF charsToPixels(QPoint pos);
     void selectionHelper(QPointF scenePos, bool selectionOngoing);
 
@@ -184,8 +198,8 @@ private:
      **/
     QPointF scrollBackBuffer(QPointF now, QPointF last);
 
-    QQuickItem *fetchFreeCell();
-    QQuickItem *fetchFreeCellContent();
+    QQuickItem* fetchFreeCell();
+    QQuickItem* fetchFreeCellContent();
 
     QPointF dragOrigin;
     bool m_activeClick;
@@ -197,22 +211,22 @@ private:
     bool iShowBufferScrollIndicator;
     bool iAllowGestures;
 
-    QQuickItem *m_contentItem;
-    QQuickItem *m_backgroundContainer;
-    QQuickItem *m_textContainer;
-    QQuickItem *m_overlayContainer;
-    QQmlComponent *m_cellDelegate;
+    QQuickItem* m_contentItem;
+    QQuickItem* m_backgroundContainer;
+    QQuickItem* m_textContainer;
+    QQuickItem* m_overlayContainer;
+    QQmlComponent* m_cellDelegate;
     QVector<QQuickItem*> m_cells;
     QVector<QQuickItem*> m_freeCells;
-    QQmlComponent *m_cellContentsDelegate;
+    QQmlComponent* m_cellContentsDelegate;
     QVector<QQuickItem*> m_cellsContent;
     QVector<QQuickItem*> m_freeCellsContent;
-    QQmlComponent *m_cursorDelegate;
-    QQuickItem *m_cursorDelegateInstance;
-    QQmlComponent *m_selectionDelegate;
-    QQuickItem *m_topSelectionDelegateInstance;
-    QQuickItem *m_middleSelectionDelegateInstance;
-    QQuickItem *m_bottomSelectionDelegateInstance;
+    QQmlComponent* m_cursorDelegate;
+    QQuickItem* m_cursorDelegateInstance;
+    QQmlComponent* m_selectionDelegate;
+    QQuickItem* m_topSelectionDelegateInstance;
+    QQuickItem* m_middleSelectionDelegateInstance;
+    QQuickItem* m_bottomSelectionDelegateInstance;
     DragMode m_dragMode;
     QString m_title;
     int m_dispatch_timer;
