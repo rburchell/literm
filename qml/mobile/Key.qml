@@ -16,6 +16,7 @@
 */
 
 import QtQuick 2.0
+import literm 1.0
 
 Rectangle {
     id: key
@@ -70,7 +71,7 @@ Rectangle {
             opacity: key.labelOpacity * (highlighted ? 1.0 : 0.2)
             Behavior on opacity { NumberAnimation { duration: 100 } }
 
-            font.family: util.fontFamily
+            font.family: Util.fontFamily
             font.pointSize: (highlighted ? window.fontSizeLarge : window.fontSizeSmall) * (text.length > 1 ? 0.5 : 1.0)
             Behavior on font.pointSize { NumberAnimation { duration: 100 } }
         }
@@ -98,7 +99,7 @@ Rectangle {
             opacity: key.labelOpacity * (highlighted ? 1.0 : 0.2)
             Behavior on opacity { NumberAnimation { duration: 100 } }
 
-            font.family: util.fontFamily
+            font.family: Util.fontFamily
             font.pointSize: (highlighted ? window.fontSizeLarge : window.fontSizeSmall) * (text.length > 1 ? 0.5 : 1.0)
             Behavior on font.pointSize { NumberAnimation { duration: 100 } }
         }
@@ -121,7 +122,7 @@ Rectangle {
 
         key.color = keyboard.keyHilightBgColor
         keyboard.currentKeyPressed = key;
-        util.keyPressFeedback();
+        Util.keyPressFeedback();
 
         keyRepeatStarter.start();
 
@@ -167,7 +168,7 @@ Rectangle {
         }
 
         if (vkb.keyAt(x, y) == key) {
-            util.keyReleaseFeedback()
+            Util.keyReleaseFeedback()
 
             if (key.sticky && key.becomesSticky) {
                 setStickiness(-1)

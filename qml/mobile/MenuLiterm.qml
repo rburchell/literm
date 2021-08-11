@@ -61,7 +61,7 @@ Item {
 
         XmlListModel {
             id: xmlModel
-            xml: util.getUserMenuXml()
+            xml: Util.getUserMenuXml()
             query: "/userMenu/item"
 
             XmlRole { name: "title"; query: "title/string()" }
@@ -74,7 +74,7 @@ Item {
             Button {
                 text: title
                 isShellCommand: true
-                enabled: disableOn.length === 0 || util.windowTitle.search(disableOn) === -1
+                enabled: disableOn.length === 0 || Util.windowTitle.search(disableOn) === -1
                 onClicked: {
                     menuWin.showing = false;
                     textrender.putString(command);
@@ -172,8 +172,8 @@ Item {
                                     Button {
                                         text: "<font size=\"+3\">+</font>"
                                         onClicked: {
-                                            util.fontSize = util.fontSize + window.pixelRatio
-                                            util.notifyText(textrender.terminalSize.width + "×" + textrender.terminalSize.height);
+                                            Util.fontSize = Util.fontSize + window.pixelRatio
+                                            Util.notifyText(textrender.terminalSize.width + "×" + textrender.terminalSize.height);
                                         }
                                         width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
@@ -181,8 +181,8 @@ Item {
                                     Button {
                                         text: "<font size=\"+3\">-</font>"
                                         onClicked: {
-                                            util.fontSize = util.fontSize - window.pixelRatio
-                                            util.notifyText(textrender.terminalSize.width + "×" + textrender.terminalSize.height);
+                                            Util.fontSize = Util.fontSize - window.pixelRatio
+                                            Util.notifyText(textrender.terminalSize.width + "×" + textrender.terminalSize.height);
                                         }
                                         width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
@@ -210,22 +210,22 @@ Item {
                                 Row {
                                     Button {
                                         text: "<font size=\"-1\">Auto</font>"
-                                        highlighted: util.orientationMode == Util.OrientationAuto
-                                        onClicked: util.orientationMode = Util.OrientationAuto
+                                        highlighted: Util.orientationMode == Util.OrientationAuto
+                                        onClicked: Util.orientationMode = Util.OrientationAuto
                                         width: window.buttonWidthSmall
                                         height: window.buttonHeightSmall
                                     }
                                     Button {
                                         text: "<font size=\"-1\">L<font>"
-                                        highlighted: util.orientationMode == Util.OrientationLandscape
-                                        onClicked: util.orientationMode = Util.OrientationLandscape
+                                        highlighted: Util.orientationMode == Util.OrientationLandscape
+                                        onClicked: Util.orientationMode = Util.OrientationLandscape
                                         width: window.buttonWidthSmall
                                         height: window.buttonHeightSmall
                                     }
                                     Button {
                                         text: "<font size=\"-1\">P</font>"
-                                        highlighted: util.orientationMode == Util.OrientationPortrait
-                                        onClicked: util.orientationMode = Util.OrientationPortrait
+                                        highlighted: Util.orientationMode == Util.OrientationPortrait
+                                        onClicked: Util.orientationMode = Util.OrientationPortrait
                                         width: window.buttonWidthSmall
                                         height: window.buttonHeightSmall
                                     }
@@ -252,9 +252,9 @@ Item {
                                 Row {
                                     Button {
                                         text: "<font size=\"-1\">Gesture</font>"
-                                        highlighted: util.dragMode == Util.DragGestures
+                                        highlighted: Util.dragMode == Util.DragGestures
                                         onClicked: {
-                                            util.dragMode = Util.DragGestures
+                                            Util.dragMode = Util.DragGestures
                                             textrender.deselect();
                                             menuWin.showing = false;
                                         }
@@ -263,9 +263,9 @@ Item {
                                     }
                                     Button {
                                         text: "<font size=\"-1\">Scroll</font>"
-                                        highlighted: util.dragMode == Util.DragScroll
+                                        highlighted: Util.dragMode == Util.DragScroll
                                         onClicked: {
-                                            util.dragMode = Util.DragScroll
+                                            Util.dragMode = Util.DragScroll
                                             textrender.deselect();
                                             menuWin.showing = false;
                                         }
@@ -274,9 +274,9 @@ Item {
                                     }
                                     Button {
                                         text: "<font size=\"-1\">Select</font>"
-                                        highlighted: util.dragMode == Util.DragSelect
+                                        highlighted: Util.dragMode == Util.DragSelect
                                         onClicked: {
-                                            util.dragMode = Util.DragSelect
+                                            Util.dragMode = Util.DragSelect
                                             menuWin.showing = false;
                                         }
                                         width: window.buttonWidthSmall
@@ -305,9 +305,9 @@ Item {
                                 Row {
                                     Button {
                                         text: "Off"
-                                        highlighted: util.keyboardMode == Util.KeyboardOff
+                                        highlighted: Util.keyboardMode == Util.KeyboardOff
                                         onClicked: {
-                                            util.keyboardMode = Util.KeyboardOff
+                                            Util.keyboardMode = Util.KeyboardOff
                                             window.setTextRenderAttributes();
                                             menuWin.showing = false;
                                         }
@@ -316,9 +316,9 @@ Item {
                                     }
                                     Button {
                                         text: "Fade"
-                                        highlighted: util.keyboardMode == Util.KeyboardFade
+                                        highlighted: Util.keyboardMode == Util.KeyboardFade
                                         onClicked: {
-                                            util.keyboardMode = Util.KeyboardFade
+                                            Util.keyboardMode = Util.KeyboardFade
                                             window.setTextRenderAttributes();
                                             menuWin.showing = false;
                                         }
@@ -327,9 +327,9 @@ Item {
                                     }
                                     Button {
                                         text: "Move"
-                                        highlighted: util.keyboardMode == Util.KeyboardMove
+                                        highlighted: Util.keyboardMode == Util.KeyboardMove
                                         onClicked: {
-                                            util.keyboardMode = Util.KeyboardMove
+                                            Util.keyboardMode = Util.KeyboardMove
                                             window.setTextRenderAttributes();
                                             menuWin.showing = false;
                                         }
@@ -343,7 +343,7 @@ Item {
                             text: "New window"
                             onClicked: {
                                 menuWin.showing = false;
-                                util.openNewWindow();
+                                Util.openNewWindow();
                             }
                         }
                         Button {
@@ -400,7 +400,7 @@ Item {
                     Rectangle {
                         id: vkbDelaySlider
 
-                        property int keyboardFadeOutDelay: util.keyboardFadeOutDelay
+                        property int keyboardFadeOutDelay: Util.keyboardFadeOutDelay
 
                         y: window.headerHeight
                         width: window.buttonWidthSmall
@@ -425,7 +425,7 @@ Item {
                             drag.maximumX: vkbDelaySliderArea.width - vkbDelaySlider.width
                             drag.onActiveChanged: {
                                 if (!drag.active) {
-                                    util.keyboardFadeOutDelay = vkbDelaySlider.keyboardFadeOutDelay
+                                    Util.keyboardFadeOutDelay = vkbDelaySlider.keyboardFadeOutDelay
                                 }
                             }
                         }

@@ -1,4 +1,5 @@
 /*
+    Copyright 2021 Crimson AS <info@crimson.no>
     Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
 
     This work is free software: you can redistribute it and/or modify
@@ -78,6 +79,17 @@ QString Util::panUpTitle() const
 QString Util::panUpCommand() const
 {
     return settingsValue("gestures/panUpCommand", "\\e[6~").toString();
+}
+
+QString Util::startupErrorMessage() const
+{
+    return m_startupErrorMessage;
+}
+
+void Util::setStartupErrorMessage(const QString& message)
+{
+    Q_ASSERT(m_startupErrorMessage.isNull()); // CONSTANT
+    m_startupErrorMessage = message;
 }
 
 QByteArray Util::terminalEmulator() const

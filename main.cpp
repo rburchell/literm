@@ -81,6 +81,7 @@ int main(int argc, char* argv[])
     QString settingsFile = settings_path + "/settings.ini";
 
     Util util(settingsFile);
+    qmlRegisterSingletonInstance("literm", 1, 0, "Util", &util);
 
     QString startupErrorMsg;
 
@@ -94,6 +95,7 @@ int main(int argc, char* argv[])
 
     KeyLoader keyLoader;
     keyLoader.setUtil(&util);
+    qmlRegisterSingletonInstance("literm", 1, 0, "KeyLoader", &keyLoader);
     bool ret = keyLoader.loadLayout(util.keyboardLayout());
     if (!ret) {
         // on failure, try to load the default one (english) directly from resources
@@ -103,11 +105,6 @@ int main(int argc, char* argv[])
         if (!ret)
             qFatal("failure loading keyboard layout");
     }
-
-    QQmlContext* context = view.rootContext();
-    context->setContextProperty("util", &util);
-    context->setContextProperty("keyLoader", &keyLoader);
-    context->setContextProperty("startupErrorMessage", startupErrorMsg);
 
     util.setWindow(&view);
 

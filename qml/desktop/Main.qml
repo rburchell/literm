@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 Crimson AS <info@crimson.no>
  * Copyright (C) 2017 Robin Burchell <robin+git@viroteck.net>
  * Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
  *
@@ -59,7 +60,7 @@ Rectangle {
     property int fontSizeSmall: 14*pixelRatio
     property int fontSizeLarge: 24*pixelRatio
 
-    property int uiFontSize: util.uiFontSize * pixelRatio
+    property int uiFontSize: Util.uiFontSize * pixelRatio
 
     property int scrollBarWidth: 6*window.pixelRatio
 
@@ -78,35 +79,35 @@ Rectangle {
                 focus: true
 
                 onPanLeft: {
-                    util.notifyText(util.panLeftTitle)
-                    textrender.putString(util.panLeftCommand)
+                    Util.notifyText(Util.panLeftTitle)
+                    textrender.putString(Util.panLeftCommand)
                 }
                 onPanRight: {
-                    util.notifyText(util.panRightTitle)
-                    textrender.putString(util.panRightCommand)
+                    Util.notifyText(Util.panRightTitle)
+                    textrender.putString(Util.panRightCommand)
                 }
                 onPanUp: {
-                    util.notifyText(util.panUpTitle)
-                    textrender.putString(util.panUpCommand)
+                    Util.notifyText(Util.panUpTitle)
+                    textrender.putString(Util.panUpCommand)
                 }
                 onPanDown: {
-                    util.notifyText(util.panDownTitle)
-                    textrender.putString(util.panDownCommand)
+                    Util.notifyText(Util.panDownTitle)
+                    textrender.putString(Util.panDownCommand)
                 }
 
                 onDisplayBufferChanged: {
                     textrender.cutAfter = textrender.height;
                     textrender.y = 0;
                 }
-                charset: util.charset
-                terminalCommand: util.terminalCommand
-                terminalEnvironment: util.terminalEmulator
+                charset: Util.charset
+                terminalCommand: Util.terminalCommand
+                terminalEnvironment: Util.terminalEmulator
                 onTitleChanged: {
-                    util.windowTitle = title
+                    Util.windowTitle = title
                 }
-                dragMode: util.dragMode
+                dragMode: Util.dragMode
                 onVisualBell: {
-                    if (util.visualBellEnabled)
+                    if (Util.visualBellEnabled)
                         bellTimer.start()
                 }
                 contentItem: Item {
@@ -176,29 +177,29 @@ Rectangle {
                         loops: Animation.Infinite
                         PauseAnimation {
                             id: startPauseAnim
-                            duration: util.cursorAnimationStartPauseDuration
+                            duration: Util.cursorAnimationStartPauseDuration
                         }
                         NumberAnimation {
                             id: fadeInAnim
                             target: cursor
                             property: "opacity"
                             to: 0.8
-                            duration: util.cursorAnimationFadeInDuration
+                            duration: Util.cursorAnimationFadeInDuration
                         }
                         PauseAnimation {
                             id: middlePauseAnim
-                            duration: util.cursorAnimationMiddlePauseDuration
+                            duration: Util.cursorAnimationMiddlePauseDuration
                         }
                         NumberAnimation {
                             id: fadeOutAnim
                             target: cursor
                             property: "opacity"
                             to: 0.5
-                            duration: util.cursorAnimationFadeOutDuration
+                            duration: Util.cursorAnimationFadeOutDuration
                         }
                         PauseAnimation {
                             id: endPauseAnim
-                            duration: util.cursorAnimationEndPauseDuration
+                            duration: Util.cursorAnimationEndPauseDuration
                         }
                     }
                 }
@@ -224,8 +225,8 @@ Rectangle {
                 property int cutAfter: height
 
                 anchors.fill: parent
-                font.family: util.fontFamily
-                font.pointSize: util.fontSize
+                font.family: Util.fontFamily
+                font.pointSize: Util.fontSize
                 allowGestures: !menu.showing && !urlWindow.show && !aboutDialog.show && !layoutWindow.show
 
                 onCutAfterChanged: {
@@ -396,7 +397,7 @@ Rectangle {
     }
 
     Connections {
-        target: util
+        target: Util
         onNotify: {
             textNotify.text = msg;
             textNotifyAnim.enabled = false;
@@ -450,11 +451,11 @@ Rectangle {
         id: aboutDialog
 
         text: {
-            var str = "<font size=\"+3\">literm " + util.versionString() + "</font><br>\n" +
+            var str = "<font size=\"+3\">literm " + Util.versionString() + "</font><br>\n" +
                     "<font size=\"+1\">" +
                     "Source code:<br>\n<a href=\"https://github.com/rburchell/literm/\">https://github.com/rburchell/literm/</a>\n\n"
                     "Config files for adjusting settings are at:<br>\n" +
-                    util.configPath() + "/<br><br>\n"
+                    Util.configPath() + "/<br><br>\n"
             str += "</font>";
             return str;
         }
@@ -473,8 +474,8 @@ Rectangle {
     }
 
     Component.onCompleted: {
-        if (startupErrorMessage != "") {
-            showErrorMessage(startupErrorMessage)
+        if (Util.startupErrorMessage != "") {
+            showErrorMessage(Util.startupErrorMessage)
         }
     }
 

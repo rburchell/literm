@@ -16,6 +16,7 @@
 */
 
 import QtQuick 2.0
+import literm 1.0
 
 PopupWindow {
     id: urlWindow
@@ -61,7 +62,7 @@ PopupWindow {
                 width: 70*window.pixelRatio
                 anchors.rightMargin: window.paddingSmall
                 onClicked: {
-                    util.copyTextToClipboard(modelData);
+                    Util.copyTextToClipboard(modelData);
                 }
             }
         }

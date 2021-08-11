@@ -61,7 +61,7 @@ Item {
 
         XmlListModel {
             id: xmlModel
-            xml: util.getUserMenuXml()
+            xml: Util.getUserMenuXml()
             query: "/userMenu/item"
 
             XmlRole { name: "title"; query: "title/string()" }
@@ -74,7 +74,7 @@ Item {
             Button {
                 text: title
                 isShellCommand: true
-                enabled: disableOn.length === 0 || util.windowTitle.search(disableOn) === -1
+                enabled: disableOn.length === 0 || Util.windowTitle.search(disableOn) === -1
                 onClicked: {
                     menuWin.showing = false;
                     activeTerminal.putString(command);
@@ -149,8 +149,8 @@ Item {
                                     Button {
                                         text: "<font size=\"+3\">+</font>"
                                         onClicked: {
-                                            util.fontSize = util.fontSize + window.pixelRatio
-                                            util.notifyText(activeTerminal.terminalSize.width + "×" + activeTerminal.terminalSize.height);
+                                            Util.fontSize = Util.fontSize + window.pixelRatio
+                                            Util.notifyText(activeTerminal.terminalSize.width + "×" + activeTerminal.terminalSize.height);
                                         }
                                         width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
@@ -158,8 +158,8 @@ Item {
                                     Button {
                                         text: "<font size=\"+3\">-</font>"
                                         onClicked: {
-                                            util.fontSize = util.fontSize - window.pixelRatio
-                                            util.notifyText(activeTerminal.terminalSize.width + "×" + activeTerminal.terminalSize.height);
+                                            Util.fontSize = Util.fontSize - window.pixelRatio
+                                            Util.notifyText(activeTerminal.terminalSize.width + "×" + activeTerminal.terminalSize.height);
                                         }
                                         width: window.buttonWidthHalf
                                         height: window.buttonHeightSmall
@@ -187,9 +187,9 @@ Item {
                                 Row {
                                     Button {
                                         text: "<font size=\"-1\">Gesture</font>"
-                                        highlighted: util.dragMode == Util.DragGestures
+                                        highlighted: Util.dragMode == Util.DragGestures
                                         onClicked: {
-                                            util.dragMode = Util.DragGestures
+                                            Util.dragMode = Util.DragGestures
                                             activeTerminal.deselect();
                                             menuWin.showing = false;
                                         }
@@ -198,9 +198,9 @@ Item {
                                     }
                                     Button {
                                         text: "<font size=\"-1\">Scroll</font>"
-                                        highlighted: util.dragMode == Util.DragScroll
+                                        highlighted: Util.dragMode == Util.DragScroll
                                         onClicked: {
-                                            util.dragMode = Util.DragScroll
+                                            Util.dragMode = Util.DragScroll
                                             activeTerminal.deselect();
                                             menuWin.showing = false;
                                         }
@@ -209,9 +209,9 @@ Item {
                                     }
                                     Button {
                                         text: "<font size=\"-1\">Select</font>"
-                                        highlighted: util.dragMode == Util.DragSelect
+                                        highlighted: Util.dragMode == Util.DragSelect
                                         onClicked: {
-                                            util.dragMode = Util.DragSelect
+                                            Util.dragMode = Util.DragSelect
                                             menuWin.showing = false;
                                         }
                                         width: window.buttonWidthSmall

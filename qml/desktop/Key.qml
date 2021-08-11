@@ -1,4 +1,5 @@
 /*
+    Copyright 2021 Crimson AS <info@crimson.no>
     Copyright 2011-2012 Heikki Holstila <heikki.holstila@gmail.com>
 
     This work is free software. you can redistribute it and/or modify
@@ -16,6 +17,7 @@
 */
 
 import QtQuick 2.0
+import literm 1.0
 
 Rectangle {
     id: key
@@ -69,7 +71,7 @@ Rectangle {
             opacity: key.labelOpacity * (highlighted ? 1.0 : 0.2)
             Behavior on opacity { NumberAnimation { duration: 100 } }
 
-            font.family: util.fontFamily
+            font.family: Util.fontFamily
             font.pointSize: (highlighted ? window.fontSizeLarge : window.fontSizeSmall) * (text.length > 1 ? 0.5 : 1.0)
             Behavior on font.pointSize { NumberAnimation { duration: 100 } }
         }
@@ -97,7 +99,7 @@ Rectangle {
             opacity: key.labelOpacity * (highlighted ? 1.0 : 0.2)
             Behavior on opacity { NumberAnimation { duration: 100 } }
 
-            font.family: util.fontFamily
+            font.family: Util.fontFamily
             font.pointSize: (highlighted ? window.fontSizeLarge : window.fontSizeSmall) * (text.length > 1 ? 0.5 : 1.0)
             Behavior on font.pointSize { NumberAnimation { duration: 100 } }
         }
@@ -123,7 +125,7 @@ Rectangle {
 
             key.color = keyboard.keyHilightBgColor
             keyboard.currentKeyPressed = key;
-            util.keyPressFeedback();
+            Util.keyPressFeedback();
 
             keyRepeatStarter.start();
 
@@ -166,7 +168,7 @@ Rectangle {
             release()
 
             if (containsMouse) {
-                util.keyReleaseFeedback();
+                Util.keyReleaseFeedback();
 
                 if (key.sticky && key.becomesSticky) {
                     setStickiness(-1);
