@@ -32,6 +32,11 @@ class Util : public QObject
     Q_PROPERTY(QString windowTitle READ windowTitle WRITE setWindowTitle NOTIFY windowTitleChanged)
     Q_PROPERTY(int windowOrientation READ windowOrientation WRITE setWindowOrientation NOTIFY windowOrientationChanged)
     Q_PROPERTY(bool visualBellEnabled READ visualBellEnabled CONSTANT)
+    Q_PROPERTY(int cursorAnimationStartPauseDuration READ cursorAnimationStartPauseDuration CONSTANT)
+    Q_PROPERTY(int cursorAnimationFadeInDuration READ cursorAnimationFadeInDuration CONSTANT)
+    Q_PROPERTY(int cursorAnimationMiddlePauseDuration READ cursorAnimationMiddlePauseDuration CONSTANT)
+    Q_PROPERTY(int cursorAnimationFadeOutDuration READ cursorAnimationFadeOutDuration CONSTANT)
+    Q_PROPERTY(int cursorAnimationEndPauseDuration READ cursorAnimationEndPauseDuration CONSTANT)
     Q_PROPERTY(QString fontFamily READ fontFamily CONSTANT)
     Q_PROPERTY(int uiFontSize READ uiFontSize CONSTANT)
     Q_PROPERTY(int fontSize READ fontSize WRITE setFontSize NOTIFY fontSizeChanged)
@@ -114,7 +119,13 @@ public:
 
     Q_INVOKABLE void copyTextToClipboard(QString str);
 
-    bool visualBellEnabled();
+    bool visualBellEnabled() const;
+
+    int cursorAnimationStartPauseDuration() const;
+    int cursorAnimationFadeInDuration() const;
+    int cursorAnimationMiddlePauseDuration() const;
+    int cursorAnimationFadeOutDuration() const;
+    int cursorAnimationEndPauseDuration() const;
 
     QString fontFamily();
 

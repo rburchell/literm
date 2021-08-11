@@ -162,22 +162,43 @@ Rectangle {
                     id: cursor
                     opacity: 0.5
                     SequentialAnimation {
-                        running: Qt.application.state == Qt.ApplicationActive
+                        running: {
+                            if (Qt.application.state != Qt.ApplicationActive) {
+                                return false;
+                            }
+
+                            return startPauseAnim.duration > 0 ||
+                                   fadeInAnim.duration > 0 ||
+                                   middlePauseAnim.duration > 0 ||
+                                   fadeOutAnim.duration > 0 ||
+                                   endPauseAnim.duration > 0
+                        }
                         loops: Animation.Infinite
+                        PauseAnimation {
+                            id: startPauseAnim
+                            duration: util.cursorAnimationStartPauseDuration
+                        }
                         NumberAnimation {
+                            id: fadeInAnim
                             target: cursor
                             property: "opacity"
                             to: 0.8
-                            duration: 200
+                            duration: util.cursorAnimationFadeInDuration
                         }
                         PauseAnimation {
-                            duration: 400
+                            id: middlePauseAnim
+                            duration: util.cursorAnimationMiddlePauseDuration
                         }
                         NumberAnimation {
+                            id: fadeOutAnim
                             target: cursor
                             property: "opacity"
                             to: 0.5
-                            duration: 200
+                            duration: util.cursorAnimationFadeOutDuration
+                        }
+                        PauseAnimation {
+                            id: endPauseAnim
+                            duration: util.cursorAnimationEndPauseDuration
                         }
                     }
                 }

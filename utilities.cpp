@@ -205,9 +205,34 @@ void Util::keyReleaseFeedback()
 #endif
 }
 
-bool Util::visualBellEnabled()
+bool Util::visualBellEnabled() const
 {
     return settingsValue("general/visualBell", true).toBool();
+}
+
+int Util::cursorAnimationStartPauseDuration() const
+{
+    return settingsValue("cursor/animation/startPauseDuration", 500).toInt();
+}
+
+int Util::cursorAnimationFadeInDuration() const
+{
+    return settingsValue("cursor/animation/fadeInDuration", 0).toInt();
+}
+
+int Util::cursorAnimationMiddlePauseDuration() const
+{
+    return settingsValue("cursor/animation/middlePauseDuration", 500).toInt();
+}
+
+int Util::cursorAnimationFadeOutDuration() const
+{
+    return settingsValue("cursor/animation/fadeOutDuration", 0).toInt();
+}
+
+int Util::cursorAnimationEndPauseDuration() const
+{
+    return settingsValue("cursor/animation/endPauseDuration", 0).toInt();
 }
 
 QString Util::fontFamily()
