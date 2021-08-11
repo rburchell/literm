@@ -1199,6 +1199,10 @@ void Terminal::oscSequence(const QString& seq)
                 // set window title
                 emit windowTitleChanged(seq.mid(3));
                 return;
+            } else if (seq.at(1) == '7' && seq.at(2) == ';') {
+                // working directory changed
+                emit workingDirectoryChanged(seq.mid(3));
+                return;
             } else if (seq.at(1) == '6' && seq.at(2) == ';') {
                 // iTerm2 proprietary:
                 // Set window title and tab chrome background color

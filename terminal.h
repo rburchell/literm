@@ -156,6 +156,7 @@ signals:
     void selectionFinished();
     void visualBell();
     void windowTitleChanged(const QString& windowTitle);
+    void workingDirectoryChanged(const QString& workingDirectory);
     void hangupReceived();
 
 protected:
