@@ -435,7 +435,9 @@ void Terminal::insertInBuffer(const QString& chars)
 
     for (int i = 0; i < chars.size(); i++) {
         const QChar& ch = chars.at(i);
-        switch (ch.toLatin1()) {
+        auto scalar = ch.toLatin1();
+
+        switch (scalar) {
         case '\n':
         case 11: // vertical tab
         case 12: // form feed
@@ -477,20 +479,20 @@ void Terminal::insertInBuffer(const QString& chars)
             break;
         default:
             if (escape >= 0) {
-                if (escape == 0 && (ch.toLatin1() == '[')) {
+                if (escape == 0 && (scalar == '[')) {
                     escape = '['; //ansi sequence
                     escSeq += ch;
-                } else if (escape == 0 && (ch.toLatin1() == ']')) {
+                } else if (escape == 0 && (scalar == ']')) {
                     escape = ']'; //osc sequence
                     oscSeq += ch;
-                } else if (escape == 0 && multiCharEscapes.contains(ch.toLatin1())) {
-                    escape = ch.toLatin1();
+                } else if (escape == 0 && multiCharEscapes.contains(scalar)) {
+                    escape = scalar;
                     escSeq += ch;
-                } else if (escape == 0 && ch.toLatin1() == '\\') { // ESC\ also ends OSC sequence
+                } else if (escape == 0 && scalar == '\\') { // ESC\ also ends OSC sequence
                     escape = -1;
                     oscSequence(oscSeq);
                     oscSeq.clear();
-                } else if (ch.toLatin1() == '\e') {
+                } else if (scalar == '\e') {
                     escape = 0;
                 } else if (escape == '[' || multiCharEscapes.contains(escape)) {
                     escSeq += ch;
@@ -499,11 +501,11 @@ void Terminal::insertInBuffer(const QString& chars)
                 } else if (multiCharEscapes.contains(escape)) {
                     escSeq += ch;
                 } else {
-                    escControlChar(QByteArray(1, ch.toLatin1()));
+                    escControlChar(QByteArray(1, scalar));
                     escape = -1;
                 }
 
-                if (escape == '[' && ch.toLatin1() >= 64 && ch.toLatin1() <= 126 && ch.toLatin1() != '[') {
+                if (escape == '[' && scalar >= 64 && scalar <= 126 && scalar != '[') {
                     ansiSequence(escSeq);
                     escape = -1;
                     escSeq.clear();
@@ -514,10 +516,11 @@ void Terminal::insertInBuffer(const QString& chars)
                     escSeq.clear();
                 }
             } else {
-                if (ch.isPrint())
-                    insertAtCursor(ch, !iReplaceMode);
-                else if (ch.toLatin1() == '\e')
+                if (scalar == '\e') {
                     escape = 0;
+                } else {
+                    insertAtCursor(ch, !iReplaceMode);
+                }
             }
             break;
         }
