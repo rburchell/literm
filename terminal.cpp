@@ -1010,6 +1010,7 @@ void Terminal::ansiSequence(const QString& seq)
     case 't':
         // TODO: XTWINOPS, window manipulation.
         // Resize request.
+        break;
 
     default:
         unhandled = true;
