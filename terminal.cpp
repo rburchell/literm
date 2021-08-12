@@ -969,6 +969,16 @@ void Terminal::ansiSequence(const QString& seq)
         }
         break;
 
+    case 'q':
+        // TODO: DECSCUSR
+        // Set cursor style
+        // param[0]:
+        // - 0/1/not set: blink block
+        // - 2: steady block
+        // - 3: blink underline
+        // - 4: steady underline
+        break;
+
     case 'r': // scrolling region
         if (!extra.isEmpty()) {
             unhandled = true;
@@ -997,13 +1007,17 @@ void Terminal::ansiSequence(const QString& seq)
         setCursorPos(QPoint(1, iMarginTop));
         break;
 
+    case 't':
+        // TODO: XTWINOPS, window manipulation.
+        // Resize request.
+
     default:
         unhandled = true;
         break;
     }
 
     if (unhandled)
-        qDebug() << "unhandled ansi sequence " << cmdChar << params << extra;
+        qDebug() << "unhandled CSI sequence " << cmdChar << params << extra;
 }
 
 void Terminal::handleMode(int mode, bool set, const QString& extra)
@@ -1041,6 +1055,18 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
             break;
         case 69:
             // TODO: Not sure what this is...
+            break;
+        case 1000:
+            // TODO: xterm mouse
+            break;
+        case 1002:
+            // TODO: xterm mouse
+            break;
+        case 1004:
+            // TODO: Send focus in/out events
+            break;
+        case 1006:
+            // TODO: xterm mouse
             break;
         case 1049: // use alt screen buffer and save cursor
             if (set) {
