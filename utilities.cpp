@@ -136,7 +136,7 @@ void Util::setWindowOrientation(int orientation)
 
 void Util::openNewWindow()
 {
-    QProcess::startDetached("/usr/bin/literm");
+    QProcess::startDetached("/usr/bin/literm", QStringList());
 }
 
 QString Util::getUserMenuXml()

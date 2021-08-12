@@ -93,7 +93,7 @@ bool KeyLoader::loadLayoutInternal(QIODevice& from)
             line.replace("\\x5D", "]");
             line.replace("\\x5C", "\\");
 
-            QStringList parts = line.split(",", QString::KeepEmptyParts);
+            QStringList parts = line.split(",", Qt::KeepEmptyParts);
             if (parts.count() >= 2) {
                 bool ok = true;
                 key.label = parts.at(0);
