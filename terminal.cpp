@@ -999,12 +999,8 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
             iAppCursorKeys = set;
             break;
         case 3:
-            // column mode
-            // not supported, just clear screen, move cursor home & reset scrolling region
-            clearAll();
-            resetTabs();
-            iMarginTop = 1;
-            iMarginBottom = iTermSize.height();
+            // DECCOLM (column mode)
+            // TODO: implement this...
             break;
         case 4:
             // DECSCLM
