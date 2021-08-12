@@ -90,7 +90,7 @@ Terminal::Terminal(QObject* parent)
     iTermAttribs_saved = iTermAttribs;
     iTermAttribs_saved_alt = iTermAttribs;
 
-    resetTerminal();
+    resetTerminal(ResetMode::Hard);
 }
 
 void Terminal::init()
@@ -902,15 +902,30 @@ void Terminal::ansiSequence(const QString& seq)
         if (params.count() >= 1 && params.at(0) == 6 && extra == "") { // write cursor pos
             QString toWrite = QString("%1[%2;%3R").arg('\e').arg(cursorPos().y()).arg(cursorPos().x()).toLatin1();
             m_pty->writeTerm(toWrite);
-        } else
+        } else {
             unhandled = true;
+        }
         break;
 
     case 'p':
-        if (extra == "!") { // reset terminal
-            resetTerminal();
-        } else
+        if (extra == ">") {
+            /* xterm: select X11 visual cursor mode */
+            resetTerminal(ResetMode::Soft);
+        } else if (extra == "!") {
+            /* DECSTR: Soft Reset */
+            resetTerminal(ResetMode::Soft);
+        } else if (extra == "$") {
+            /* DECRQM: Request DEC Private Mode */
+            /* If CSI_WHAT is set, then enable, otherwise disable */
+            resetTerminal(ResetMode::Soft);
+        } else {
+            /* DECSCL: Compatibility Level */
+            /* Sometimes CSI_DQUOTE is set here, too */
+            resetTerminal(ResetMode::Soft);
+            // TODO: handle the parameter to figure out which compatibility level to set.
+            qDebug() << "unhandled DECSCL";
             unhandled = true;
+        }
         break;
 
     case 's': //save cursor
@@ -1301,7 +1316,7 @@ void Terminal::escControlChar(const QString& seq)
             setCursorPos(QPoint(1, cursorPos().y() + 1));
         }
     } else if (ch.toLatin1() == 'c') { // full reset
-        resetTerminal();
+        resetTerminal(ResetMode::Hard);
     } else if (ch.toLatin1() == 'g') { // visual bell
         emit visualBell();
     } else {
@@ -1412,16 +1427,21 @@ void Terminal::scrollFwd(int lines, int removeAt)
     trimBackBuffer();
 }
 
-void Terminal::resetTerminal()
+void Terminal::resetTerminal(ResetMode mode)
 {
-    iBuffer.clear();
-    iAltBuffer.clear();
-    iBackBuffer.clear();
+    // See: https://vt100.net/docs/vt220-rm/chapter4.html
+    // 4.18 Terminal Reset (DECSTR and RIS)
+    // DECSTR is soft reset mode. RIS is hard.
+    if (mode == ResetMode::Hard) {
+        iBuffer.clear();
+        iAltBuffer.clear();
+        iBackBuffer.clear();
+        iTermAttribs.cursorPos = QPoint(1, 1);
+    }
 
     iTermAttribs.currentFgColor = Parser::fetchDefaultFgColor();
     iTermAttribs.currentBgColor = Parser::fetchDefaultBgColor();
     iTermAttribs.currentAttrib = TermChar::NoAttributes;
-    iTermAttribs.cursorPos = QPoint(1, 1);
     iTermAttribs.wrapAroundMode = true;
     iTermAttribs.originMode = false;
 

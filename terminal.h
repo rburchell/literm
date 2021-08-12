@@ -188,7 +188,13 @@ private:
     void trimBackBuffer();
     void scrollBack(int lines, int insertAt = -1);
     void scrollFwd(int lines, int removeAt = -1);
-    void resetTerminal();
+
+    enum class ResetMode
+    {
+        Soft,
+        Hard,
+    };
+    void resetTerminal(ResetMode);
     void resetTabs();
     void adjustSelectionPosition(int lines);
     void forwardTab();
