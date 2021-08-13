@@ -116,7 +116,7 @@ QString Util::terminalCommand() const
 
 int Util::terminalScrollbackSize() const
 {
-    return m_settings.value("terminal/scrollbackSize", "3000").toInt();
+    return m_settings.value("terminal/scrollbackLineLimit", "3000").toInt();
 }
 
 void Util::setWindow(QQuickView* win)
