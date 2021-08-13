@@ -1392,7 +1392,7 @@ const QStringList Terminal::printableLinesFromCursor(int lines)
 void Terminal::trimBackBuffer()
 {
     // ### this could be done better (removeN)
-    while (backBuffer().size() > maxScrollBackLines) {
+    while (backBuffer().size() > Util::instance()->terminalScrollbackSize()) {
         backBuffer().removeAt(0);
     }
 }

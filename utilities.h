@@ -51,6 +51,7 @@ class Util : public QObject
     Q_PROPERTY(int orientationMode READ orientationMode WRITE setOrientationMode NOTIFY orientationModeChanged)
     Q_PROPERTY(QByteArray terminalEmulator READ terminalEmulator CONSTANT)
     Q_PROPERTY(QString terminalCommand READ terminalCommand CONSTANT)
+    Q_PROPERTY(int terminalScrollbackSize READ terminalScrollbackSize CONSTANT)
     Q_PROPERTY(QString panLeftTitle READ panLeftTitle CONSTANT)
     Q_PROPERTY(QString panLeftCommand READ panLeftCommand CONSTANT)
     Q_PROPERTY(QString panRightTitle READ panRightTitle CONSTANT)
@@ -98,6 +99,7 @@ public:
 
     QByteArray terminalEmulator() const;
     QString terminalCommand() const;
+    int terminalScrollbackSize() const;
 
     void setWindow(QQuickView* win);
     void setWindowTitle(QString title);

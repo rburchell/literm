@@ -114,6 +114,11 @@ QString Util::terminalCommand() const
     return m_settings.value("general/execCmd").toString();
 }
 
+int Util::terminalScrollbackSize() const
+{
+    return m_settings.value("terminal/scrollbackSize", "3000").toInt();
+}
+
 void Util::setWindow(QQuickView* win)
 {
     if (iWindow)

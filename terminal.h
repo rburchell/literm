@@ -167,7 +167,6 @@ private slots:
 
 private:
     Q_DISABLE_COPY(Terminal)
-    static const int maxScrollBackLines = 300;
 
     void insertAtCursor(QChar c, bool overwriteMode = true, bool advanceCursor = true);
     void deleteAt(QPoint pos);
