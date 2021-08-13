@@ -161,6 +161,7 @@ signals:
 
 protected:
     void timerEvent(QTimerEvent*) override;
+    void insertInBuffer(const QString& chars);
 
 private slots:
     void onDataAvailable();
@@ -169,8 +170,6 @@ private:
     Q_DISABLE_COPY(Terminal)
 
     void insertAtCursor(QChar c, bool overwriteMode = true, bool advanceCursor = true);
-    void deleteAt(QPoint pos);
-    void clearAt(QPoint pos);
     void eraseLineAtCursor(int from = -1, int to = -1);
     void clearAll(bool wholeBuffer = false);
     void ansiSequence(const QString& seq);
@@ -198,7 +197,6 @@ private:
     void adjustSelectionPosition(int lines);
     void forwardTab();
     void backwardTab();
-    void insertInBuffer(const QString& chars);
 
     // ### consider making this not a pointer
     PtyIFace* m_pty;

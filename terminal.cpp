@@ -19,12 +19,17 @@
 #include <QClipboard>
 #include <QDebug>
 #include <QGuiApplication>
+#include <QLoggingCategory>
 #include <QRegularExpression>
 
+#if defined(TEST_MODE)
+#    include <QSignalSpy>
+#endif
+
+#include "catch.hpp"
 #include "parser.h"
 #include "ptyiface.h"
 #include "terminal.h"
-#include "textrender.h"
 #include "utilities.h"
 
 #if defined(Q_OS_MAC)
@@ -32,6 +37,9 @@
 #else
 #    define MyControlModifier Qt::ControlModifier
 #endif
+
+Q_LOGGING_CATEGORY(tlog, "literm.terminal", QtWarningMsg)
+Q_LOGGING_CATEGORY(tunimp, "literm.terminal.unimplemented", QtDebugMsg)
 
 /*!
     \class TerminalLine
@@ -564,28 +572,6 @@ void Terminal::insertAtCursor(QChar c, bool overwriteMode, bool advanceCursor)
     }
 }
 
-void Terminal::deleteAt(QPoint pos)
-{
-    clearAt(pos);
-    buffer()[pos.y() - 1].removeAt(pos.x() - 1);
-}
-
-void Terminal::clearAt(QPoint pos)
-{
-    if (pos.y() <= 0 || pos.y() - 1 > buffer().size() || pos.x() <= 0 || pos.x() - 1 > buffer()[pos.y() - 1].size()) {
-        qDebug() << "warning: trying to clear char out of bounds";
-        return;
-    }
-
-    // just in case...
-    while (buffer().size() < pos.y())
-        buffer().append(TerminalLine());
-    while (buffer()[pos.y() - 1].size() < pos.x())
-        buffer()[pos.y() - 1].append(zeroChar);
-
-    buffer()[pos.y() - 1][pos.x() - 1] = zeroChar;
-}
-
 void Terminal::eraseLineAtCursor(int from, int to)
 {
     if (from == -1 && to == -1) {
@@ -928,7 +914,7 @@ void Terminal::ansiSequence(const QString& seq)
             /* Sometimes CSI_DQUOTE is set here, too */
             resetTerminal(ResetMode::Soft);
             // TODO: handle the parameter to figure out which compatibility level to set.
-            qDebug() << "unhandled DECSCL";
+            qCDebug(tunimp) << "unhandled DECSCL" << params << extra;
             unhandled = true;
         }
         break;
@@ -982,6 +968,7 @@ void Terminal::ansiSequence(const QString& seq)
         // - 2: steady block
         // - 3: blink underline
         // - 4: steady underline
+        qCDebug(tunimp) << "unhandled DECSCUSR" << params << extra;
         break;
 
     case 'r': // scrolling region
@@ -1015,6 +1002,7 @@ void Terminal::ansiSequence(const QString& seq)
     case 't':
         // TODO: XTWINOPS, window manipulation.
         // Resize request.
+        qCDebug(tunimp) << "unhandled XTWINOPS" << params << extra;
         break;
 
     default:
@@ -1023,7 +1011,7 @@ void Terminal::ansiSequence(const QString& seq)
     }
 
     if (unhandled)
-        qDebug() << "unhandled CSI sequence " << cmdChar << params << extra;
+        qCDebug(tunimp) << "unhandled CSI sequence " << cmdChar << params << extra;
 }
 
 void Terminal::handleMode(int mode, bool set, const QString& extra)
@@ -1032,16 +1020,6 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
         switch (mode) {
         case 1:
             iAppCursorKeys = set;
-            break;
-        case 3:
-            // DECCOLM (column mode)
-            // TODO: implement this...
-            break;
-        case 4:
-            // DECSCLM
-            // Sets the way the terminal scrolls lines.
-            // Smooth (default), or jump.
-            // TODO: implement
             break;
         case 5: {
             // inverse video (DECSCNM)
@@ -1058,21 +1036,6 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
             break;
         case 25: // show cursor
             iShowCursor = set;
-            break;
-        case 69:
-            // TODO: Not sure what this is...
-            break;
-        case 1000:
-            // TODO: xterm mouse
-            break;
-        case 1002:
-            // TODO: xterm mouse
-            break;
-        case 1004:
-            // TODO: Send focus in/out events
-            break;
-        case 1006:
-            // TODO: xterm mouse
             break;
         case 1049: // use alt screen buffer and save cursor
             if (set) {
@@ -1098,7 +1061,7 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
             m_bracketedPasteMode = set;
             break;
         default:
-            qDebug() << "Unhandled DEC private mode " << mode << set << extra;
+            qCDebug(tunimp) << "unhandled DEC private mode " << mode << set << extra;
         }
     } else if (extra == "") {
         switch (mode) {
@@ -1109,78 +1072,101 @@ void Terminal::handleMode(int mode, bool set, const QString& extra)
             iNewLineMode = set;
             break;
         default:
-            qDebug() << "Unhandled ANSI mode " << mode << set << extra;
+            qCDebug(tunimp) << "Unhandled ANSI mode " << mode << set << extra;
         }
     } else {
-        qDebug() << "Unhandled ANSI/DEC mode " << mode << set << extra;
+        qCDebug(tunimp) << "Unhandled ANSI/DEC mode " << mode << set << extra;
     }
 }
 
 bool Terminal::handleIL(const QList<int>& params, const QString& extra)
 {
     if (!extra.isEmpty()) {
+        qCWarning(tlog) << "IL with unexpected extra" << extra;
         return false;
     }
-    if (cursorPos().y() < iMarginTop || cursorPos().y() > iMarginBottom)
-        return true;
+    if (cursorPos().y() < iMarginTop || cursorPos().y() > iMarginBottom) {
+        qCWarning(tlog) << "IL out of bounds: " << cursorPos() << iMarginTop << iMarginBottom;
+        return false;
+    }
 
-    int p = params.count() < 0 ? 1 : params.at(0);
+    int p = params.count() < 1 ? 1 : params.at(0);
     if (p == 0) {
         p = 1;
     }
 
-    if (p > iMarginBottom - cursorPos().y())
+    if (p > iMarginBottom - cursorPos().y()) {
         scrollBack(iMarginBottom - cursorPos().y(), cursorPos().y());
-    else
+    } else {
         scrollBack(p, cursorPos().y());
+    }
     setCursorPos(QPoint(1, cursorPos().y()));
-    return true;
+    return false;
 }
 
 bool Terminal::handleDL(const QList<int>& params, const QString& extra)
 {
     if (!extra.isEmpty()) {
+        qCWarning(tlog) << "DL with unexpected extra" << extra;
         return false;
     }
-    if (cursorPos().y() < iMarginTop || cursorPos().y() > iMarginBottom)
-        return true;
+    if (cursorPos().y() < iMarginTop || cursorPos().y() > iMarginBottom) {
+        qCWarning(tlog) << "DL out of bounds: " << cursorPos() << iMarginTop << iMarginBottom;
+        return false;
+    }
 
-    int p = params.count() < 0 ? 1 : params.at(0);
+    int p = params.count() < 1 ? 1 : params.at(0);
     if (p == 0) {
         p = 1;
     }
 
-    if (p > iMarginBottom - cursorPos().y())
+    if (p > iMarginBottom - cursorPos().y()) {
         scrollFwd(iMarginBottom - cursorPos().y(), cursorPos().y());
-    else
+    } else {
         scrollFwd(p, cursorPos().y());
+    }
     setCursorPos(QPoint(1, cursorPos().y()));
-    return true;
+    return false;
 }
 
 bool Terminal::handleDCH(const QList<int>& params, const QString& extra)
 {
     if (!extra.isEmpty()) {
+        qCWarning(tlog) << "DCH with unexpected extra" << extra;
         return false;
     }
 
-    int p = params.count() < 0 ? 1 : params.at(0);
+    int p = params.count() < 1 ? 1 : params.at(0);
     if (p == 0) {
         p = 1;
     }
 
-    for (int i = 0; i < p; i++)
-        deleteAt(cursorPos());
-    return true;
+    for (int i = 0; i < p; i++) {
+        auto pos = cursorPos();
+        if (pos.y() <= 0 || pos.y() >= buffer().size()) {
+            // Line out of bounds.
+            return false;
+        }
+
+        auto& line = buffer()[pos.y() - 1];
+        if (pos.x() <= 0 || pos.x() >= line.size()) {
+            // Char out of bounds.
+            return false;
+        }
+
+        line.removeAt(pos.x() - 1);
+    }
+    return false;
 }
 
 bool Terminal::handleICH(const QList<int>& params, const QString& extra)
 {
     if (!extra.isEmpty()) {
+        qCWarning(tlog) << "ICH with unexpected extra" << extra;
         return false;
     }
 
-    int p = params.count() < 0 ? 1 : params.at(0);
+    int p = params.count() < 1 ? 1 : params.at(0);
     if (p == 0) {
         p = 1;
     }
@@ -1194,6 +1180,7 @@ bool Terminal::handleICH(const QList<int>& params, const QString& extra)
 bool Terminal::handleDECSED(const QList<int>& params, const QString& extra)
 {
     if (!extra.isEmpty() && extra != "?") {
+        qCWarning(tlog) << "DECSED with unexpected extra" << extra;
         return false;
     }
 
@@ -1221,6 +1208,7 @@ bool Terminal::handleDECSED(const QList<int>& params, const QString& extra)
 bool Terminal::handleEL(const QList<int>& params, const QString& extra)
 {
     if (!extra.isEmpty() && extra != "?") {
+        qCWarning(tlog) << "EL with unexpected extra" << extra;
         return false;
     }
     if (params.count() >= 1 && params.at(0) == 1) {
@@ -1239,7 +1227,13 @@ bool Terminal::handleEL(const QList<int>& params, const QString& extra)
 // Erase Characters (ECH)
 bool Terminal::handleECH(const QList<int>& params, const QString& extra)
 {
-    if (!extra.isEmpty() || (params.count() > 1)) {
+    if (!extra.isEmpty()) {
+        qCWarning(tlog) << "ECH with unexpected extra" << extra;
+        return false;
+    }
+
+    if (params.count() > 1) {
+        qCWarning(tlog) << "ECH with unexpected params" << params;
         return false;
     }
 
@@ -1250,8 +1244,10 @@ bool Terminal::handleECH(const QList<int>& params, const QString& extra)
 
 void Terminal::oscSequence(const QString& seq)
 {
-    if (seq.length() <= 1 || seq.at(0) != ']')
+    if (seq.length() <= 1 || seq.at(0) != ']') {
+        qCWarning(tlog) << "unexpected OSC seq" << seq;
         return;
+    }
 
     if (seq.length() >= 3) {
         if (seq.at(0) == ']') {
@@ -1293,7 +1289,7 @@ void Terminal::oscSequence(const QString& seq)
         }
     }
 
-    qDebug() << "unhandled OSC" << seq;
+    qCDebug(tunimp) << "unhandled OSC" << seq;
 }
 
 void Terminal::escControlChar(const QString& seq)
@@ -1352,7 +1348,7 @@ void Terminal::escControlChar(const QString& seq)
     } else if (ch.toLatin1() == 'g') { // visual bell
         emit visualBell();
     } else {
-        qDebug() << "unhandled escape code ESC" << seq;
+        qCDebug(tunimp) << "unhandled escape code ESC" << seq;
     }
 }
 
@@ -1794,3 +1790,65 @@ QRect Terminal::selection() const
 {
     return iSelection;
 }
+
+#if defined(TEST_MODE)
+
+class TestTerminal : public Terminal
+{
+public:
+    void insertInBuffer(const QString& characters)
+    {
+        Terminal::insertInBuffer(characters);
+    }
+};
+
+static Util* s_testUtil = nullptr;
+
+static std::unique_ptr<TestTerminal> setupTestTerminal()
+{
+    if (s_testUtil == nullptr) {
+        s_testUtil = new Util("");
+    }
+    auto terminal = std::make_unique<TestTerminal>();
+    terminal->setTermSize(QSize(100, 100));
+    return terminal;
+}
+
+static std::unique_ptr<TestTerminal> requireSuccessfulParse(const QString& characters)
+{
+    auto terminal = setupTestTerminal();
+    terminal->setTermSize(QSize(100, 100));
+    terminal->insertInBuffer(characters);
+    return terminal;
+}
+
+TEST_CASE("Terminal: windowTitleChanged")
+{
+    auto t = setupTestTerminal();
+    QSignalSpy spy(t.get(), &Terminal::windowTitleChanged);
+    t->insertInBuffer("\x1b]2;hello\a");
+    REQUIRE(spy.count() == 1);
+    REQUIRE(spy.at(0)[0] == "hello");
+    spy.clear();
+
+    t->insertInBuffer("\x1b]2;world\x1b\\");
+    REQUIRE(spy.count() == 1);
+    REQUIRE(spy.at(0)[0] == "world");
+}
+
+TEST_CASE("Terminal: IL: No param doesn't crash")
+{
+    requireSuccessfulParse("\x1b[L");
+}
+
+TEST_CASE("Terminal: DL: No param doesn't crash")
+{
+    requireSuccessfulParse("\x1b[M");
+}
+
+TEST_CASE("Terminal: DCH: No param doesn't crash")
+{
+    requireSuccessfulParse("\x1b[P");
+}
+
+#endif
