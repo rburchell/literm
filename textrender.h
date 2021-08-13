@@ -42,9 +42,6 @@ class TextRender : public QQuickItem
     Q_PROPERTY(QSize terminalSize READ terminalSize NOTIFY terminalSizeChanged)
     Q_PROPERTY(QString selectedText READ selectedText NOTIFY selectionChanged)
     Q_PROPERTY(bool canPaste READ canPaste NOTIFY clipboardChanged)
-    Q_PROPERTY(QString charset READ charset WRITE setCharset NOTIFY charsetChanged)
-    Q_PROPERTY(QString terminalCommand READ terminalCommand WRITE setTerminalCommand NOTIFY terminalCommandChanged)
-    Q_PROPERTY(QByteArray terminalEnvironment READ terminalEnvironment WRITE setTerminalEnvironment NOTIFY terminalEnvironmentChanged)
 
     Q_OBJECT
 public:
@@ -54,13 +51,6 @@ public:
     Q_INVOKABLE const QStringList printableLinesFromCursor(int lines);
     Q_INVOKABLE void putString(QString str);
     Q_INVOKABLE const QStringList grabURLsFromBuffer();
-
-    QString charset() const;
-    void setCharset(const QString& charset);
-    QString terminalCommand() const;
-    void setTerminalCommand(const QString& terminalCommand);
-    QByteArray terminalEnvironment() const;
-    void setTerminalEnvironment(const QByteArray& terminalEnvironment);
 
     bool canPaste() const;
     Q_INVOKABLE void copy();
@@ -136,9 +126,6 @@ signals:
     void terminalSizeChanged();
     void clipboardChanged();
     void selectionChanged();
-    void charsetChanged();
-    void terminalCommandChanged();
-    void terminalEnvironmentChanged();
     void displayBufferChanged();
     void panLeft();
     void panRight();

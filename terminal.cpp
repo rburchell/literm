@@ -25,6 +25,7 @@
 #include "ptyiface.h"
 #include "terminal.h"
 #include "textrender.h"
+#include "utilities.h"
 
 #if defined(Q_OS_MAC)
 #    define MyControlModifier Qt::MetaModifier
@@ -95,7 +96,8 @@ Terminal::Terminal(QObject* parent)
 
 void Terminal::init()
 {
-    m_pty = new PtyIFace(this, m_charset, m_terminalEnvironment, m_terminalCommand, this);
+    auto u = Util::instance();
+    m_pty = new PtyIFace(this, u->charset(), u->terminalEmulator(), u->terminalCommand(), this);
     if (m_pty->failed())
         qFatal("pty failure");
     connect(m_pty, SIGNAL(dataAvailable()), this, SLOT(onDataAvailable()));

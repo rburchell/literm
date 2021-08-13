@@ -108,9 +108,6 @@ Item {
                 }
 
                 onDisplayBufferChanged: window.displayBufferChanged()
-                charset: Util.charset
-                terminalCommand: Util.terminalCommand
-                terminalEnvironment: Util.terminalEmulator
                 onTitleChanged: {
                     Util.windowTitle = title
                 }

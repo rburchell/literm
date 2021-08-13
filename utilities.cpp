@@ -32,15 +32,25 @@
 #    include <QFeedbackEffect>
 #endif
 
+static Util* s_instance;
+
 Util::Util(const QString& settingsFile, QObject* parent)
     : QObject(parent)
     , m_settings(settingsFile, QSettings::IniFormat)
     , iWindow(0)
 {
+    Q_ASSERT(s_instance == nullptr);
+    s_instance = this;
 }
 
 Util::~Util()
 {
+    s_instance = nullptr;
+}
+
+Util* Util::instance()
+{
+    return s_instance;
 }
 
 QString Util::panLeftTitle() const

@@ -83,6 +83,7 @@ public:
     explicit Util(const QString& settingsFile, QObject* parent = 0);
     virtual ~Util();
 
+    static Util* instance();
     QString panLeftTitle() const;
     QString panLeftCommand() const;
     QString panRightTitle() const;

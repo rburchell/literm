@@ -236,10 +236,6 @@ private:
     QVector<QRgb> iColorTable;
     int m_dispatch_timer;
 
-    QString m_charset;
-    QString m_terminalCommand;
-    QByteArray m_terminalEnvironment;
-
     friend class TextRender;
 };
 

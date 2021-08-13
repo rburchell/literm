@@ -99,9 +99,6 @@ Rectangle {
                     textrender.cutAfter = textrender.height;
                     textrender.y = 0;
                 }
-                charset: Util.charset
-                terminalCommand: Util.terminalCommand
-                terminalEnvironment: Util.terminalEmulator
                 onTitleChanged: {
                     Util.windowTitle = title
                 }
