@@ -7,14 +7,6 @@ OBJECTS_DIR = .obj
 
 CONFIG += link_pkgconfig
 
-isEmpty(DEFAULT_FONT) {
-    mac: DEFAULT_FONT = Monaco
-    else: DEFAULT_FONT = monospace
-    linux: DEFINES += DETECT_FONT_USING_FC_MATCH
-}
-
-DEFINES += DEFAULT_FONTFAMILY=\\\"$$DEFAULT_FONT\\\"
-
 TEMPLATE = app
 TARGET = literm
 DEPENDPATH += .
