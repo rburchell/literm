@@ -66,7 +66,3 @@ INSTALLS += target
 
 isEmpty(LITERM_TARGET): LITERM_TARGET=desktop
 !include(targets/$${LITERM_TARGET}.pri): error("Can't load LITERM_TARGET definition: $$LITERM_TARGET")
-isEmpty(DEFAULT_DRAG_MODE): error("LITERM_TARGET $$LITERM_TARGET did not set DEFAULT_DRAG_MODE")
-
-DEFINES += DEFAULT_DRAG_MODE=\\\"$$DEFAULT_DRAG_MODE\\\"
-

@@ -273,7 +273,14 @@ QString Util::fontFamily()
 
 TextRender::DragMode Util::dragMode()
 {
-    QString mode = settingsValue("ui/dragMode", DEFAULT_DRAG_MODE).toString();
+#if defined(MOBILE_BUILD)
+    QString defaultDragMode("scroll");
+#elif defined(DESKTOP_BUILD) || defined(TEST_MODE)
+    QString defaultDragMode("select");
+#else
+#    error Unknown default dragMode
+#endif
+    QString mode = settingsValue("ui/dragMode", defaultDragMode).toString();
 
     if (mode == "gestures") {
         return TextRender::DragGestures;
